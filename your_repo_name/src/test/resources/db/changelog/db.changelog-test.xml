@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+		xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+			http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+	<!-- Include main changelog first -->
+		<include file="classpath:db/changelog/db.changelog.xml" />	
+
+	<!-- Test-only seed data -->
+	<changeSet id="1.0.1-seed-test-data" author="robert.sima">
+		<comment>Inserting seed test data (TEST ONLY)</comment>
+		<sqlFile path="scripts/seed-data.sql" relativeToChangelogFile="true" splitStatements="true" stripComments="true" />
+	</changeSet>
+</databaseChangeLog>

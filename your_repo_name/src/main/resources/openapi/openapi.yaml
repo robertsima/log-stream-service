@@ -1,0 +1,59 @@
+# this is just a sample openapi spec to define some endpoint for now
+
+openapi: 3.0.3
+
+info:
+  title: User Service API
+  version: 1.0.0
+
+tags:
+  - name: Users
+    description: User operations
+
+paths:
+  /users:
+    get:
+      tags:
+        - Users
+      operationId: getUsersByName
+      summary: Get users by name
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Users matching the name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserDTO"
+        "400":
+          description: Invalid name supplied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    UserDTO:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: integer
