@@ -7,7 +7,7 @@ A lightweight real-time log relay/stream service for small applications. Apps se
 - [ ] POST endpoint with param appId to generate a one time access token with email and username - no other user authentication yet
 - [ ] Token generation service
 - [ ] Token ingestion auth service to take token for app auth
-- [ ] Web Socket log injest endpoint that takes log event requests and auth header with token
+- [ ] Webhook log injest endpoint that takes log event requests and auth header with token
 - [ ] TestStreamService - console.log the logs coming in (to make sure everything is working)
 - [ ] Use a discord webhook to send alerts for ERRORs only
 
