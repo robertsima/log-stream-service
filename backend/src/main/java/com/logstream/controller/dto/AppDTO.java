@@ -1,33 +1,17 @@
-package com.logstream.model;
+package com.logstream.controller.dto;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+public class AppDTO {
 
-@Entity
-@Table(name = "users")
-public class Users {
-
-    @Id
     private UUID id;
-
-    @Column(name = "email", nullable = false, length = 255, unique = true)
-    private String email;
-
-    @Column(name = "username", nullable = false, length = 100, unique = true)
-    private String username;
-
-    @Column(name = "created_at", nullable = false)
+    private UUID ownerUserId;
+    private String name;
+    private String description;
+    private Boolean isActive;
     private OffsetDateTime createdAt;
-
-    @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
-
-    @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 
     public UUID getId() {
@@ -38,20 +22,36 @@ public class Users {
         this.id = id;
     }
 
-    public String getEmail() {
-        return email;
+    public UUID getOwnerUserId() {
+        return ownerUserId;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setOwnerUserId(UUID ownerUserId) {
+        this.ownerUserId = ownerUserId;
     }
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return name;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public OffsetDateTime getCreatedAt() {

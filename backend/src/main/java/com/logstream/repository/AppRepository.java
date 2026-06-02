@@ -6,8 +6,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.logstream.model.App;
-import com.logstream.model.Users;
+import com.logstream.entity.App;
+import com.logstream.entity.Users;
 
 public interface AppRepository extends JpaRepository<App, UUID> {
     Optional<App> findByOwnerUserAndName(Users ownerUser, String name);

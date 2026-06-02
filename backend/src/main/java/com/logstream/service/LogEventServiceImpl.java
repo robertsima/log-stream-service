@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.logstream.controller.dto.AppTokenDTO;
 import com.logstream.generated.model.LogEventRequest;
-import com.logstream.model.AppToken;
 
 @Service
 public class LogEventServiceImpl implements LogEventService {
@@ -19,11 +19,11 @@ public class LogEventServiceImpl implements LogEventService {
 
     @Override
     public void ingestLogEvent(LogEventRequest logEventRequest, String rawToken) {
-        AppToken appToken = appTokenService.validateAndRefreshToken(rawToken);
+        AppTokenDTO appToken = appTokenService.validateAndRefreshToken(rawToken);
 
         log.info("[log-event] appId={} appName={} tokenPrefix={} level={} message={} occurredAt={} logger={} traceId={} spanId={}",
-                appToken.getApp().getId(),
-                appToken.getApp().getName(),
+                appToken.getAppId(),
+                appToken.getAppName(),
                 appToken.getTokenPrefix(),
                 logEventRequest.getLevel(),
                 logEventRequest.getMessage(),

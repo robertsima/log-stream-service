@@ -13,11 +13,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.logstream.controller.dto.AppTokenDTO;
+import com.logstream.entity.App;
+import com.logstream.entity.AppToken;
 import com.logstream.generated.model.AppTokenResponse;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
-import com.logstream.model.App;
-import com.logstream.model.AppToken;
+import com.logstream.mapper.AppTokenMapper;
 import com.logstream.repository.AppRepository;
 import com.logstream.repository.AppTokenRepository;
 
@@ -42,21 +44,10 @@ public class AppTokenServiceImpl implements AppTokenService {
                 .orElseThrow(() -> new NoSuchElementException("App not found"));
 
         String rawToken = generateRawToken();
-        String tokenHash = hash(rawToken);
         String tokenPrefix = rawToken.substring(0, Math.min(rawToken.length(), 50));
+        AppTokenDTO dto = AppTokenMapper.fromRequest(createAppTokenRequest, app, tokenPrefix);
 
-        AppToken appToken = new AppToken();
-        appToken.setId(UUID.randomUUID());
-        appToken.setApp(app);
-        appToken.setName(createAppTokenRequest.getName());
-        appToken.setTokenHash(tokenHash);
-        appToken.setTokenPrefix(tokenPrefix);
-        appToken.setCreatedAt(OffsetDateTime.now());
-        if (createAppTokenRequest.getExpiresAt().isPresent()) {
-            appToken.setExpiresAt(createAppTokenRequest.getExpiresAt().get());
-        }
-
-        AppToken saved = appTokenRepository.save(appToken);
+        AppToken saved = appTokenRepository.save(AppTokenMapper.toEntity(dto, app, hash(rawToken)));
 
         CreateAppTokenResponse response = new CreateAppTokenResponse();
         response.setId(saved.getId());
@@ -75,24 +66,8 @@ public class AppTokenServiceImpl implements AppTokenService {
     @Override
     public List<AppTokenResponse> getAppTokens(UUID appId) {
         return appTokenRepository.findByAppId(appId).stream()
-                .map(appToken -> {
-                    AppTokenResponse response = new AppTokenResponse();
-                    response.setId(appToken.getId());
-                    response.setAppId(appToken.getApp().getId());
-                    response.setName(appToken.getName());
-                    response.setTokenPrefix(appToken.getTokenPrefix());
-                    response.setCreatedAt(appToken.getCreatedAt());
-                    if (appToken.getExpiresAt() != null) {
-                        response.expiresAt(appToken.getExpiresAt());
-                    }
-                    if (appToken.getLastUsedAt() != null) {
-                        response.lastUsedAt(appToken.getLastUsedAt());
-                    }
-                    if (appToken.getRevokedAt() != null) {
-                        response.revokedAt(appToken.getRevokedAt());
-                    }
-                    return response;
-                })
+                .map(AppTokenMapper::toDto)
+                .map(AppTokenMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -105,7 +80,7 @@ public class AppTokenServiceImpl implements AppTokenService {
     }
 
     @Override
-    public AppToken validateAndRefreshToken(String rawToken) {
+    public AppTokenDTO validateAndRefreshToken(String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
             throw new IllegalArgumentException("Missing ingestion token");
         }
@@ -123,7 +98,7 @@ public class AppTokenServiceImpl implements AppTokenService {
         }
 
         token.setLastUsedAt(OffsetDateTime.now());
-        return appTokenRepository.save(token);
+        return AppTokenMapper.toDto(appTokenRepository.save(token));
     }
 
     private String generateRawToken() {

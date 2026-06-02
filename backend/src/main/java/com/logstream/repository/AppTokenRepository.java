@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.logstream.model.AppToken;
+import com.logstream.entity.AppToken;
 
 public interface AppTokenRepository extends JpaRepository<AppToken, UUID> {
     Optional<AppToken> findByTokenHash(String tokenHash);

@@ -1,15 +1,33 @@
-package com.logstream.controller.dto;
+package com.logstream.entity;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public class UserDTO {
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "users")
+public class Users {
+
+    @Id
     private UUID id;
+
+    @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
+
+    @Column(name = "username", nullable = false, length = 100, unique = true)
     private String username;
+
+    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
+
+    @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 
     public UUID getId() {

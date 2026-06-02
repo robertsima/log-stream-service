@@ -1,13 +1,11 @@
 package com.logstream.service;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 import org.springframework.stereotype.Service;
 
+import com.logstream.entity.Users;
 import com.logstream.generated.model.CreateUserRequest;
 import com.logstream.generated.model.UserResponse;
-import com.logstream.model.Users;
+import com.logstream.mapper.UserMapper;
 import com.logstream.repository.UserRepository;
 
 @Service
@@ -26,14 +24,10 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("User already exists");
         }
 
-        Users user = new Users();
-        user.setId(UUID.randomUUID());
-        user.setEmail(createUserRequest.getEmail());
-        user.setUsername(createUserRequest.getUsername());
-        user.setCreatedAt(OffsetDateTime.now());
+        Users user = UserMapper.toEntity(UserMapper.toDto(createUserRequest));
 
         Users saved = userRepository.save(user);
-        return new UserResponse(saved.getId(), saved.getEmail(), saved.getUsername(), saved.getCreatedAt());
+        return UserMapper.toResponse(saved);
     }
 }
 
