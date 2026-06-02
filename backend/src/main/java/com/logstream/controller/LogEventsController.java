@@ -1,7 +1,5 @@
 package com.logstream.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,8 +8,12 @@ import com.logstream.generated.api.LogEventsApi;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.service.LogEventService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 public class LogEventsController implements LogEventsApi {
+
+    private static final String INGESTION_TOKEN_HEADER = "X-Ingestion-Token";
 
     private final LogEventService logEventService;
     private final HttpServletRequest request;
@@ -23,14 +25,14 @@ public class LogEventsController implements LogEventsApi {
 
     @Override
     public ResponseEntity<Void> ingestLogEvent(LogEventRequest logEventRequest) {
-        String authorization = request.getHeader("Authorization");
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
+        String rawToken = request.getHeader(INGESTION_TOKEN_HEADER);
+
+        if (rawToken == null || rawToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String rawToken = authorization.substring("Bearer ".length()).trim();
         try {
-            logEventService.ingestLogEvent(logEventRequest, rawToken);
+            logEventService.ingestLogEvent(logEventRequest, rawToken.trim());
             return ResponseEntity.accepted().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
