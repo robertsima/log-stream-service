@@ -1,4 +1,26 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "interactive"
-}
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.compile.nullAnalysis.mode": "automatic"
+} // {
+//   "java.compile.nullAnalysis.mode": "automatic",
+//   "java.configuration.updateBuildConfiguration": "interactive",
+
+//   "search.exclude": {
+//     "**/target": true,
+//     "**/target/**": true
+//   },
+
+// //   "files.exclude": {
+// //     "**/target": true
+// //   },
+
+//   "files.watcherExclude": {
+//     "**/target/**": true
+//   },
+
+//   "problems.exclude": {
+//     "**/target/**": true,
+//     "**/backend/target/**": true,
+//     "**/backend/target/generated-sources/openapi/**": true
+//   }
+// }

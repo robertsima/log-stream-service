@@ -1,6 +1,6 @@
 spring:
   application:
-    name: your_repo_name
+    name: log-stream-service
   liquibase:
     change-log: classpath:db/changelog/db.changelog.xml
   security:
@@ -16,7 +16,7 @@ server:
   
 springdoc:
   enable-data-rest: false
-  packages-to-scan: com.example_project_name.controller
+  packages-to-scan: com.logstream.controller
 # issuer-uris can be omitted if keycloak.auth-server-url and keycloak.realm are configured.
 
 # Optional database configuration (Postgres) - uncomment and set real values for runtime use.
