@@ -28,8 +28,8 @@ public class LogEventServiceImpl implements LogEventService {
                 logEventRequest.getLevel(),
                 logEventRequest.getMessage(),
                 logEventRequest.getOccurredAt(),
-                logEventRequest.getLogger().isPresent() ? logEventRequest.getLogger().get() : null,
-                logEventRequest.getTraceId().isPresent() ? logEventRequest.getTraceId().get() : null,
-                logEventRequest.getSpanId().isPresent() ? logEventRequest.getSpanId().get() : null);
+                logEventRequest.getLogger() != null ? logEventRequest.getLogger() : null,
+                logEventRequest.getTraceId() != null ? logEventRequest.getTraceId() : null,
+                logEventRequest.getSpanId() != null ? logEventRequest.getSpanId() : null);
     }
 }

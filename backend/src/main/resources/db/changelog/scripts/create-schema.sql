@@ -1,14 +1,7 @@
 -- 01-create-db-and-tables.sql
 -- PostgreSQL init script for Log Stream Service.
 --
--- If this runs inside the official postgres Docker/Podman image, the database
--- can also be created through POSTGRES_DB=log_stream_service.
--- Keeping CREATE DATABASE here is useful for manual/local setup.
-
-CREATE DATABASE log_stream_service;
-
--- After creating the DB manually, connect to it before running the table DDL:
--- \c log_stream_service;
+-- Database is created via POSTGRES_DB=appdb environment variable in the Podman pod.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 

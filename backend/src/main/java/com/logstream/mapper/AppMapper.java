@@ -18,7 +18,7 @@ public final class AppMapper {
         dto.setId(java.util.UUID.randomUUID());
         dto.setOwnerUserId(owner.getId());
         dto.setName(request.getName());
-        dto.setDescription(request.getDescription().isPresent() ? request.getDescription().get() : null);
+        dto.setDescription(request.getDescription());
         dto.setIsActive(true);
         dto.setCreatedAt(OffsetDateTime.now());
         return dto;

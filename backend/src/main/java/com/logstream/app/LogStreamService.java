@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication(scanBasePackages = "com.logstream")
 @EnableJpaRepositories(basePackages = "com.logstream.repository")
-@EntityScan(basePackages = "com.logstream.model")
+@EntityScan(basePackages = "com.logstream.entity")
 public class LogStreamService {
 
 	public static void main(String[] args) {

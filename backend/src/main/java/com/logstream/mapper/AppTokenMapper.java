@@ -33,8 +33,8 @@ public final class AppTokenMapper {
         dto.setName(request.getName());
         dto.setTokenPrefix(tokenPrefix);
         dto.setCreatedAt(java.time.OffsetDateTime.now());
-        if (request.getExpiresAt().isPresent()) {
-            dto.setExpiresAt(request.getExpiresAt().get());
+        if (request.getExpiresAt() != null) {
+            dto.setExpiresAt(request.getExpiresAt());
         }
         return dto;
     }

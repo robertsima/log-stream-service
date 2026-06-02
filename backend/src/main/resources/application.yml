@@ -1,7 +1,15 @@
 spring:
   application:
     name: log-stream-service
-  liquibase:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/appdb}
+    username: ${DB_USER:appuser}
+    password: ${DB_PASSWORD:apppassword}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+  liquibase: # Optional Liquibase configuration - uncomment if using Liquibase for DB migrations.
+    enabled: true
     change-log: classpath:db/changelog/db.changelog.xml
   security:
     oauth2:
@@ -22,7 +30,7 @@ springdoc:
 # Optional database configuration (Postgres) - uncomment and set real values for runtime use.
 # Use environment variables to override defaults in CI/production.
 #
-#spring:
+# spring:
 #  datasource:
 #    url: ${DB_URL:jdbc:postgresql://localhost:5432/myapp}
 #    username: ${DB_USER:postgres}

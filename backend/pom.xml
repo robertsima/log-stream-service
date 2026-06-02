@@ -110,7 +110,7 @@
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
-            <version>0.2.6</version>
+            <version>0.2.8</version>
         </dependency>
 
         <!-- Dev tools -->
@@ -190,6 +190,7 @@
                                 <useJackson3>true</useJackson3>
                                 <useTags>true</useTags>
                                 <dateLibrary>java8</dateLibrary>
+                                <openApiNullable>false</openApiNullable>
                             </configOptions>
                         </configuration>
                     </execution>
