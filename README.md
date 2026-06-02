@@ -3,12 +3,12 @@ Spring microservice webhook for application logging.
 
 ## MVP
 A lightweight real-time log relay/stream service for small applications. Apps send logs over webhook, service streams output of logs. Logs are short lived and not stored.
-- [ ] Create DB and tables to store: users, apps, app_tokens
-- [ ] POST endpoint with param appId to generate a one time access token with email and username - no other user authentication yet
-- [ ] Token generation service
-- [ ] Token ingestion auth service to take token for app auth
-- [ ] Webhook log injest endpoint that takes log event requests and auth header with token
-- [ ] TestStreamService - console.log the logs coming in (to make sure everything is working)
+- [x] Create DB and tables to store: users, apps, app_tokens
+- [x] POST endpoint with param appId to generate a one time access token with email and username - no other user authentication yet
+- [x] Token generation service
+- [x] Token ingestion auth service to take token for app auth
+- [x] Webhook log injest endpoint that takes log event requests and auth header with token
+- [x] TestStreamService - console.log the logs coming in (to make sure everything is working)
 - [ ] Use a discord webhook to send alerts for ERRORs only
 
 ## Future Plans
