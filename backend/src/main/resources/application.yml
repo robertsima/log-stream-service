@@ -55,3 +55,9 @@ springdoc:
 keycloak:
   realm: your-realm
   auth-server-url: https://<your-keycloak-domain>
+
+# logging config - adjust as needed
+alerts:
+  enabled: true
+  aggregation-window-seconds: 60
+  max-messages-per-alert: 5

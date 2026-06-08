@@ -5,6 +5,7 @@
 		xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
+	<!-- 1.0.0 change set -->
 	<changeSet id="1.0.0-create-schema" author="robert.sima">
 	    <comment>Creating basic schema</comment>
 	    <sqlFile
@@ -13,5 +14,14 @@
 	            splitStatements="true"
 	            stripComments="true" />
 	</changeSet>
-	
+
+	<!-- 1.1.0 change set -->
+	<changeSet id="1.1.0-create-alert-destinations" author="robert.sima">
+    <comment>Create alert destinations for Slack and Discord webhooks</comment>
+    <sqlFile
+            path="scripts/create-alert-destinations.sql"
+            relativeToChangelogFile="true"
+            splitStatements="true"
+            stripComments="true" />
+	</changeSet>
 </databaseChangeLog>

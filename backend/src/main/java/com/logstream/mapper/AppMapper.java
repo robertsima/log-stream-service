@@ -51,8 +51,7 @@ public final class AppMapper {
     }
 
     public static AppResponse toResponse(App app) {
-        AppResponse response = new AppResponse(app.getId(), app.getOwnerUser().getId(), app.getName(), app.getCreatedAt())
-                .isActive(app.getIsActive());
+        AppResponse response = new AppResponse(app.getId(), app.getOwnerUser().getId(), app.getName(), app.getIsActive(), app.getCreatedAt());
 
         if (app.getDescription() != null) {
             response.description(app.getDescription());
@@ -64,8 +63,7 @@ public final class AppMapper {
     }
 
     public static AppResponse toResponse(AppDTO dto) {
-        AppResponse response = new AppResponse(dto.getId(), dto.getOwnerUserId(), dto.getName(), dto.getCreatedAt())
-                .isActive(dto.getIsActive());
+        AppResponse response = new AppResponse(dto.getId(), dto.getOwnerUserId(), dto.getName(), dto.getIsActive(), dto.getCreatedAt());
 
         if (dto.getDescription() != null) {
             response.description(dto.getDescription());

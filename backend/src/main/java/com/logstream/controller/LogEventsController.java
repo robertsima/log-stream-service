@@ -8,24 +8,18 @@ import com.logstream.generated.api.LogEventsApi;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.service.LogEventService;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 @RestController
 public class LogEventsController implements LogEventsApi {
 
-    private static final String INGESTION_TOKEN_HEADER = "X-Ingestion-Token";
-
     private final LogEventService logEventService;
-    private final HttpServletRequest request;
 
-    public LogEventsController(LogEventService logEventService, HttpServletRequest request) {
+    public LogEventsController(LogEventService logEventService) {
         this.logEventService = logEventService;
-        this.request = request;
     }
 
     @Override
-    public ResponseEntity<Void> ingestLogEvent(LogEventRequest logEventRequest) {
-        String rawToken = request.getHeader(INGESTION_TOKEN_HEADER);
+    public ResponseEntity<Void> ingestLogEvent(String xIngestionToken, LogEventRequest logEventRequest) {
+        String rawToken = xIngestionToken;
 
         if (rawToken == null || rawToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

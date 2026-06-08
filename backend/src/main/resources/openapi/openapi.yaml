@@ -1,13 +1,12 @@
-# OpenAPI specification for Log Stream Service API
-
 openapi: 3.0.3
 
 info:
   title: Log Stream Service API
-  version: 1.0.0
+  version: 1.1.0
   description: >
     Lightweight real-time log relay service. Applications register as log sources,
-    generate ingestion tokens, and send short-lived log events to the service.
+    generate ingestion tokens, send short-lived log events, and configure Slack
+    or Discord webhook destinations for aggregated error alerts.
 
 servers:
   - url: http://localhost:8080
@@ -22,6 +21,8 @@ tags:
     description: Ingestion token generation and management
   - name: Log Events
     description: Log ingestion endpoints
+  - name: Alert Destinations
+    description: Slack and Discord webhook destinations for aggregated error alerts
 
 paths:
   /api/v1/users:
@@ -30,8 +31,7 @@ paths:
         - Users
       operationId: createUser
       summary: Create a user
-      description: >
-        Temporary user bootstrap endpoint until full authentication/RBAC is added.
+      description: Temporary user bootstrap endpoint until full authentication/RBAC is added.
       requestBody:
         required: true
         content:
@@ -178,17 +178,111 @@ paths:
       summary: Revoke an ingestion token
       parameters:
         - $ref: '#/components/parameters/AppId'
-        - name: tokenId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TokenId'
       responses:
         '204':
           description: Token revoked
         '404':
           description: Token not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/apps/{appId}/alert-destinations:
+    post:
+      tags:
+        - Alert Destinations
+      operationId: createAlertDestination
+      summary: Create a Slack or Discord alert destination
+      description: >
+        Registers a Slack or Discord webhook destination for an app. ERROR logs
+        for the app are aggregated and sent to enabled destinations.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertDestinationRequest'
+      responses:
+        '201':
+          description: Alert destination created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertDestinationResponse'
+        '400':
+          description: Invalid alert destination payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Alert Destinations
+      operationId: getAlertDestinations
+      summary: List enabled alert destinations for an app
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      responses:
+        '200':
+          description: Alert destinations found for app
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlertDestinationResponse'
+        '404':
+          description: App not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/apps/{appId}/alert-destinations/{destinationId}:
+    delete:
+      tags:
+        - Alert Destinations
+      operationId: deleteAlertDestination
+      summary: Delete an alert destination
+      description: Soft-deletes or disables a Slack/Discord alert destination.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/DestinationId'
+      responses:
+        '204':
+          description: Alert destination deleted
+        '404':
+          description: Alert destination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/apps/{appId}/alert-destinations/{destinationId}/test:
+    post:
+      tags:
+        - Alert Destinations
+      operationId: testAlertDestination
+      summary: Send a test alert to a Slack or Discord destination
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/DestinationId'
+      responses:
+        '202':
+          description: Test alert accepted
+        '404':
+          description: Alert destination not found
           content:
             application/json:
               schema:
@@ -203,8 +297,8 @@ paths:
       description: >
         Accepts short-lived log events from registered apps. Events are authenticated
         using an app ingestion token and are not stored long-term.
-      security:
-        - ingestionBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IngestionToken'
       requestBody:
         required: true
         content:
@@ -234,12 +328,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
 components:
-  securitySchemes:
-    ingestionBearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: AppToken
-
   parameters:
     AppId:
       name: appId
@@ -248,6 +336,31 @@ components:
       schema:
         type: string
         format: uuid
+
+    TokenId:
+      name: tokenId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    DestinationId:
+      name: destinationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    IngestionToken:
+      name: X-Ingestion-Token
+      in: header
+      required: true
+      schema:
+        type: string
+      description: App ingestion token generated for a registered log source.
+      example: lss_live_f11n_Mx5e0xy46LJgbycTXsKBFL4qeEa
 
   schemas:
     CreateUserRequest:
@@ -317,6 +430,7 @@ components:
         - id
         - ownerUserId
         - name
+        - active
         - createdAt
       properties:
         id:
@@ -330,7 +444,7 @@ components:
         description:
           type: string
           nullable: true
-        isActive:
+        active:
           type: boolean
           example: true
         createdAt:
@@ -426,6 +540,63 @@ components:
           format: date-time
           nullable: true
 
+    CreateAlertDestinationRequest:
+      type: object
+      required:
+        - type
+        - name
+        - webhookUrl
+      properties:
+        type:
+          $ref: '#/components/schemas/AlertDestinationType'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+          example: dev-alerts
+        webhookUrl:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          example: https://discord.com/api/webhooks/...
+
+    AlertDestinationResponse:
+      type: object
+      required:
+        - id
+        - appId
+        - type
+        - name
+        - enabled
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        appId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AlertDestinationType'
+        name:
+          type: string
+        enabled:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    AlertDestinationType:
+      type: string
+      enum:
+        - DISCORD
+        - SLACK
+
     LogEventRequest:
       type: object
       required:
@@ -450,7 +621,7 @@ components:
         occurredAt:
           type: string
           format: date-time
-          example: 2026-06-01T18:30:00Z
+          example: 2026-06-08T18:30:00Z
         logger:
           type: string
           maxLength: 255
