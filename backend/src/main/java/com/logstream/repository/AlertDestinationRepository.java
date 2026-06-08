@@ -13,4 +13,5 @@ public interface AlertDestinationRepository extends JpaRepository<AlertDestinati
     List<AlertDestination> findByAppIdAndEnabledTrueAndDeletedAtIsNull(UUID appId);
 
     Optional<AlertDestination> findByIdAndAppIdAndDeletedAtIsNull(UUID id, UUID appId);
+
 }

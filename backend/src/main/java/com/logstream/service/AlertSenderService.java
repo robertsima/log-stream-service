@@ -1,34 +1,11 @@
 package com.logstream.service;
 
-import org.springframework.stereotype.Service;
-
 import com.logstream.entity.AlertDestination;
-import com.logstream.generated.model.AlertDestinationType;
-import com.logstream.webhooks.DiscordWebhookSender;
-import com.logstream.webhooks.SlackWebhookSender;
+import com.logstream.model.AlertBucket;
 
-@Service
-public class AlertSenderService {
+public interface AlertSenderService {
+    public void sendTest(AlertDestination destination);
 
-    private final DiscordWebhookSender discordWebhookSender;
-    private final SlackWebhookSender slackWebhookSender;
-
-    public AlertSenderService(
-            DiscordWebhookSender discordWebhookSender,
-            SlackWebhookSender slackWebhookSender
-    ) {
-        this.discordWebhookSender = discordWebhookSender;
-        this.slackWebhookSender = slackWebhookSender;
-    }
-
-    public void sendTest(AlertDestination destination) {
-        if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
-            discordWebhookSender.sendTest(destination);
-            return;
-        }
-
-        if (destination.getDestinationType() == AlertDestinationType.SLACK) {
-            slackWebhookSender.sendTest(destination);
-        }
-    }
+    public void sendAggregatedAlert(AlertDestination destination, AlertBucket bucket);
+    
 }

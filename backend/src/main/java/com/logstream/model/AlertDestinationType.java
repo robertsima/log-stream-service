@@ -1,4 +1,4 @@
-package com.logstream.enums;
+package com.logstream.model;
 
 public enum AlertDestinationType {
     DISCORD,

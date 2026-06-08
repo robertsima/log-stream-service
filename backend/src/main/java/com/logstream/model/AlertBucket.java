@@ -1,0 +1,39 @@
+package com.logstream.model;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import com.logstream.generated.model.LogEventRequest;
+
+public class AlertBucket {
+
+    private final UUID appId;
+    private final String fingerprint;
+    private final List<LogEventRequest> events = new ArrayList<>();
+
+    public AlertBucket(UUID appId, String fingerprint) {
+        this.appId = appId;
+        this.fingerprint = fingerprint;
+    }
+
+    public UUID getAppId() {
+        return appId;
+    }
+
+    public String getFingerprint() {
+        return fingerprint;
+    }
+
+    public List<LogEventRequest> getEvents() {
+        return events;
+    }
+
+    public void add(LogEventRequest event) {
+        events.add(event);
+    }
+
+    public int count() {
+        return events.size();
+    }
+}
