@@ -9,7 +9,8 @@ A lightweight real-time log relay/stream service for small applications. Apps se
 - [x] Token ingestion auth service to take token for app auth
 - [x] Webhook log injest endpoint that takes log event requests and auth header with token
 - [x] TestStreamService - console.log the logs coming in (to make sure everything is working)
-- [ ] Use a discord webhook to send alerts for ERRORs only
+- [x] Use a discord webhook to send a test message
+- [ ] Set up log aggregation and alerting to send one alert every minute for errors
 
 ## Future Plans
 - [ ] Integrate both slack and discord webhooks so that the service can send alerts
