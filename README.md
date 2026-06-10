@@ -6,7 +6,7 @@ Log Stream Service lets external applications send structured log events through
 
 ## Features
 
-* Register apps/log sources
+* Register apps/log sources and users
 * Generate one-time visible ingestion tokens for registered apps
 * Validate ingestion tokens for app-level authentication
 * Accept structured log event requests
@@ -14,7 +14,7 @@ Log Stream Service lets external applications send structured log events through
 * Send test alerts to configured webhook destinations
 * Aggregate matching error logs to prevent alert spam
 * Send summarized error alerts once per aggregation window
-* Database-backed storage for users, apps, app tokens, and alert destinations
+* Daabase storage for users, apps, app tokens, and alert destinations
 * OpenAPI contract-first API generation
 * Liquibase-managed database schema
 * Unit and integration test coverage
@@ -63,6 +63,11 @@ When matching `ERROR` logs are received, the service groups them over a short ti
 * JUnit
 * Testcontainers
 * Docker/Podman
+
+## Swagger url
+```
+(http://localhost:8080/swagger-ui/index.html)
+```
 
 ## Maven Commands
 
