@@ -10,9 +10,7 @@ Log Stream Service lets external applications send structured log events through
 * Generate one-time visible ingestion tokens for registered apps
 * Validate ingestion tokens for app-level authentication
 * Accept structured log event requests
-* Print incoming log events for real-time visibility
-* Configure Discord webhook alert destinations
-* Configure Slack webhook alert destinations
+* Configure Slack or Discord webhook alert destinations
 * Send test alerts to configured webhook destinations
 * Aggregate matching error logs to prevent alert spam
 * Send summarized error alerts once per aggregation window
@@ -51,16 +49,13 @@ When matching `ERROR` logs are received, the service groups them over a short ti
 * Logs are not persisted long term
 * App tokens are used for lightweight ingestion authentication
 * Slack and Discord webhooks are stored as alert destinations
-* Error alerts are aggregated in memory to avoid spamming channels
-* Alert aggregation resets when the service restarts
-* The service is intentionally small and focused on real-time log relay and alerting
+* Error alerts are aggregated in memory to avoid spamming channels and offload server
+* Small intentional real-time log relay and alerting for small apps and services
 
 ## Tech Stack
 
 * Java 17
 * Spring Boot
-* Spring Web
-* Spring Data JPA
 * PostgreSQL
 * Liquibase
 * OpenAPI Generator
@@ -151,7 +146,7 @@ Typical setup flow:
 3. Generate an ingestion token for the app
 4. Configure a Slack or Discord alert destination
 5. Send logs to the ingestion endpoint using the generated token
-6. Receive aggregated error alerts through configured webhooks
+6. Receive real time aggregated error alerts through configured webhooks
 
 ## MVP Status
 
