@@ -12,9 +12,11 @@ public class LogEventServiceImpl implements LogEventService {
 
     private static final Logger log = LoggerFactory.getLogger(LogEventServiceImpl.class);
     private final AppTokenService appTokenService;
+    private final AlertAggregationService alertAggregationService;
 
-    public LogEventServiceImpl(AppTokenService appTokenService) {
+    public LogEventServiceImpl(AppTokenService appTokenService, AlertAggregationService alertAggregationService) {
         this.appTokenService = appTokenService;
+        this.alertAggregationService = alertAggregationService;
     }
 
     @Override
@@ -31,5 +33,7 @@ public class LogEventServiceImpl implements LogEventService {
                 logEventRequest.getLogger() != null ? logEventRequest.getLogger() : null,
                 logEventRequest.getTraceId() != null ? logEventRequest.getTraceId() : null,
                 logEventRequest.getSpanId() != null ? logEventRequest.getSpanId() : null);
+
+            alertAggregationService.accept(appToken.getAppId(), logEventRequest);
     }
 }
