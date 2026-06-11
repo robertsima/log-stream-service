@@ -140,7 +140,7 @@ The service is configured through environment variables for deployment.
 | `DB_USER` | Yes (prod) | `appuser` | Database username |
 | `DB_PASSWORD` | Yes (prod) | `apppassword` | Database password |
 | `PORT` | No | `8080` | HTTP server port |
-| `ALLOWED_ORIGINS` | Yes (prod) | `http://localhost:5500,http://127.0.0.1:5500` | Comma-separated CORS origins for the static frontend |
+| `ALLOWED_ORIGINS` | No (has deploy default) | includes `https://prairie-log-api.netlify.app` | Comma- or pipe-separated CORS origins for the static frontend |
 | `ALERTS_ENABLED` | No | `true` | Enable alert aggregation and dispatch |
 | `ALERTS_AGGREGATION_WINDOW_MS` | No | `60000` | Error aggregation window (1 minute) |
 | `ALERTS_MAX_MESSAGES_PER_ALERT` | No | `5` | Max sample messages included per alert |
