@@ -414,15 +414,26 @@
     });
   }
 
-  function initApiBaseUrlPlaceholders() {
+  function getApiBaseUrl() {
     const base = window.CONFIG?.API_BASE_URL;
     if (!base) {
+      throw new Error("CONFIG.API_BASE_URL is not defined. Check env.js.");
+    }
+    return base.replace(/\/$/, "");
+  }
+
+  function applyApiBaseUrlToText(text) {
+    return text.split("__API_BASE_URL__").join(getApiBaseUrl());
+  }
+
+  function initApiBaseUrlPlaceholders() {
+    if (!window.CONFIG?.API_BASE_URL) {
       return;
     }
 
     document.querySelectorAll("code").forEach(function (code) {
       if (code.textContent.includes("__API_BASE_URL__")) {
-        code.textContent = code.textContent.split("__API_BASE_URL__").join(base);
+        code.textContent = applyApiBaseUrlToText(code.textContent);
       }
     });
   }
@@ -453,7 +464,9 @@
     buildCollapsibleSnippetHtml: buildCollapsibleSnippetHtml,
     initSnippetInteractions: initSnippetInteractions,
     initCopyBlocks: initCopyBlocks,
-    initSharedUI: initSharedUI
+    initSharedUI: initSharedUI,
+    getApiBaseUrl: getApiBaseUrl,
+    applyApiBaseUrlToText: applyApiBaseUrlToText
   };
 
   document.addEventListener("DOMContentLoaded", initSharedUI);

@@ -7,8 +7,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
-      "description": "Local development server"
+      "url": "https://log-stream-service.onrender.com",
+      "description": "Configured via env.js (CONFIG.API_BASE_URL)"
     }
   ],
   "tags": [

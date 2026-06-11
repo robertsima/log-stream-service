@@ -39,7 +39,9 @@
     const blocks = await Promise.all(
       SNIPPETS.map(async function (snippet) {
         try {
-          const code = await loadSnippet(snippet);
+          const code = window.PrairieLogUI.applyApiBaseUrlToText(
+            await loadSnippet(snippet)
+          );
           return window.PrairieLogUI.buildCollapsibleSnippetHtml(
             snippet.id,
             snippet.title,

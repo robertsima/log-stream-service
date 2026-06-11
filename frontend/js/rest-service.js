@@ -1,7 +1,7 @@
 class RestService {
   constructor(config = window.CONFIG) {
     if (!config || !config.API_BASE_URL) {
-      throw new Error("CONFIG.API_BASE_URL is not defined. Check config.js.");
+      throw new Error("CONFIG.API_BASE_URL is not defined. Check env.js.");
     }
 
     this.apiBaseUrl = config.API_BASE_URL.replace(/\/$/, "");
@@ -310,7 +310,13 @@ class RestService {
       throw new Error(`Failed to load OpenAPI contract: ${response.status}`);
     }
 
-    return JSON.parse(responseText);
+    const contract = JSON.parse(responseText);
+
+    if (contract.servers?.length && this.apiBaseUrl) {
+      contract.servers[0].url = this.apiBaseUrl;
+    }
+
+    return contract;
   }
 
   async getOpenApiEndpointSummary() {

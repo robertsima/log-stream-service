@@ -214,7 +214,9 @@
     const blocks = await Promise.all(
       INTEGRATION_SNIPPETS.map(async function (snippet) {
         try {
-          const code = await loadSnippet(snippet.path);
+          const code = window.PrairieLogUI.applyApiBaseUrlToText(
+            await loadSnippet(snippet.path)
+          );
           return window.PrairieLogUI.buildCollapsibleSnippetHtml(
             snippet.id,
             snippet.title,
@@ -239,10 +241,7 @@
   }
 
   function getCurlExample(method, path, requestExample) {
-    const base = (window.CONFIG?.API_BASE_URL || "http://localhost:8080").replace(
-      /\/$/,
-      ""
-    );
+    const base = window.PrairieLogUI.getApiBaseUrl();
     const url = base + path;
 
     if (method === "GET") {

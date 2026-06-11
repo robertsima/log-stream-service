@@ -201,8 +201,8 @@ Static files live in `frontend/`. Deploy the folder to any static host (Netlify,
 
 Before publishing:
 
-1. Copy `frontend/js/config.example.js` to `frontend/js/config.js` (or edit `config.js` in place).
-2. Set `API_BASE_URL` to your deployed backend URL (HTTPS in production).
+1. Copy `frontend/js/env.example.js` to `frontend/js/env.js` (or edit `env.js` in place).
+2. Set `CONFIG.API_BASE_URL` to your deployed backend URL (HTTPS in production).
 3. Ensure `ALLOWED_ORIGINS` on the backend includes your frontend URL exactly.
 
 No npm build step is required.
@@ -212,7 +212,7 @@ No npm build step is required.
 - [ ] PostgreSQL reachable from the backend host
 - [ ] `DB_*` credentials set via secrets / host env
 - [ ] `ALLOWED_ORIGINS` matches deployed frontend URL(s)
-- [ ] `frontend/js/config.js` points at deployed backend
+- [ ] `frontend/js/env.js` points at deployed backend
 - [ ] `mvn clean package -DskipTests` succeeds
 - [ ] Docker image builds if you use containers
 - [x] Swagger UI disabled by default (`SWAGGER_UI_ENABLED=false`)
