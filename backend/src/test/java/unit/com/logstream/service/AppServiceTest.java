@@ -97,15 +97,13 @@ public class AppServiceTest {
 
     @Test
     void testCreateApp_AppAlreadyExists() {
-        // Arrange
         when(userRepository.findByEmail("owner@example.com")).thenReturn(Optional.of(owner));
         when(appRepository.findByOwnerUserAndName(owner, "Test App")).thenReturn(Optional.of(app));
 
-        // Act & Assert
-        assertThrows(IllegalStateException.class, () -> {
-            appService.createApp(createAppRequest);
-        });
+        AppResponse response = appService.createApp(createAppRequest);
 
+        assertNotNull(response);
+        assertEquals("Test App", response.getName());
         verify(appRepository, never()).save(any(App.class));
     }
 

@@ -19,13 +19,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
-        if (userRepository.existsByEmail(createUserRequest.getEmail())
-                || userRepository.existsByUsername(createUserRequest.getUsername())) {
-            throw new IllegalStateException("User already exists");
+        return userRepository.findByEmail(createUserRequest.getEmail())
+                .map(UserMapper::toResponse)
+                .orElseGet(() -> createNewUser(createUserRequest));
+    }
+
+    private UserResponse createNewUser(CreateUserRequest createUserRequest) {
+        if (userRepository.existsByUsername(createUserRequest.getUsername())) {
+            throw new IllegalStateException("Username already exists");
         }
 
         Users user = UserMapper.toEntity(UserMapper.toDto(createUserRequest));
-
         Users saved = userRepository.save(user);
         return UserMapper.toResponse(saved);
     }

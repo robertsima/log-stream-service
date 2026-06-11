@@ -34,11 +34,7 @@ class RestService {
     }
 
     if (!response.ok) {
-      const message =
-        data && data.message
-          ? data.message
-          : `Request failed with status ${response.status}`;
-
+      const message = this.buildErrorMessage(response.status, data);
       const error = new Error(message);
       error.status = response.status;
       error.data = data;
@@ -49,6 +45,26 @@ class RestService {
       status: response.status,
       data
     };
+  }
+
+  buildErrorMessage(status, data) {
+    if (data && data.message) {
+      return data.message;
+    }
+
+    if (status === 409) {
+      return "That record already exists. If you are re-running the dashboard flow, use the same email and app name, or choose a new username.";
+    }
+
+    if (status === 404) {
+      return "Nothing matched that request. For Register app, use the same owner email as Create user. For token generation, register the app first.";
+    }
+
+    if (status === 401) {
+      return "Invalid or expired ingestion token.";
+    }
+
+    return `Request failed with status ${status}`;
   }
 
   buildQuery(params = {}) {
@@ -62,6 +78,17 @@ class RestService {
 
     const queryString = query.toString();
     return queryString ? `?${queryString}` : "";
+  }
+
+  async resolveIngestionTokenSession(ingestionToken) {
+    const response = await this.request("/api/v1/ingestion-tokens/session", {
+      method: "GET",
+      headers: {
+        "X-Ingestion-Token": ingestionToken
+      }
+    });
+
+    return response.data;
   }
 
   // -------------------------

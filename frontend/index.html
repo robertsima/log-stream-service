@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PrairieLog — Developer Portal</title>
+  <title>PrairieLog API — Developer Portal</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/config.js" defer></script>
   <script src="js/state.js" defer></script>
@@ -23,11 +23,10 @@
   </nav>
 
   <section id="about" class="hero">
-    <h1>Real-time log relay for small apps</h1>
+    <h1>Real-time app alerting for small apps</h1>
     <p>
-      PrairieLog helps developers monitor lightweight applications and services.
-      Register a log source, generate an ingestion token, send JSON log events,
-      and receive aggregated ERROR alerts in Slack or Discord.
+      PrairieLog API helps developers monitor applications and services in real-time.
+      Designed for small apps and services, it's a lightweight alternative to full-featured logging solutions.
     </p>
     <div class="hero-actions">
       <a class="button" href="getting-started.html">
@@ -42,42 +41,54 @@
   </section>
 
   <section class="page-section">
-    <h2 class="heading-with-icon"><i data-lucide="workflow" class="icon" aria-hidden="true"></i><span>How it works</span></h2>
-    <div class="flow-grid">
-      <article class="flow-card">
-        <span class="flow-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i></span>
-        <h3>Register</h3>
-        <p>Create a user and register your app as a log source.</p>
-      </article>
-      <article class="flow-card">
-        <span class="flow-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i></span>
-        <h3>Generate token</h3>
-        <p>Get a one-time ingestion token for your application.</p>
-      </article>
-      <article class="flow-card">
-        <span class="flow-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i></span>
-        <h3>Send logs</h3>
-        <p>POST JSON log events to the ingestion endpoint with your token.</p>
-      </article>
-      <article class="flow-card">
-        <span class="flow-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i></span>
-        <h3>Alert</h3>
-        <p>Configure Slack or Discord destinations for aggregated error alerts.</p>
-      </article>
-    </div>
+    <h2><span> Overview </span></h2>
+    <ol class="flow-list">
+      <li class="flow-list-item">
+        <span class="flow-list-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i></span>
+        <div class="flow-list-body">
+          <h3>Register</h3>
+          <p>Create a user and register your app as a log source.</p>
+        </div>
+      </li>
+      <li class="flow-list-item">
+        <span class="flow-list-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i></span>
+        <div class="flow-list-body">
+          <h3>Generate token</h3>
+          <p>Get a one-time ingestion token for your application.</p>
+        </div>
+      </li>
+      <li class="flow-list-item">
+        <span class="flow-list-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i></span>
+        <div class="flow-list-body">
+          <h3>Send logs</h3>
+          <p>POST JSON log events to the ingestion endpoint with your token.</p>
+        </div>
+      </li>
+      <li class="flow-list-item">
+        <span class="flow-list-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i></span>
+        <div class="flow-list-body">
+          <h3>Alert</h3>
+          <p>Configure Slack or Discord destinations for real-time alerts.</p>
+        </div>
+      </li>
+    </ol>
   </section>
 
-  <section class="page-section card-section">
-    <h2 class="heading-with-icon"><i data-lucide="info" class="icon" aria-hidden="true"></i><span>What PrairieLog is (and is not)</span></h2>
+<section class="page-section card-section">
+    <h2 class="heading-with-icon"><i data-lucide="info" class="icon" aria-hidden="true"></i><span> About PrairieLog
+            API</span></h2>
     <p>
-      PrairieLog is a lightweight relay service. Logs are processed in real time
-      for aggregation and forwarding — they are not stored long-term.
+        PrairieLog API is a lightweight relay service. Logs are processed in real time
+        then for forwarded to your configured destinations. Your logs are not stored outside of memory operations.
     </p>
     <p>
-      This browser portal is a developer demo. For production apps, keep tokens
-      on your backend and proxy log ingestion through a trusted service.
+        Once you generate a token, make sure you save it somewhere safe, as it will not be shown again.
     </p>
-  </section>
+    <p>
+        This browser portal is for developer demonstration purposes. For production apps, keep tokens
+        on your backend or somewhere safe and proxy log ingestion.
+    </p>
+</section>
 
   <section class="page-section card-section">
     <h2 class="heading-with-icon"><i data-lucide="compass" class="icon" aria-hidden="true"></i><span>Explore the portal</span></h2>
@@ -106,7 +117,7 @@
   </section>
 
   <footer class="footer">
-    <p>&copy; 2026 PrairieLog. All rights reserved.</p>
+    <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
   </footer>
 </body>
 </html>

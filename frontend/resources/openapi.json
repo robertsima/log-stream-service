@@ -563,13 +563,13 @@
           "email": {
             "type": "string",
             "format": "email",
-            "example": "robert@example.com"
+            "example": "name@example.com"
           },
           "username": {
             "type": "string",
             "minLength": 3,
             "maxLength": 100,
-            "example": "robertsima"
+            "example": "name"
           }
         }
       },
@@ -614,7 +614,7 @@
           "ownerEmail": {
             "type": "string",
             "format": "email",
-            "example": "robert@example.com"
+            "example": "name@example.com"
           },
           "name": {
             "type": "string",

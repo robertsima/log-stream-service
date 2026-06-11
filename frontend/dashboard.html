@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — PrairieLog</title>
+  <title>Dashboard — PrairieLog API</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/config.js" defer></script>
   <script src="js/state.js" defer></script>
@@ -33,6 +33,12 @@
       <h2 class="heading-with-icon"><i data-lucide="activity" class="icon" aria-hidden="true"></i><span>Session state</span></h2>
       <p class="muted">State is kept in memory only and resets when you refresh the page.</p>
       <div id="session-state-summary"></div>
+      <div class="section-actions">
+        <button type="button" id="clear-session-button" class="secondary">
+          <i data-lucide="rotate-ccw" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Clear session</span>
+        </button>
+      </div>
     </section>
 
     <section class="page-section card-section" id="token-access-panel">
@@ -59,7 +65,8 @@
         Your ingestion token is kept only in this browser page session. Refreshing
         or closing the page clears it. Copy it now because it will not be shown again.
       </p>
-      <pre id="token-display" class="token-display"></pre>
+      <pre id="token-display" class="token-display" aria-live="polite"></pre>
+      <p class="muted token-display-note">Only the token prefix is shown here. The full token stays in page memory so you can copy it once — it is not saved to browser storage.</p>
       <button type="button" id="copy-token-button" class="secondary">
         <i data-lucide="copy" class="icon" aria-hidden="true"></i>
         <span class="btn-label">Copy token</span>
@@ -68,7 +75,7 @@
 
     <div id="dashboard-setup-panel" class="dashboard-grid">
       <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>1. Create user</span></h2>
+        <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Create user</span></h2>
         <form id="create-user-form">
           <div class="form-group">
             <label for="user-email-input">Email</label>
@@ -86,7 +93,7 @@
       </section>
 
       <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>2. Register app</span></h2>
+        <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>Register app</span></h2>
         <form id="create-app-form">
           <div class="form-group">
             <label for="app-owner-email-input">Owner email</label>
@@ -108,7 +115,7 @@
       </section>
 
       <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>3. Generate ingestion token</span></h2>
+        <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Generate ingestion token</span></h2>
         <form id="create-token-form">
           <div class="form-group">
             <label for="token-name-input">Token name</label>
@@ -120,6 +127,14 @@
           </button>
         </form>
       </section>
+    </div>
+
+    <div id="dashboard-linked-summary" class="callout" hidden>
+      <p>
+        <i data-lucide="link" class="icon icon-inline" aria-hidden="true"></i>
+        Connected to <strong id="linked-app-name"></strong>
+        <span class="muted">· token <span id="linked-token-prefix"></span></span>
+      </p>
     </div>
 
     <div id="dashboard-logs-panel" class="dashboard-grid" hidden>
@@ -170,14 +185,15 @@
           </button>
         </div>
         <div id="destinations-list" class="list-panel">
-          <p class="muted">No destinations yet.</p>
+          <p class="muted">No destinations yet. Click a destination below to select it for testing.</p>
         </div>
       </section>
 
       <section class="page-section card-section">
         <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test destination</span></h2>
-        <p>Send a test alert to the most recently created destination in this session.</p>
-        <button type="button" id="test-destination-button">
+        <p id="test-destination-description">Send a test alert to the selected destination.</p>
+        <p id="test-destination-hint" class="muted" hidden>Add a destination first, then select it from the list.</p>
+        <button type="button" id="test-destination-button" disabled>
           <i data-lucide="send" class="icon" aria-hidden="true"></i>
           <span class="btn-label">Send test alert</span>
         </button>
@@ -191,7 +207,7 @@
   </main>
 
   <footer class="footer">
-    <p>&copy; 2026 PrairieLog. All rights reserved.</p>
+    <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
   </footer>
 </body>
 </html>

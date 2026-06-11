@@ -31,14 +31,13 @@ public class AppServiceImpl implements AppService {
         Users owner = userRepository.findByEmail(createAppRequest.getOwnerEmail())
                 .orElseThrow(() -> new NoSuchElementException("Owner user not found"));
 
-        appRepository.findByOwnerUserAndName(owner, createAppRequest.getName()).ifPresent(existing -> {
-            throw new IllegalStateException("App already exists for this owner");
-        });
-
-        App app = AppMapper.toEntity(AppMapper.toDto(createAppRequest, owner), owner);
-
-        App saved = appRepository.save(app);
-        return AppMapper.toResponse(saved);
+        return appRepository.findByOwnerUserAndName(owner, createAppRequest.getName())
+                .map(AppMapper::toResponse)
+                .orElseGet(() -> {
+                    App app = AppMapper.toEntity(AppMapper.toDto(createAppRequest, owner), owner);
+                    App saved = appRepository.save(app);
+                    return AppMapper.toResponse(saved);
+                });
     }
 
     @Override

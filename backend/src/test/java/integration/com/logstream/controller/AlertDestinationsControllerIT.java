@@ -22,8 +22,8 @@ class AlertDestinationsControllerIT extends PostgresBaseIT {
         ResponseEntity<Map> userResponse = restTemplate.postForEntity(
                 "/api/v1/users",
                 Map.of(
-                        "email", "robert@example.com",
-                        "username", "robert"
+                        "email", "name@example.com",
+                        "username", "name"
                 ),
                 Map.class
         );
@@ -34,7 +34,7 @@ class AlertDestinationsControllerIT extends PostgresBaseIT {
         ResponseEntity<Map> appResponse = restTemplate.postForEntity(
                 "/api/v1/apps",
                 Map.of(
-                        "ownerEmail", "robert@example.com",
+                        "ownerEmail", "name@example.com",
                         "name", "payment-service",
                         "description", "Payment logs"
                 ),

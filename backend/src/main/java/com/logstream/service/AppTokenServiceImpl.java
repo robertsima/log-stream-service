@@ -19,6 +19,7 @@ import com.logstream.entity.AppToken;
 import com.logstream.generated.model.AppTokenResponse;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
+import com.logstream.generated.model.IngestionTokenSessionResponse;
 import com.logstream.mapper.AppTokenMapper;
 import com.logstream.repository.AppRepository;
 import com.logstream.repository.AppTokenRepository;
@@ -77,6 +78,18 @@ public class AppTokenServiceImpl implements AppTokenService {
                 .orElseThrow(() -> new NoSuchElementException("Token not found"));
         token.setRevokedAt(OffsetDateTime.now());
         appTokenRepository.save(token);
+    }
+
+    @Override
+    public IngestionTokenSessionResponse resolveIngestionTokenSession(String rawToken) {
+        AppTokenDTO token = validateAndRefreshToken(rawToken);
+
+        IngestionTokenSessionResponse response = new IngestionTokenSessionResponse();
+        response.setAppId(token.getAppId());
+        response.setAppName(token.getAppName());
+        response.setTokenPrefix(token.getTokenPrefix());
+        response.setTokenName(token.getName());
+        return response;
     }
 
     @Override

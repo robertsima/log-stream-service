@@ -19,6 +19,8 @@ tags:
     description: Log-producing application/source registration
   - name: App Tokens
     description: Ingestion token generation and management
+  - name: Ingestion Tokens
+    description: Resolve pasted ingestion tokens to app session context
   - name: Log Events
     description: Log ingestion endpoints
   - name: Alert Destinations
@@ -288,6 +290,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/ingestion-tokens/session:
+    get:
+      tags:
+        - Ingestion Tokens
+      operationId: getIngestionTokenSession
+      summary: Resolve an ingestion token to its app context
+      description: >
+        Validates a pasted ingestion token and returns the linked app metadata
+        so clients can load destinations without running the full setup flow.
+      parameters:
+        - $ref: '#/components/parameters/IngestionToken'
+      responses:
+        '200':
+          description: Token resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestionTokenSessionResponse'
+        '401':
+          description: Missing or invalid ingestion token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/log-events:
     post:
       tags:
@@ -372,12 +399,12 @@ components:
         email:
           type: string
           format: email
-          example: robert@example.com
+          example: name@example.com
         username:
           type: string
           minLength: 3
           maxLength: 100
-          example: robertsima
+          example: name
 
     UserResponse:
       type: object
@@ -412,7 +439,7 @@ components:
         ownerEmail:
           type: string
           format: email
-          example: robert@example.com
+          example: name@example.com
         name:
           type: string
           minLength: 1
@@ -539,6 +566,27 @@ components:
           type: string
           format: date-time
           nullable: true
+
+    IngestionTokenSessionResponse:
+      type: object
+      required:
+        - appId
+        - appName
+        - tokenPrefix
+        - tokenName
+      properties:
+        appId:
+          type: string
+          format: uuid
+        appName:
+          type: string
+          example: payment-service
+        tokenPrefix:
+          type: string
+          example: lss_live_VKpW
+        tokenName:
+          type: string
+          example: frontend-demo-token
 
     CreateAlertDestinationRequest:
       type: object

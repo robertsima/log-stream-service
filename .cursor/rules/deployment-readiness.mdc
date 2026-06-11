@@ -1,0 +1,131 @@
+---
+description: Deployment readiness checks for PrairieLog backend, Postgres, and static frontend
+alwaysApply: false
+---
+
+# PrairieLog Deployment Readiness
+
+The app is feature-complete enough to deploy. Do not add new product features.
+
+Goal:
+Prepare the existing Spring Boot backend, PostgreSQL database config, and static frontend for deployment.
+
+## Do not change
+
+Do not:
+- Add React, Angular, Vue, Vite, npm, or frontend build tools
+- Add new authentication systems
+- Add Kafka, Redis, Elasticsearch, or persistent log storage
+- Change the OpenAPI contract unless a deployment bug requires it
+- Rewrite working services
+- Store real tokens or webhook URLs in code
+- Hardcode production database credentials
+
+## Backend requirements
+
+Spring Boot must support deploy-time environment variables.
+
+Required:
+- Database URL from environment
+- Database username from environment
+- Database password from environment
+- Server port from environment when provided by host
+- CORS allowed origins from environment
+- Ensure aggregation timer is set to 1 minute
+
+The backend should support these env vars:
+- DB_URL
+- DB_USER
+- DB_PASSWORD
+- PORT
+- ALLOWED_ORIGINS
+- ALERTS_ENABLED
+- ALERTS_AGGREGATION_WINDOW_MS
+- ALERTS_MAX_MESSAGES_PER_ALERT
+
+Spring config should support this shape:
+
+server.port = ${PORT:8080}
+
+spring.datasource.url = ${DB_URL}
+spring.datasource.username = ${DB_USER}
+spring.datasource.password = ${DB_PASSWORD}
+
+Alert config should be environment-driven if already configurable.
+
+## CORS requirements
+
+CORS must allow the deployed frontend URL.
+
+Allowed headers must include:
+- Content-Type
+- X-Ingestion-Token
+
+Allowed methods must include:
+- GET
+- POST
+- PATCH
+- DELETE
+- OPTIONS
+
+Do not use wildcard "*" for allowed origins unless this is intentionally public and no credentials are used.
+
+Use ALLOWED_ORIGINS as a comma-separated list.
+
+Example:
+ALLOWED_ORIGINS=https://prairielog.netlify.app,http://localhost:5500,http://127.0.0.1:5500
+
+## Frontend requirements
+
+The static frontend must only need one config change for deployment.
+
+The backend URL should be set only in:
+frontend/js/config.js
+
+Or wherever the frontend config file currently lives.
+
+Do not hardcode backend URLs in:
+- dashboard JS
+- docs JS
+- examples JS
+- rest service JS
+- HTML files
+
+Expected deployed frontend config shape:
+
+window.CONFIG = {
+  API_BASE_URL: "https://DEPLOYED_BACKEND_URL",
+  OPENAPI_PATH: "./resources/openapi.json"
+};
+
+## Database requirements
+
+Deployment uses external PostgreSQL.
+
+The backend must not assume:
+- localhost database
+- Docker network hostname
+- hardcoded local credentials
+
+Liquibase should run against the deployed database unless explicitly disabled.
+
+## Docker and build requirements
+
+Verify Maven package works:
+
+mvn clean package -DskipTests
+
+If a Dockerfile already exists, verify Docker build works.
+
+The generated jar should be runnable with:
+
+java -jar target/*.jar
+
+## Deliverable
+
+When asked to prepare for deployment:
+1. Inspect config files
+2. Make the minimum required changes
+3. List every changed file
+4. Explain why each change was needed
+5. Do not introduce new architecture

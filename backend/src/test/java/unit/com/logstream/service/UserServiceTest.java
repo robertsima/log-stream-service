@@ -23,6 +23,8 @@ import com.logstream.generated.model.UserResponse;
 import com.logstream.repository.UserRepository;
 import com.logstream.service.UserServiceImpl;
 
+import java.util.Optional;
+
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
@@ -43,8 +45,7 @@ public class UserServiceTest {
 
     @Test
     void testCreateUser_Success() {
-        // Arrange
-        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(userRepository.findByEmail(createUserRequest.getEmail())).thenReturn(Optional.empty());
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
 
         Users savedUser = new Users();
@@ -65,24 +66,25 @@ public class UserServiceTest {
 
     @Test
     void testCreateUser_EmailAlreadyExists() {
-        // Arrange
-        when(userRepository.existsByEmail(createUserRequest.getEmail())).thenReturn(true);
+        Users existingUser = new Users();
+        existingUser.setEmail("test@example.com");
+        existingUser.setUsername("existinguser");
 
-        // Act & Assert
-        assertThrows(IllegalStateException.class, () -> {
-            userService.createUser(createUserRequest);
-        });
+        when(userRepository.findByEmail(createUserRequest.getEmail())).thenReturn(Optional.of(existingUser));
 
+        UserResponse response = userService.createUser(createUserRequest);
+
+        assertNotNull(response);
+        assertEquals("test@example.com", response.getEmail());
+        assertEquals("existinguser", response.getUsername());
         verify(userRepository, never()).save(any(Users.class));
     }
 
     @Test
     void testCreateUser_UsernameAlreadyExists() {
-        // Arrange
-        when(userRepository.existsByEmail(createUserRequest.getEmail())).thenReturn(false);
+        when(userRepository.findByEmail(createUserRequest.getEmail())).thenReturn(Optional.empty());
         when(userRepository.existsByUsername(createUserRequest.getUsername())).thenReturn(true);
 
-        // Act & Assert
         assertThrows(IllegalStateException.class, () -> {
             userService.createUser(createUserRequest);
         });
@@ -91,15 +93,14 @@ public class UserServiceTest {
     }
 
     @Test
-    void testCreateUser_ThrowsExceptionMessageForDuplicate() {
-        // Arrange
-        when(userRepository.existsByEmail(createUserRequest.getEmail())).thenReturn(true);
+    void testCreateUser_ThrowsExceptionMessageForDuplicateUsername() {
+        when(userRepository.findByEmail(createUserRequest.getEmail())).thenReturn(Optional.empty());
+        when(userRepository.existsByUsername(createUserRequest.getUsername())).thenReturn(true);
 
-        // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
             userService.createUser(createUserRequest);
         });
 
-        assertTrue(exception.getMessage().contains("User already exists"));
+        assertTrue(exception.getMessage().contains("Username already exists"));
     }
 }

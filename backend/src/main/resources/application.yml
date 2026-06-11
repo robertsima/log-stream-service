@@ -21,6 +21,9 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    session:
+      persistent: false
   
 springdoc:
   enable-data-rest: false

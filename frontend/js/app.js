@@ -21,7 +21,7 @@
       '<img class="prairie-dog-sprite" src="./resources/images/prairie-dog-silhouette.png" width="32" height="46" alt="" aria-hidden="true">' +
       "</div>" +
       "</div>" +
-      '<span class="nav-brand-text">Prairie<span class="brand-accent">Log</span></span>' +
+      '<span class="nav-brand-text">Prairie<span class="brand-accent">Log API</span></span>' +
       "</span></a>";
 
     container.dataset.initialized = "true";
@@ -186,12 +186,20 @@
       (app ? escapeHtml(app.name) : "Not registered") +
       "</span></div>" +
       '<div class="state-item"><span class="state-label">Token</span><span class="state-value">' +
-      (token ? "Active in session" : "Not generated") +
+      (token
+        ? escapeHtml(
+            state.tokenPrefix
+              ? state.tokenPrefix + " (active)"
+              : "Active in session"
+          )
+        : "Not generated") +
       "</span></div>" +
       '<div class="state-item"><span class="state-label">Destination</span><span class="state-value">' +
       (destination
         ? escapeHtml(destination.type + " – " + destination.name)
-        : "Not configured") +
+        : state.destinationCount > 0
+          ? state.destinationCount + " configured"
+          : "Not configured") +
       "</span></div>" +
       "</div>";
   }

@@ -91,7 +91,8 @@ public class AppsControllerIT extends PostgresBaseIT {
         mockMvc.perform(post("/api/v1/apps")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Duplicate App"));
     }
 
     @Test

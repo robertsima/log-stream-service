@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting Started — PrairieLog</title>
+  <title>Getting Started — PrairieLog API</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/config.js" defer></script>
   <script src="js/state.js" defer></script>
@@ -26,7 +26,7 @@
     <header class="page-header">
       <h1>Getting Started</h1>
       <p>
-        Follow these steps to register an app, generate an ingestion token,
+        Use this guide to register an app, an ingestion token,
         send log events, and configure alert destinations.
       </p>
       <a class="button" href="dashboard.html">
@@ -36,7 +36,7 @@
     </header>
 
     <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Step 1 — Create a user</span></h2>
+      <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Create a user</span></h2>
       <p>Bootstrap a user account (temporary until full authentication is added).</p>
       <div class="code-block">
         <div class="code-block-header">
@@ -56,8 +56,8 @@
     </section>
 
     <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>Step 2 — Register your app</span></h2>
-      <p>Register the application or service that will send logs.</p>
+      <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>Register your app</span></h2>
+      <p>Register the application or service that will send logs to PrairieLog API.</p>
       <div class="code-block">
         <div class="code-block-header">
           <span class="code-block-label">curl</span>
@@ -77,16 +77,15 @@
     </section>
 
     <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Step 3 — Generate an ingestion token</span></h2>
+      <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Generate an ingestion token</span></h2>
       <p>
         The raw token is returned once at creation. Copy it immediately and store
-        it securely in your application environment — not in browser storage.
+        it securely, you won't see it again if you refresh the page.
       </p>
       <div class="callout callout-warning">
         <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
         Your ingestion token is kept only in this browser page session when using
-        the dashboard. Refreshing or closing the page clears it. Copy it now because
-        it will not be shown again.
+        the dashboard. Refreshing or closing the page clears it and resets the dashboard state.
       </div>
       <div class="code-block">
         <div class="code-block-header">
@@ -105,7 +104,7 @@
     </section>
 
     <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i><span>Step 4 — Send a log event</span></h2>
+      <h2 class="heading-with-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i><span>Send a log event</span></h2>
       <p>POST a JSON log event with the <code>X-Ingestion-Token</code> header.</p>
       <div class="code-block">
         <div class="code-block-header">
@@ -152,7 +151,7 @@
     </section>
 
     <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Step 5 — Add a Slack or Discord destination</span></h2>
+      <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Add a Slack or Discord destination</span></h2>
       <p>
         Create a webhook destination for aggregated ERROR alerts. Webhook URLs
         are stored by the backend but are not returned in full from list endpoints.
@@ -177,7 +176,7 @@
     </section>
 
     <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Step 6 — Test your destination</span></h2>
+      <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test your destination</span></h2>
       <p>Send a test alert to verify your webhook is configured correctly.</p>
       <div class="code-block">
         <div class="code-block-header">
@@ -191,20 +190,10 @@
   http://localhost:8080/api/v1/apps/{appId}/alert-destinations/{destinationId}/test</code></pre>
       </div>
     </section>
-
-    <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="shield-check" class="icon" aria-hidden="true"></i><span>Production recommendations</span></h2>
-      <ul class="checklist">
-        <li>Proxy log ingestion through your backend — do not embed tokens in frontend code.</li>
-        <li>Use app-scoped tokens with expiration and revocation.</li>
-        <li>Apply rate limits on your ingestion proxy.</li>
-        <li>Rotate tokens when team members leave or credentials are exposed.</li>
-      </ul>
-    </section>
   </main>
 
   <footer class="footer">
-    <p>&copy; 2026 PrairieLog. All rights reserved.</p>
+    <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
   </footer>
 </body>
 </html>
