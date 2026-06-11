@@ -7,43 +7,29 @@
     { href: "examples.html", label: "Examples", icon: "code-2" }
   ];
 
-  const PRAIRIE_DOG_SVG_PATH = "./resources/images/prairie-dog.svg";
-
-  function getCurrentPage() {
-    const path = window.location.pathname.split("/").pop() || "index.html";
-    return path === "" ? "index.html" : path;
-  }
-
-  async function initNavBrand() {
+  function initNavBrand() {
     const container = document.querySelector(".nav-logo");
     if (!container || container.dataset.initialized === "true") {
       return;
     }
 
-    let prairieDogSvg =
-      '<svg class="prairie-dog-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 72" aria-hidden="true"></svg>';
-
-    try {
-      const response = await fetch(PRAIRIE_DOG_SVG_PATH);
-      if (response.ok) {
-        prairieDogSvg = await response.text();
-        if (!prairieDogSvg.includes('class="prairie-dog-svg"')) {
-          prairieDogSvg = prairieDogSvg.replace("<svg", '<svg class="prairie-dog-svg"');
-        }
-      }
-    } catch {
-      // Keep empty fallback svg if asset fails to load.
-    }
-
     container.innerHTML =
       '<a href="index.html" class="nav-brand">' +
+      '<span class="nav-brand-mark">' +
       '<div class="prairie-dog-wrap">' +
-      '<div class="prairie-dog-peek">' +
-      prairieDogSvg +
-      "</div></div>" +
-      '<span class="nav-brand-text">Prairie<span class="brand-accent">Log</span></span></a>';
+      '<div class="prairie-dog-rise">' +
+      '<img class="prairie-dog-sprite" src="./resources/images/prairie-dog-silhouette.png" width="32" height="46" alt="" aria-hidden="true">' +
+      "</div>" +
+      "</div>" +
+      '<span class="nav-brand-text">Prairie<span class="brand-accent">Log</span></span>' +
+      "</span></a>";
 
     container.dataset.initialized = "true";
+  }
+
+  function getCurrentPage() {
+    const path = window.location.pathname.split("/").pop() || "index.html";
+    return path === "" ? "index.html" : path;
   }
 
   function renderNavLink(link, currentPage) {
@@ -420,8 +406,8 @@
     });
   }
 
-  async function initSharedUI() {
-    await initNavBrand();
+  function initSharedUI() {
+    initNavBrand();
     initNavigation();
     initCopyBlocks();
     updateStateSummary("session-state-summary");

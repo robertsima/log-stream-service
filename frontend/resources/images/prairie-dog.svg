@@ -1,64 +1,27 @@
-<svg class="prairie-dog-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 72" fill="none" aria-hidden="true">
-  <defs>
-    <linearGradient id="pd-hole" x1="40" y1="62" x2="40" y2="70" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#7BA888"/>
-      <stop offset="1" stop-color="#5E8870"/>
-    </linearGradient>
-    <linearGradient id="pd-fur" x1="40" y1="10" x2="40" y2="52" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFF8EE"/>
-      <stop offset="0.45" stop-color="#F3DDB8"/>
-      <stop offset="1" stop-color="#E2C094"/>
-    </linearGradient>
-    <linearGradient id="pd-ear" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#F0D4A8"/>
-      <stop offset="1" stop-color="#D4A574"/>
-    </linearGradient>
-    <radialGradient id="pd-blush" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="scale(5)">
-      <stop stop-color="#FFB4B4" stop-opacity="0.55"/>
-      <stop offset="1" stop-color="#FFB4B4" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="pd-glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#8B6914" flood-opacity="0.18"/>
-    </filter>
-  </defs>
-
-  <ellipse class="prairie-dog-hole" cx="40" cy="67" rx="24" ry="4" fill="url(#pd-hole)" opacity="0.5"/>
-
-  <g class="prairie-dog-sprite" filter="url(#pd-glow)">
-    <ellipse cx="40" cy="54" rx="15" ry="11" fill="#E8C08E"/>
-    <ellipse cx="40" cy="53" rx="11" ry="8" fill="#FAEFDC"/>
-
-    <ellipse cx="31" cy="60" rx="4" ry="3.2" fill="#E2C094" stroke="#D4A574" stroke-width="0.5"/>
-    <ellipse cx="49" cy="60" rx="4" ry="3.2" fill="#E2C094" stroke="#D4A574" stroke-width="0.5"/>
-    <circle cx="29" cy="59.5" r="0.9" fill="#FAEFDC"/>
-    <circle cx="33" cy="59.5" r="0.9" fill="#FAEFDC"/>
-    <circle cx="47" cy="59.5" r="0.9" fill="#FAEFDC"/>
-    <circle cx="51" cy="59.5" r="0.9" fill="#FAEFDC"/>
-
-    <g class="prairie-dog-head">
-      <ellipse cx="24" cy="17" rx="7" ry="9" fill="url(#pd-ear)" transform="rotate(-18 24 17)"/>
-      <ellipse cx="25" cy="18" rx="3.5" ry="4.5" fill="#FFE8CC" transform="rotate(-18 25 18)"/>
-      <ellipse cx="56" cy="17" rx="7" ry="9" fill="url(#pd-ear)" transform="rotate(18 56 17)"/>
-      <ellipse cx="55" cy="18" rx="3.5" ry="4.5" fill="#FFE8CC" transform="rotate(18 55 18)"/>
-
-      <circle cx="40" cy="30" r="19" fill="url(#pd-fur)" stroke="#E2C094" stroke-width="0.8"/>
-
-      <ellipse cx="27" cy="33" rx="5" ry="4" fill="#FAEFDC" opacity="0.85"/>
-      <ellipse cx="53" cy="33" rx="5" ry="4" fill="#FAEFDC" opacity="0.85"/>
-
-      <circle cx="28" cy="35" r="4" fill="url(#pd-blush)"/>
-      <circle cx="52" cy="35" r="4" fill="url(#pd-blush)"/>
-
-      <ellipse cx="40" cy="37" rx="8" ry="6.5" fill="#FFF5E8"/>
-
-      <circle cx="32.5" cy="28" r="5.2" fill="#2F2418"/>
-      <circle cx="47.5" cy="28" r="5.2" fill="#2F2418"/>
-      <circle cx="34.3" cy="26.2" r="2" fill="#FFFFFF"/>
-      <circle cx="49.3" cy="26.2" r="2" fill="#FFFFFF"/>
-      <circle cx="31.2" cy="29.5" r="0.75" fill="#FFFFFF" opacity="0.7"/>
-
-      <ellipse cx="40" cy="37.5" rx="2.2" ry="1.6" fill="#6B4A32"/>
-      <path d="M36.5 40.5 Q40 43.5 43.5 40.5" stroke="#B8895A" stroke-width="1.1" stroke-linecap="round" fill="none"/>
-    </g>
-  </g>
+<svg class="prairie-dog-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 56" fill="none" aria-hidden="true">
+  <path
+    class="prairie-dog-sprite"
+    fill="currentColor"
+    d="
+      M 6 30
+      C 1 29, 0 23, 2 18
+      C 1 13, 5 8, 11 8
+      C 13 4, 18 2, 23 5
+      C 26 3, 31 4, 35 8
+      C 41 7, 47 9, 52 13
+      C 57 12, 62 14, 66 12
+      C 71 9, 76 8, 80 12
+      C 85 16, 87 22, 83 27
+      C 78 31, 71 32, 65 33
+      C 56 36, 48 38, 42 38
+      C 44 42, 45 46, 48 47
+      C 51 45, 50 41, 49 38
+      C 42 38, 34 37, 28 36
+      C 26 39, 27 43, 26 46
+      C 23 46, 24 42, 25 39
+      C 22 37, 16 35, 10 32
+      C 8 31, 7 30, 6 30
+      Z
+    "
+  />
 </svg>

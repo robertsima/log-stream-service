@@ -97,9 +97,7 @@ code {
 
 .nav-brand {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 0.55rem;
   color: var(--color-text);
   text-decoration: none;
   transition: transform 0.15s ease;
@@ -109,6 +107,13 @@ code {
   text-decoration: none;
   color: var(--color-text);
   transform: translateY(-1px);
+}
+
+.nav-brand-mark {
+  position: relative;
+  display: inline-block;
+  padding-left: calc(32px + 0.55rem);
+  line-height: 1;
 }
 
 .nav-brand-text {
@@ -125,25 +130,79 @@ code {
 }
 
 .prairie-dog-wrap {
-  width: 50px;
-  height: 40px;
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.prairie-dog-peek {
   position: absolute;
-  left: 50%;
-  bottom: -4px;
-  width: 50px;
-  transform: translateX(-50%);
+  left: 0;
+  bottom: 0;
+  width: 32px;
+  height: 46px;
+  overflow: hidden;
 }
 
-.prairie-dog-svg {
-  width: 50px;
-  height: auto;
+.prairie-dog-rise {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  will-change: transform;
+  animation: prairie-dog-rise 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.prairie-dog-sprite {
   display: block;
+  width: 32px;
+  height: 46px;
+  object-fit: contain;
+  object-position: center bottom;
+  transform-origin: center bottom;
+  animation: prairie-dog-look 7s linear infinite;
+}
+
+@keyframes prairie-dog-rise {
+  0%, 78%, 100% {
+    transform: translateY(105%);
+  }
+
+  7% {
+    transform: translateY(26%);
+  }
+
+  11%, 62% {
+    transform: translateY(30%);
+  }
+
+  68% {
+    transform: translateY(34%);
+  }
+}
+
+@keyframes prairie-dog-look {
+  0%, 11%, 32%, 50%, 62%, 100% {
+    transform: scaleX(-1);
+  }
+
+  36% {
+    transform: scaleX(1);
+  }
+
+  46% {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prairie-dog-rise,
+  .prairie-dog-sprite,
+  .icon-spin {
+    animation: none !important;
+  }
+
+  .prairie-dog-rise {
+    transform: translateY(30%);
+  }
+
+  .prairie-dog-sprite {
+    transform: scaleX(-1);
+  }
 }
 
 .nav-menu {
@@ -219,52 +278,6 @@ code {
 .docs-code-compact {
   font-size: 0.78rem;
   line-height: 1.45;
-}
-
-.prairie-dog-sprite {
-  transform-origin: 40px 66px;
-  animation: prairie-dog-rise 5.5s ease-in-out infinite;
-}
-
-.prairie-dog-head {
-  transform-origin: 40px 32px;
-  animation: prairie-dog-look 5.5s ease-in-out infinite;
-}
-
-@keyframes prairie-dog-rise {
-  0%, 78%, 100% {
-    transform: translateY(24px);
-  }
-
-  12%, 62% {
-    transform: translateY(0);
-  }
-}
-
-@keyframes prairie-dog-look {
-  0%, 18%, 68%, 100% {
-    transform: rotate(0deg);
-  }
-
-  26% {
-    transform: rotate(-12deg);
-  }
-
-  34% {
-    transform: rotate(12deg);
-  }
-
-  42% {
-    transform: rotate(0deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .prairie-dog-sprite,
-  .prairie-dog-head,
-  .icon-spin {
-    animation: none !important;
-  }
 }
 
 .nav-link {
@@ -1083,14 +1096,18 @@ pre {
     padding-top: 0;
   }
 
-  .prairie-dog-wrap {
-    width: 44px;
-    height: 36px;
+  .nav-brand-mark {
+    padding-left: calc(30px + 0.55rem);
   }
 
-  .prairie-dog-peek,
-  .prairie-dog-svg {
-    width: 44px;
+  .prairie-dog-wrap {
+    width: 30px;
+    height: 42px;
+  }
+
+  .prairie-dog-sprite {
+    width: 30px;
+    height: 42px;
   }
 
   section {
