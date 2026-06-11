@@ -1,0 +1,201 @@
+---
+description: Frontend structure and layout
+alwaysApply: false
+---
+description: Frontend structure rules for the PrairieLog static developer portal
+globs:
+
+* "frontend/**/*.html"
+* "frontend/**/*.css"
+* "frontend/**/*.js"
+  alwaysApply: false
+
+---
+
+# PrairieLog Frontend Structure Rule
+
+This frontend is a static multi-page developer portal for PrairieLog.
+
+Use this structure:
+
+```text
+frontend/
+  index.html
+  getting-started.html
+  dashboard.html
+  docs.html
+  examples.html
+
+  css/
+    styles.css
+
+  js/
+    config.js
+    rest-service.js
+    state.js
+    app.js
+    dashboard.js
+    docs.js
+    examples.js
+
+  resources/
+    openapi.json
+
+  examples/
+    angular/
+      prairie-log.service.ts
+      global-error-handler.ts
+    react/
+      prairieLogClient.ts
+      PrairieLogErrorBoundary.tsx
+```
+
+## Page Responsibilities
+
+### `index.html`
+
+Landing page only.
+
+Purpose:
+
+* Explain what PrairieLog is
+* Explain the basic API flow
+* Link users to Getting Started, Dashboard, Docs, and Examples
+
+Do not put dashboard forms here.
+
+### `getting-started.html`
+
+Setup guide page.
+
+Purpose:
+
+* Explain the user flow step-by-step
+* Show sample payloads
+* Show sample curl commands
+* Explain ingestion tokens
+* Explain Slack/Discord destinations
+
+This page may include documentation snippets, but should not own the main interactive flow.
+
+### `dashboard.html`
+
+Interactive control panel.
+
+Purpose:
+
+* Create user
+* Register app/source
+* Generate ingestion token
+* Add Slack/Discord alert destination
+* Test alert destination
+* Send sample ERROR/INFO log events
+* Show API responses in an output panel
+
+Most API interaction belongs here.
+
+### `docs.html`
+
+Developer resources page.
+
+Purpose:
+
+* Load embedded OpenAPI JSON from `resources/openapi.json`
+* Render endpoint summaries
+* Provide download link for OpenAPI JSON
+* Show request/response examples
+
+### `examples.html`
+
+Integration examples page.
+
+Purpose:
+
+* Show Angular integration example
+* Show React integration example
+* Show plain fetch/curl examples
+* Link to files under `frontend/examples/`
+
+## JavaScript File Responsibilities
+
+### `config.js`
+
+Environment configuration only.
+
+Examples:
+
+* API base URL
+* OpenAPI path
+
+Do not put UI logic here.
+
+### `rest-service.js`
+
+API client only.
+
+Responsibilities:
+
+* Centralized `fetch` wrapper
+* API request methods
+* Error handling
+* JSON parsing
+
+Do not directly manipulate the DOM here.
+
+### `state.js`
+
+In-memory state only.
+
+Stores:
+
+* current user
+* current app
+* current ingestion token
+* current alert destination
+
+Do not use localStorage/sessionStorage/cookies for tokens.
+
+### `app.js`
+
+Shared frontend behavior.
+
+Examples:
+
+* shared navigation behavior
+* shared helpers
+* common output rendering helpers
+
+Do not put dashboard-specific form handling here if it belongs in `dashboard.js`.
+
+### `dashboard.js`
+
+Dashboard page logic only.
+
+Responsibilities:
+
+* Query dashboard DOM elements
+* Add event listeners to dashboard forms/buttons
+* Call `window.restService`
+* Update `window.PrairieLogState`
+* Render responses/errors to output panel
+
+### `docs.js`
+
+Docs page logic only.
+
+Responsibilities:
+
+* Load OpenAPI contract
+* Render endpoint list
+* Download OpenAPI JSON
+* Show raw contract if needed
+
+### `examples.js`
+
+Examples page logic only.
+
+Responsibilities:
+
+* Show/copy example code snippets
+* Load example file text if needed
+* Keep examples page interactive but simple

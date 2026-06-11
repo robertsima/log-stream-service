@@ -1,0 +1,16 @@
+import { ErrorHandler, Injectable } from '@angular/core';
+import { PrairieLogService } from './prairie-log.service';
+
+@Injectable()
+export class GlobalErrorHandler implements ErrorHandler {
+  constructor(private readonly prairieLogService: PrairieLogService) {}
+
+  handleError(error: unknown): void {
+    this.prairieLogService.error(error, {
+      source: 'Angular GlobalErrorHandler'
+    });
+
+    // Keep Angular/browser console behavior for local debugging.
+    console.error(error);
+  }
+}

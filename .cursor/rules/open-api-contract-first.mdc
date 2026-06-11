@@ -1,0 +1,27 @@
+---
+description: Understanding API contracts
+alwaysApply: false
+---
+# OpenAPI Contract-First Rule
+
+This project is contract-first.
+
+Before creating or changing controller request/response DTOs:
+
+1. Update `src/main/resources/openapi/log-stream-service.yaml`
+
+2. Regenerate OpenAPI sources with Maven
+
+3. Implement the generated API interface
+
+4. Do not hand-write controller DTOs when generated models already exist
+
+Controllers should implement generated interfaces from:
+
+`com.logstream.generated.api`
+
+Generated models should come from:
+
+`com.logstream.generated.model`
+
+Business logic belongs in service implementations paired with service interfaces, not controllers.

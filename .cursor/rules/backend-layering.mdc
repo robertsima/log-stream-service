@@ -1,0 +1,47 @@
+---
+description: Understanding backend architecture
+alwaysApply: false
+---
+# Spring Backend Layering Rule
+
+Use this layering:
+
+Controller:
+
+- Implements generated OpenAPI API interface
+
+- Validates simple headers/path/body presence
+
+- Delegates to service/ service impl
+
+- Returns ResponseEntity
+
+Service:
+
+- Business logic
+
+- Token validation
+
+- Alert aggregation
+
+- Destination management
+
+- Mapping entity <-> generated response model
+
+Repository:
+
+- Spring Data JPA only
+
+- No business logic
+
+Entity:
+
+- Database persistence model only
+
+- Do not expose entities directly from controllers
+
+Generated OpenAPI models:
+
+- API boundary models only
+
+- Avoid leaking generated models deep into persistence where possible

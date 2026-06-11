@@ -1,4 +1,5 @@
 <html lang="en">
+
 <head>
     <link rel="stylesheet" href="styles.css">
     <script src="config.js" defer></script>
@@ -19,7 +20,7 @@
             <a href="#">PrairieLog API</a>
         </div>
         <ul class="nav-links">
-            <li><a href="#about" >About</a></li>
+            <li><a href="#about">About</a></li>
             <li><a href="#get-started">Getting Started</a></li>
             <li><a href="#register">Register</a></li>
             <li><a href="#destinations">Destinations</a></li>
@@ -30,13 +31,30 @@
     <!-- About section -->
     <section id="about">
         <h1>Welcome to the PrairieLog API</h1>
-        <p>The PrairieLog API provides a powerful and flexible way to manage log streams for your applications. With our API, you can easily create, update, and delete log streams, as well as retrieve log stream data in real-time.</p>
+
+        <p>Prarie Dog is a free to use tool for developers to help monitor small applications and services.</p>
+
+        <p>The PrairieLog API provides a powerful and flexible way to manage log streams for your applications. With our
+            API, you can easily create, update, and delete log streams, as well as retrieve log stream data in
+            real-time.</p>
+
+        <p> PrarieLog generates a unique ingestion token for each application that you register. You can use this token to send JSON formatted log events to the PrairieLog API webhook. Logs sent to the webhook are relayed to the PrairieLog API and then sent to the configured alert destinations such as Slack or Discord.</p>
+
+        <p>PrarieLog does not store any logs outside of the alerting system. All logs are processed in real-time for aggregation then forwarded to your configured destinations.</p>
+    
     </section>
 
     <!-- Getting started -->
     <section id="get-started">
-        <h2>Get Started</h2>
-        <p>Learn how to use the PrairieLog API in your applications.</p>
+        <h2>Get Started!</h2>
+        <h3>Learn how to use the PrairieLog API in your applications.</p>
+        <li>1. Set up your app or service to send log events to the PrairieLog API webhook. Currently, only JSON is supported.</li>
+            <p> example angular app streaming service </p>
+        <li>2. Generate an ingestion token for your application.</li>
+        <li>3. Send log events to the PrairieLog API webhook.</li>
+        <li>4. Configure your alert destinations such as Slack or Discord.</li>
+        <li>5. Receive aggregated error alerts through your configured destinations.</li>
+
     </section>
 
     <!-- Register -->
@@ -47,15 +65,18 @@
         <h3>Log Stream Webhook Flow</h3>
         <p>1. Register your webhook URL with the PrairieLog API.</p>
         <p>2. PrairieLog API will send log stream data to your webhook URL in real-time.</p>
-        <p>3. Process the incoming log stream data in your application as needed.</p> 
-            
+        <p>3. Process the incoming log stream data in your application as needed.</p>
+
         <h3>Formatting your log stream data</h3>
         <p>When your application sends log stream data to the PrairieLog API, formatted like ...</p>
 
         <h3>Sample webhook usage</h3>
-        <p>Here's an example of how to use the PrairieLog API webhook:</p>
+        
+        <p>Here's some resources that might help with getting started with webhook ingestion.</p>
+        <li>1. <a href="https://angular.io/guide/http">Angular HTTP Client</a></li>
+        <li>2. <a href="https://reactjs.org/docs/hooks-effect.html">React Hooks</a></li>
+        <li>3. <a href="https://github.com/PKief/angular-global-error-handling">Global Error Handling in Angular</a></li>
 
-        <p>For more information and detailed documentation, visit the <a href="#dev-resources">Developer Resources</a> section.</p>
     </section>
 
     <!-- Destinations if state has token active-->
@@ -70,8 +91,8 @@
         <p>Access documentation, tutorials, and other resources for developers.</p>
     </section>
 
-     <!-- Footer -->
-     <footer class="footer">
+    <!-- Footer -->
+    <footer class="footer">
         <p>&copy; 2026 PrairieLog API. All rights reserved.</p>
-     </footer>
+    </footer>
 </body>

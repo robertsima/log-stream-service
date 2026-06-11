@@ -1,0 +1,50 @@
+---
+alwaysApply: false
+---
+# Vanilla Frontend Rule
+
+This frontend is a lightweight demo console.
+
+Use:
+
+- HTML
+
+- CSS
+
+- Vanilla JavaScript
+
+- Fetch API
+
+- In-memory state only
+
+Do not add:
+
+- React
+
+- Angular
+
+- Vue
+
+- npm dependencies
+
+- bundlers
+
+- localStorage token persistence
+
+Frontend flow:
+
+1. Create user
+
+2. Register app
+
+3. Generate ingestion token
+
+4. Add Slack/Discord destination
+
+5. Send test alert
+
+6. Send sample ERROR log
+
+7. Show responses in output panel
+
+8. Show embedded OpenAPI resource

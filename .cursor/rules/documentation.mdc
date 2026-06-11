@@ -1,0 +1,33 @@
+---
+description: Readme updates
+alwaysApply: false
+---
+# Documentation Rule
+
+README should explain:
+
+- What the service does
+
+- Why it exists
+
+- Tech stack
+
+- API flow
+
+- Example log payload
+
+- Maven commands
+
+- Docker/Podman commands
+
+- Deployment notes
+
+- MVP limitations
+
+- Future plans
+
+Avoid overselling features that are not implemented.
+
+Do not claim persistent log storage.
+
+Do not claim full user authentication until it exists.

@@ -1,0 +1,25 @@
+---
+description: Undertstanding the alerting flow
+alwaysApply: false
+---
+# Alerting MVP Rule
+
+This service uses lightweight in-memory alert aggregation.
+
+Do not add Kafka, RabbitMQ, Redis, Elasticsearch, or persistent log storage for MVP.
+
+Alert flow:
+
+1. Log event ingested
+
+2. Token validates app
+
+3. ERROR logs are added to AlertAggregationService
+
+4. Scheduler drains buckets on configured interval
+
+5. Sends one summarized alert to enabled Slack/Discord destinations
+
+INFO/WARN logs should not alert unless explicitly requested.
+
+Alert failures should not fail log ingestion.

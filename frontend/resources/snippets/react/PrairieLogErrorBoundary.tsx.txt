@@ -1,0 +1,37 @@
+import React from 'react';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
+import { PrairieLogClient } from './prairieLogClient';
+
+interface PrairieLogErrorBoundaryProps {
+  children: React.ReactNode;
+  client: PrairieLogClient;
+}
+
+function DefaultFallback({ error, resetErrorBoundary }: FallbackProps) {
+  return (
+    <div role="alert" style={{ padding: '1rem', border: '1px solid #ef4444' }}>
+      <h2>Something went wrong.</h2>
+      <pre style={{ whiteSpace: 'pre-wrap' }}>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  );
+}
+
+export function PrairieLogErrorBoundary({
+  children,
+  client
+}: PrairieLogErrorBoundaryProps) {
+  return (
+    <ErrorBoundary
+      FallbackComponent={DefaultFallback}
+      onError={(error, info) => {
+        client.error(error, {
+          source: 'React ErrorBoundary',
+          componentStack: info.componentStack
+        });
+      }}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
