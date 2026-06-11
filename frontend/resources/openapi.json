@@ -1,0 +1,954 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Log Stream Service API",
+    "version": "1.1.0",
+    "description": "Lightweight real-time log relay service. Applications register as log sources, generate ingestion tokens, send short-lived log events, and configure Slack or Discord webhook destinations for aggregated error alerts.\n"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Users",
+      "description": "User bootstrap endpoints"
+    },
+    {
+      "name": "Apps",
+      "description": "Log-producing application/source registration"
+    },
+    {
+      "name": "App Tokens",
+      "description": "Ingestion token generation and management"
+    },
+    {
+      "name": "Log Events",
+      "description": "Log ingestion endpoints"
+    },
+    {
+      "name": "Alert Destinations",
+      "description": "Slack and Discord webhook destinations for aggregated error alerts"
+    }
+  ],
+  "paths": {
+    "/api/v1/users": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "createUser",
+        "summary": "Create a user",
+        "description": "Temporary user bootstrap endpoint until full authentication/RBAC is added.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "User already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps": {
+      "post": {
+        "tags": [
+          "Apps"
+        ],
+        "operationId": "createApp",
+        "summary": "Register a log-producing app/source",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "App/source created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Owner user not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Apps"
+        ],
+        "operationId": "getAppsByOwnerEmail",
+        "summary": "Get apps by owner email",
+        "parameters": [
+          {
+            "name": "ownerEmail",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Apps found for owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appId}": {
+      "get": {
+        "tags": [
+          "Apps"
+        ],
+        "operationId": "getAppById",
+        "summary": "Get app/source by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appId}/tokens": {
+      "post": {
+        "tags": [
+          "App Tokens"
+        ],
+        "operationId": "createAppToken",
+        "summary": "Generate a one-time visible ingestion token",
+        "description": "Creates an ingestion token for a registered app. The raw token is returned once. Store only a hash of the token in the database.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Token generated. Raw token is shown once.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAppTokenResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "App Tokens"
+        ],
+        "operationId": "getAppTokens",
+        "summary": "List app tokens without raw token values",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tokens found for app",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppTokenResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appId}/tokens/{tokenId}/revoke": {
+      "patch": {
+        "tags": [
+          "App Tokens"
+        ],
+        "operationId": "revokeAppToken",
+        "summary": "Revoke an ingestion token",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          },
+          {
+            "$ref": "#/components/parameters/TokenId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Token revoked"
+          },
+          "404": {
+            "description": "Token not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appId}/alert-destinations": {
+      "post": {
+        "tags": [
+          "Alert Destinations"
+        ],
+        "operationId": "createAlertDestination",
+        "summary": "Create a Slack or Discord alert destination",
+        "description": "Registers a Slack or Discord webhook destination for an app. ERROR logs for the app are aggregated and sent to enabled destinations.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAlertDestinationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Alert destination created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertDestinationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid alert destination payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Alert Destinations"
+        ],
+        "operationId": "getAlertDestinations",
+        "summary": "List enabled alert destinations for an app",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alert destinations found for app",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AlertDestinationResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "App not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appId}/alert-destinations/{destinationId}": {
+      "delete": {
+        "tags": [
+          "Alert Destinations"
+        ],
+        "operationId": "deleteAlertDestination",
+        "summary": "Delete an alert destination",
+        "description": "Soft-deletes or disables a Slack/Discord alert destination.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          },
+          {
+            "$ref": "#/components/parameters/DestinationId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Alert destination deleted"
+          },
+          "404": {
+            "description": "Alert destination not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apps/{appId}/alert-destinations/{destinationId}/test": {
+      "post": {
+        "tags": [
+          "Alert Destinations"
+        ],
+        "operationId": "testAlertDestination",
+        "summary": "Send a test alert to a Slack or Discord destination",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          },
+          {
+            "$ref": "#/components/parameters/DestinationId"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Test alert accepted"
+          },
+          "404": {
+            "description": "Alert destination not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/log-events": {
+      "post": {
+        "tags": [
+          "Log Events"
+        ],
+        "operationId": "ingestLogEvent",
+        "summary": "Ingest a log event from an external app",
+        "description": "Accepts short-lived log events from registered apps. Events are authenticated using an app ingestion token and are not stored long-term.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IngestionToken"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Log accepted for live relay"
+          },
+          "400": {
+            "description": "Invalid log payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid ingestion token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Log payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "AppId": {
+        "name": "appId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "TokenId": {
+        "name": "tokenId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "DestinationId": {
+        "name": "destinationId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "IngestionToken": {
+        "name": "X-Ingestion-Token",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "App ingestion token generated for a registered log source.",
+        "example": "lss_live_f11n_Mx5e0xy46LJgbycTXsKBFL4qeEa"
+      }
+    },
+    "schemas": {
+      "CreateUserRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "username"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "robert@example.com"
+          },
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100,
+            "example": "robertsima"
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "username",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "username": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateAppRequest": {
+        "type": "object",
+        "required": [
+          "ownerEmail",
+          "name"
+        ],
+        "properties": {
+          "ownerEmail": {
+            "type": "string",
+            "format": "email",
+            "example": "robert@example.com"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "example": "payment-service"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true,
+            "example": "Sends live logs from the payment API."
+          }
+        }
+      },
+      "AppResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "ownerUserId",
+          "name",
+          "active",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateAppTokenRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "example": "local-dev-token"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-12-31 23:59:59+00:00"
+          }
+        }
+      },
+      "CreateAppTokenResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "appId",
+          "name",
+          "token",
+          "tokenPrefix",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "appId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string",
+            "description": "Raw ingestion token. Shown once.",
+            "example": "lss_live_VKpWnlcYiRz7IVQkDDN0t7QY6wc6zvm3"
+          },
+          "tokenPrefix": {
+            "type": "string",
+            "example": "lss_live_VKpW"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AppTokenResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "appId",
+          "name",
+          "tokenPrefix",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "appId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tokenPrefix": {
+            "type": "string",
+            "example": "lss_live_VKpW"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "revokedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateAlertDestinationRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "name",
+          "webhookUrl"
+        ],
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/AlertDestinationType"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "example": "dev-alerts"
+          },
+          "webhookUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "example": "https://discord.com/api/webhooks/..."
+          }
+        }
+      },
+      "AlertDestinationResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "appId",
+          "type",
+          "name",
+          "enabled",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "appId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AlertDestinationType"
+          },
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "AlertDestinationType": {
+        "type": "string",
+        "enum": [
+          "DISCORD",
+          "SLACK"
+        ]
+      },
+      "LogEventRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "level",
+          "message",
+          "occurredAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150,
+            "description": "Client-generated event id for traceability/idempotency.",
+            "example": "01HZABC123"
+          },
+          "level": {
+            "$ref": "#/components/schemas/LogLevel"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "example": "Failed to process payment."
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-08 18:30:00+00:00"
+          },
+          "logger": {
+            "type": "string",
+            "maxLength": 255,
+            "nullable": true,
+            "example": "com.example.PaymentService"
+          },
+          "traceId": {
+            "type": "string",
+            "maxLength": 150,
+            "nullable": true,
+            "example": "abc-123"
+          },
+          "spanId": {
+            "type": "string",
+            "maxLength": 150,
+            "nullable": true,
+            "example": "def-456"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true,
+            "example": {
+              "endpoint": "/payments",
+              "userId": 42
+            }
+          }
+        }
+      },
+      "LogLevel": {
+        "type": "string",
+        "enum": [
+          "TRACE",
+          "DEBUG",
+          "INFO",
+          "WARN",
+          "ERROR"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "timestamp"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 400
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid request payload."
+          },
+          "path": {
+            "type": "string",
+            "example": "/api/v1/log-events"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

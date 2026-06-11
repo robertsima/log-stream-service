@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — PrairieLog</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/config.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/rest-service.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-logo"></div>
+      <div class="nav-menu">
+        <ul class="nav-links nav-links-main"></ul>
+        <ul class="nav-links nav-links-docs"></ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-main">
+    <header class="page-header">
+      <h1 class="heading-with-icon"><i data-lucide="layout-dashboard" class="icon icon-page" aria-hidden="true"></i><span>Dashboard</span></h1>
+      <p id="dashboard-intro">Set up a new app or paste an existing ingestion token to get started.</p>
+    </header>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="activity" class="icon" aria-hidden="true"></i><span>Session state</span></h2>
+      <p class="muted">State is kept in memory only and resets when you refresh the page.</p>
+      <div id="session-state-summary"></div>
+    </section>
+
+    <section class="page-section card-section" id="token-access-panel">
+      <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Ingestion token</span></h2>
+      <p id="token-access-description">
+        Paste an existing token at any time to unlock log-sending actions.
+      </p>
+      <form id="paste-token-form">
+        <div class="form-group">
+          <label for="paste-token-input">Token</label>
+          <input id="paste-token-input" type="password" placeholder="lss_live_..." autocomplete="off" />
+        </div>
+        <button type="submit" id="paste-token-button">
+          <i data-lucide="key" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Use token</span>
+        </button>
+      </form>
+    </section>
+
+    <div id="token-warning-banner" class="callout callout-warning" hidden>
+      <p>
+        <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
+        <strong>Copy your ingestion token now.</strong>
+        Your ingestion token is kept only in this browser page session. Refreshing
+        or closing the page clears it. Copy it now because it will not be shown again.
+      </p>
+      <pre id="token-display" class="token-display"></pre>
+      <button type="button" id="copy-token-button" class="secondary">
+        <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+        <span class="btn-label">Copy token</span>
+      </button>
+    </div>
+
+    <div id="dashboard-setup-panel" class="dashboard-grid">
+      <section class="page-section card-section">
+        <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>1. Create user</span></h2>
+        <form id="create-user-form">
+          <div class="form-group">
+            <label for="user-email-input">Email</label>
+            <input id="user-email-input" type="email" required placeholder="dev@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="username-input">Username</label>
+            <input id="username-input" type="text" required minlength="3" placeholder="devuser" />
+          </div>
+          <button type="submit">
+            <i data-lucide="user-plus" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Create user</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="page-section card-section">
+        <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>2. Register app</span></h2>
+        <form id="create-app-form">
+          <div class="form-group">
+            <label for="app-owner-email-input">Owner email</label>
+            <input id="app-owner-email-input" type="email" required placeholder="dev@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="app-name-input">App name</label>
+            <input id="app-name-input" type="text" required placeholder="payment-service" />
+          </div>
+          <div class="form-group">
+            <label for="app-description-input">Description</label>
+            <textarea id="app-description-input" rows="3" placeholder="Optional description"></textarea>
+          </div>
+          <button type="submit">
+            <i data-lucide="plus" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Register app</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="page-section card-section">
+        <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>3. Generate ingestion token</span></h2>
+        <form id="create-token-form">
+          <div class="form-group">
+            <label for="token-name-input">Token name</label>
+            <input id="token-name-input" type="text" placeholder="frontend-demo-token" />
+          </div>
+          <button type="submit">
+            <i data-lucide="sparkles" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Generate token</span>
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <div id="dashboard-logs-panel" class="dashboard-grid" hidden>
+      <section class="page-section card-section">
+        <h2 class="heading-with-icon"><i data-lucide="scroll-text" class="icon" aria-hidden="true"></i><span>Send sample logs</span></h2>
+        <p>Uses the active ingestion token in this session.</p>
+        <div class="button-row">
+          <button type="button" id="send-error-log-button">
+            <i data-lucide="circle-alert" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Send sample ERROR</span>
+          </button>
+          <button type="button" id="send-info-log-button" class="secondary">
+            <i data-lucide="info" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Send sample INFO</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div id="dashboard-app-panel" class="dashboard-grid" hidden>
+      <section class="page-section card-section">
+        <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Add alert destination</span></h2>
+        <form id="create-destination-form">
+          <div class="form-group">
+            <label for="destination-type-select">Type</label>
+            <select id="destination-type-select" required>
+              <option value="DISCORD">Discord</option>
+              <option value="SLACK">Slack</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="destination-name-input">Name</label>
+            <input id="destination-name-input" type="text" required placeholder="dev-alerts" />
+          </div>
+          <div class="form-group">
+            <label for="destination-webhook-input">Webhook URL</label>
+            <input id="destination-webhook-input" type="url" required placeholder="https://discord.com/api/webhooks/..." />
+          </div>
+          <button type="submit">
+            <i data-lucide="plus" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Add destination</span>
+          </button>
+        </form>
+        <div class="section-actions">
+          <button type="button" id="refresh-destinations-button" class="secondary">
+            <i data-lucide="refresh-cw" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Refresh list</span>
+          </button>
+        </div>
+        <div id="destinations-list" class="list-panel">
+          <p class="muted">No destinations yet.</p>
+        </div>
+      </section>
+
+      <section class="page-section card-section">
+        <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test destination</span></h2>
+        <p>Send a test alert to the most recently created destination in this session.</p>
+        <button type="button" id="test-destination-button">
+          <i data-lucide="send" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Send test alert</span>
+        </button>
+      </section>
+    </div>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="terminal" class="icon" aria-hidden="true"></i><span>API output</span></h2>
+      <div id="dashboard-output" class="output-panel">Responses and errors appear here.</div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 PrairieLog. All rights reserved.</p>
+  </footer>
+</body>
+</html>

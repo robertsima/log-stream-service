@@ -1,98 +1,112 @@
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <link rel="stylesheet" href="styles.css">
-    <script src="config.js" defer></script>
-    <script src="rest-service.js" defer></script>
-    <script src="app.js" defer></script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PrairieLog API</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrairieLog — Developer Portal</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/config.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/rest-service.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/app.js" defer></script>
 </head>
-
-<!-- body begins -->
-
 <body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-logo"></div>
+      <div class="nav-menu">
+        <ul class="nav-links nav-links-main"></ul>
+        <ul class="nav-links nav-links-docs"></ul>
+      </div>
+    </div>
+  </nav>
 
-    <!-- navigation bar -->
-    <nav class="navbar">
-        <div class="nav-logo">
-            <a href="#">PrairieLog API</a>
-        </div>
-        <ul class="nav-links">
-            <li><a href="#about">About</a></li>
-            <li><a href="#get-started">Getting Started</a></li>
-            <li><a href="#register">Register</a></li>
-            <li><a href="#destinations">Destinations</a></li>
-            <li><a href="#dev-resources">Dev Resources</a></li>
-        </ul>
-    </nav>
+  <section id="about" class="hero">
+    <h1>Real-time log relay for small apps</h1>
+    <p>
+      PrairieLog helps developers monitor lightweight applications and services.
+      Register a log source, generate an ingestion token, send JSON log events,
+      and receive aggregated ERROR alerts in Slack or Discord.
+    </p>
+    <div class="hero-actions">
+      <a class="button" href="getting-started.html">
+        <i data-lucide="rocket" class="icon" aria-hidden="true"></i>
+        <span>Get Started</span>
+      </a>
+      <a class="button secondary" href="dashboard.html">
+        <i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i>
+        <span>Open Dashboard</span>
+      </a>
+    </div>
+  </section>
 
-    <!-- About section -->
-    <section id="about">
-        <h1>Welcome to the PrairieLog API</h1>
+  <section class="page-section">
+    <h2 class="heading-with-icon"><i data-lucide="workflow" class="icon" aria-hidden="true"></i><span>How it works</span></h2>
+    <div class="flow-grid">
+      <article class="flow-card">
+        <span class="flow-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i></span>
+        <h3>Register</h3>
+        <p>Create a user and register your app as a log source.</p>
+      </article>
+      <article class="flow-card">
+        <span class="flow-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i></span>
+        <h3>Generate token</h3>
+        <p>Get a one-time ingestion token for your application.</p>
+      </article>
+      <article class="flow-card">
+        <span class="flow-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i></span>
+        <h3>Send logs</h3>
+        <p>POST JSON log events to the ingestion endpoint with your token.</p>
+      </article>
+      <article class="flow-card">
+        <span class="flow-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i></span>
+        <h3>Alert</h3>
+        <p>Configure Slack or Discord destinations for aggregated error alerts.</p>
+      </article>
+    </div>
+  </section>
 
-        <p>Prarie Dog is a free to use tool for developers to help monitor small applications and services.</p>
+  <section class="page-section card-section">
+    <h2 class="heading-with-icon"><i data-lucide="info" class="icon" aria-hidden="true"></i><span>What PrairieLog is (and is not)</span></h2>
+    <p>
+      PrairieLog is a lightweight relay service. Logs are processed in real time
+      for aggregation and forwarding — they are not stored long-term.
+    </p>
+    <p>
+      This browser portal is a developer demo. For production apps, keep tokens
+      on your backend and proxy log ingestion through a trusted service.
+    </p>
+  </section>
 
-        <p>The PrairieLog API provides a powerful and flexible way to manage log streams for your applications. With our
-            API, you can easily create, update, and delete log streams, as well as retrieve log stream data in
-            real-time.</p>
+  <section class="page-section card-section">
+    <h2 class="heading-with-icon"><i data-lucide="compass" class="icon" aria-hidden="true"></i><span>Explore the portal</span></h2>
+    <div class="link-grid">
+      <a class="link-card" href="getting-started.html">
+        <span class="link-card-icon"><i data-lucide="rocket" class="icon" aria-hidden="true"></i></span>
+        <h3>Getting Started</h3>
+        <p>Step-by-step setup, sample payloads, and curl commands.</p>
+      </a>
+      <a class="link-card" href="dashboard.html">
+        <span class="link-card-icon"><i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i></span>
+        <h3>Dashboard</h3>
+        <p>Interactive control panel to try the full API flow.</p>
+      </a>
+      <a class="link-card" href="docs.html">
+        <span class="link-card-icon"><i data-lucide="book-open-text" class="icon" aria-hidden="true"></i></span>
+        <h3>API Docs</h3>
+        <p>Browse endpoints from the embedded OpenAPI contract.</p>
+      </a>
+      <a class="link-card" href="examples.html">
+        <span class="link-card-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i></span>
+        <h3>Examples</h3>
+        <p>Angular and React integration snippets.</p>
+      </a>
+    </div>
+  </section>
 
-        <p> PrarieLog generates a unique ingestion token for each application that you register. You can use this token to send JSON formatted log events to the PrairieLog API webhook. Logs sent to the webhook are relayed to the PrairieLog API and then sent to the configured alert destinations such as Slack or Discord.</p>
-
-        <p>PrarieLog does not store any logs outside of the alerting system. All logs are processed in real-time for aggregation then forwarded to your configured destinations.</p>
-    
-    </section>
-
-    <!-- Getting started -->
-    <section id="get-started">
-        <h2>Get Started!</h2>
-        <h3>Learn how to use the PrairieLog API in your applications.</p>
-        <li>1. Set up your app or service to send log events to the PrairieLog API webhook. Currently, only JSON is supported.</li>
-            <p> example angular app streaming service </p>
-        <li>2. Generate an ingestion token for your application.</li>
-        <li>3. Send log events to the PrairieLog API webhook.</li>
-        <li>4. Configure your alert destinations such as Slack or Discord.</li>
-        <li>5. Receive aggregated error alerts through your configured destinations.</li>
-
-    </section>
-
-    <!-- Register -->
-    <section id="register">
-        <h2>Register</h2>
-        <p>Sign up for an account to access the PrairieLog API.</p>
-
-        <h3>Log Stream Webhook Flow</h3>
-        <p>1. Register your webhook URL with the PrairieLog API.</p>
-        <p>2. PrairieLog API will send log stream data to your webhook URL in real-time.</p>
-        <p>3. Process the incoming log stream data in your application as needed.</p>
-
-        <h3>Formatting your log stream data</h3>
-        <p>When your application sends log stream data to the PrairieLog API, formatted like ...</p>
-
-        <h3>Sample webhook usage</h3>
-        
-        <p>Here's some resources that might help with getting started with webhook ingestion.</p>
-        <li>1. <a href="https://angular.io/guide/http">Angular HTTP Client</a></li>
-        <li>2. <a href="https://reactjs.org/docs/hooks-effect.html">React Hooks</a></li>
-        <li>3. <a href="https://github.com/PKief/angular-global-error-handling">Global Error Handling in Angular</a></li>
-
-    </section>
-
-    <!-- Destinations if state has token active-->
-    <section id="destinations">
-        <h2>Destinations</h2>
-        <p>Destinations associated with this app</p>
-    </section>
-
-    <!-- Dev Resources -->
-    <section id="dev-resources">
-        <h2>Developer Resources</h2>
-        <p>Access documentation, tutorials, and other resources for developers.</p>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2026 PrairieLog API. All rights reserved.</p>
-    </footer>
+  <footer class="footer">
+    <p>&copy; 2026 PrairieLog. All rights reserved.</p>
+  </footer>
 </body>
+</html>

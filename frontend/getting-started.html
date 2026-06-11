@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started — PrairieLog</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/config.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/rest-service.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-logo"></div>
+      <div class="nav-menu">
+        <ul class="nav-links nav-links-main"></ul>
+        <ul class="nav-links nav-links-docs"></ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-main">
+    <header class="page-header">
+      <h1>Getting Started</h1>
+      <p>
+        Follow these steps to register an app, generate an ingestion token,
+        send log events, and configure alert destinations.
+      </p>
+      <a class="button" href="dashboard.html">
+        <i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i>
+        <span>Try it in the Dashboard</span>
+      </a>
+    </header>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Step 1 — Create a user</span></h2>
+      <p>Bootstrap a user account (temporary until full authentication is added).</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step1" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step1"><code>curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "dev@example.com",
+    "username": "devuser"
+  }'</code></pre>
+      </div>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>Step 2 — Register your app</span></h2>
+      <p>Register the application or service that will send logs.</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step2" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step2"><code>curl -X POST http://localhost:8080/api/v1/apps \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ownerEmail": "dev@example.com",
+    "name": "payment-service",
+    "description": "Sends live logs from the payment API."
+  }'</code></pre>
+      </div>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Step 3 — Generate an ingestion token</span></h2>
+      <p>
+        The raw token is returned once at creation. Copy it immediately and store
+        it securely in your application environment — not in browser storage.
+      </p>
+      <div class="callout callout-warning">
+        <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
+        Your ingestion token is kept only in this browser page session when using
+        the dashboard. Refreshing or closing the page clears it. Copy it now because
+        it will not be shown again.
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step3" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step3"><code>curl -X POST http://localhost:8080/api/v1/apps/{appId}/tokens \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "local-dev-token"
+  }'</code></pre>
+      </div>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i><span>Step 4 — Send a log event</span></h2>
+      <p>POST a JSON log event with the <code>X-Ingestion-Token</code> header.</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">JSON payload</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step4-json" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step4-json"><code>{
+  "id": "demo-error-001",
+  "level": "ERROR",
+  "message": "Failed to process payment for user 123.",
+  "occurredAt": "2026-06-08T18:30:00Z",
+  "logger": "com.example.PaymentService",
+  "traceId": "trace-abc-123",
+  "metadata": {
+    "endpoint": "/payments",
+    "userId": 42
+  }
+}</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step4-curl" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step4-curl"><code>curl -X POST http://localhost:8080/api/v1/log-events \
+  -H "Content-Type: application/json" \
+  -H "X-Ingestion-Token: YOUR_INGESTION_TOKEN" \
+  -d '{
+    "id": "demo-error-001",
+    "level": "ERROR",
+    "message": "Failed to process payment for user 123.",
+    "occurredAt": "2026-06-08T18:30:00Z",
+    "logger": "com.example.PaymentService",
+    "traceId": "trace-abc-123"
+  }'</code></pre>
+      </div>
+      <p class="muted">Supported levels: TRACE, DEBUG, INFO, WARN, ERROR.</p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Step 5 — Add a Slack or Discord destination</span></h2>
+      <p>
+        Create a webhook destination for aggregated ERROR alerts. Webhook URLs
+        are stored by the backend but are not returned in full from list endpoints.
+      </p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step5" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step5"><code>curl -X POST http://localhost:8080/api/v1/apps/{appId}/alert-destinations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "DISCORD",
+    "name": "dev-alerts",
+    "webhookUrl": "https://discord.com/api/webhooks/..."
+  }'</code></pre>
+      </div>
+      <p>Destination types: <code>SLACK</code> or <code>DISCORD</code>.</p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Step 6 — Test your destination</span></h2>
+      <p>Send a test alert to verify your webhook is configured correctly.</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step6" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step6"><code>curl -X POST \
+  http://localhost:8080/api/v1/apps/{appId}/alert-destinations/{destinationId}/test</code></pre>
+      </div>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="shield-check" class="icon" aria-hidden="true"></i><span>Production recommendations</span></h2>
+      <ul class="checklist">
+        <li>Proxy log ingestion through your backend — do not embed tokens in frontend code.</li>
+        <li>Use app-scoped tokens with expiration and revocation.</li>
+        <li>Apply rate limits on your ingestion proxy.</li>
+        <li>Rotate tokens when team members leave or credentials are exposed.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 PrairieLog. All rights reserved.</p>
+  </footer>
+</body>
+</html>
