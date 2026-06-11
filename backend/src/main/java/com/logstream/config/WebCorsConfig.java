@@ -38,7 +38,7 @@ public class WebCorsConfig {
     }
 
     private static List<String> parseOrigins(String raw) {
-        return Arrays.stream(raw.split("[,|]"))
+        return Arrays.stream(raw.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toList();

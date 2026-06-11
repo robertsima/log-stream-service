@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -41,17 +42,21 @@ public class SpringSecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             // Define authorization rules for endpoints and roles here. Adjust as needed.
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/public/**",
-                "/error",
-                "/test",
-                "/swagger-ui/**",
-                "/swagger-ui.html",
-                "/v3/api-docs/**",
-                "/v3/api-docs.yaml",
-                "/api/v1/**").permitAll() // swagger paths only active when SWAGGER_UI_ENABLED=true
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(
+                    "/public/**",
+                    "/error",
+                    "/test",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    "/v3/api-docs.yaml",
+                    "/api/v1/**"
+                ).permitAll()
                 .requestMatchers("/secured/admin").hasRole("ADMIN")
                 .requestMatchers("/secured/user").hasAnyRole("USER", "ADMIN")
-                .anyRequest().authenticated());
+                .anyRequest().authenticated()
+            );
 
         if (jwtDecoder != null) {
             http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder)));
