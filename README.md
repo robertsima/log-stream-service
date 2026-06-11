@@ -54,8 +54,8 @@ When matching `ERROR` logs are received, the service groups them over a short ti
 
 ## Tech Stack
 
-* Java 17
-* Spring Boot
+* Java 25
+* Spring Boot 4
 * PostgreSQL
 * Liquibase
 * OpenAPI Generator
@@ -64,10 +64,17 @@ When matching `ERROR` logs are received, the service groups them over a short ti
 * Testcontainers
 * Docker/Podman
 
-## Swagger url
+## Swagger UI (local dev only)
+
+Swagger UI and `/v3/api-docs` are **disabled by default** for deployment. The static frontend ships its own OpenAPI spec at `frontend/resources/openapi.json`.
+
+To enable locally:
+
+```bash
+SWAGGER_UI_ENABLED=true mvn spring-boot:run
 ```
-(http://localhost:8080/swagger-ui/index.html)
-```
+
+Then open `http://localhost:8080/swagger-ui/index.html`.
 
 ## Maven Commands
 
@@ -125,22 +132,90 @@ podman play kube podman.yaml
 
 ## Environment Variables
 
-The service supports environment-based configuration for local and containerized runs.
+The service is configured through environment variables for deployment.
 
-```bash
-DB_URL=jdbc:postgresql://localhost:5432/appdb
-DB_USER=appuser
-DB_PASSWORD=apppassword
-```
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DB_URL` | Yes (prod) | `jdbc:postgresql://localhost:5432/appdb` | PostgreSQL JDBC URL |
+| `DB_USER` | Yes (prod) | `appuser` | Database username |
+| `DB_PASSWORD` | Yes (prod) | `apppassword` | Database password |
+| `PORT` | No | `8080` | HTTP server port |
+| `ALLOWED_ORIGINS` | Yes (prod) | `http://localhost:5500,http://127.0.0.1:5500` | Comma-separated CORS origins for the static frontend |
+| `ALERTS_ENABLED` | No | `true` | Enable alert aggregation and dispatch |
+| `ALERTS_AGGREGATION_WINDOW_MS` | No | `60000` | Error aggregation window (1 minute) |
+| `ALERTS_MAX_MESSAGES_PER_ALERT` | No | `5` | Max sample messages included per alert |
+| `JWT_ENABLED` | No | `false` | Enable JWT validation for `/secured/*` routes |
+| `JWT_ISSUER_URIS` | If JWT enabled | — | Comma-separated trusted JWT issuer URIs |
+| `SWAGGER_UI_ENABLED` | No | `false` | Enable Swagger UI and `/v3/api-docs` (local dev only) |
 
-Example:
+Copy `.env.example` to your host or container environment and replace placeholder values.
+
+Local example:
 
 ```bash
 DB_URL=jdbc:postgresql://localhost:5432/appdb \
 DB_USER=appuser \
 DB_PASSWORD=apppassword \
+ALLOWED_ORIGINS=http://localhost:5500,http://127.0.0.1:5500 \
 mvn spring-boot:run
 ```
+
+Docker example:
+
+```bash
+docker run --name log-stream-service -p 8080:8080 \
+  -e DB_URL=jdbc:postgresql://host.docker.internal:5432/appdb \
+  -e DB_USER=appuser \
+  -e DB_PASSWORD=apppassword \
+  -e ALLOWED_ORIGINS=https://your-frontend.example.com \
+  log-stream-service:latest
+```
+
+## Deployment
+
+### Backend
+
+1. Provision **PostgreSQL** (external managed database).
+2. Set environment variables from `.env.example` (never commit real credentials).
+3. Build and run:
+
+```bash
+cd backend
+mvn clean package -DskipTests
+java -jar target/*.jar
+```
+
+Or with Docker (from `backend/`):
+
+```bash
+docker build -t log-stream-service:latest .
+```
+
+Liquibase runs on startup and applies schema migrations to `DB_URL`.
+
+MVP note: `/api/v1/**` is open without user login. Set `JWT_ENABLED=true` only when `/secured/*` routes are needed.
+
+### Frontend
+
+Static files live in `frontend/`. Deploy the folder to any static host (Netlify, S3, nginx, etc.).
+
+Before publishing:
+
+1. Copy `frontend/js/config.example.js` to `frontend/js/config.js` (or edit `config.js` in place).
+2. Set `API_BASE_URL` to your deployed backend URL (HTTPS in production).
+3. Ensure `ALLOWED_ORIGINS` on the backend includes your frontend URL exactly.
+
+No npm build step is required.
+
+### Pre-deploy checklist
+
+- [ ] PostgreSQL reachable from the backend host
+- [ ] `DB_*` credentials set via secrets / host env
+- [ ] `ALLOWED_ORIGINS` matches deployed frontend URL(s)
+- [ ] `frontend/js/config.js` points at deployed backend
+- [ ] `mvn clean package -DskipTests` succeeds
+- [ ] Docker image builds if you use containers
+- [x] Swagger UI disabled by default (`SWAGGER_UI_ENABLED=false`)
 
 ## API Flow
 
@@ -166,7 +241,8 @@ Typical setup flow:
 * [x] Test alert endpoint
 * [x] Error log aggregation
 * [x] Aggregated Slack/Discord alert dispatching
-* [x] Unit and integration test coverage
+* [x] Static developer portal (vanilla HTML/JS)
+* [x] Deployment-ready env-based configuration
 
 ## Future Plans
 

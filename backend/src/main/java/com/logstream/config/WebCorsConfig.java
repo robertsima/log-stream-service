@@ -1,5 +1,9 @@
 package com.logstream.config;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -9,13 +13,20 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class WebCorsConfig {
 
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("http://localhost:*");
-        config.addAllowedOriginPattern("http://127.0.0.1:*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+
+        config.setAllowedOrigins(origins);
+        config.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Content-Type", "X-Ingestion-Token", "Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);

@@ -1,17 +1,16 @@
 package com.logstream.config;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.springframework.boot.context.properties.bind.Bindable;
-import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,24 +26,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 @EnableWebSecurity
 public class SpringSecurityConfig {
-    //This file supports two config styles for trusted JWT issuers:
-    //1) A list of issuer URIs configured via spring.security.oauth2.resourceserver.jwt.issuer-uris
-    //2) A single Keycloak issuer constructed from keycloak.auth-server-url and keycloak
-    // ===================================================================
-    //      spring:
-    //        security:
-    //          oauth2:
-    //            resourceserver:
-    //              jwt:
-    //                issuer-uris:
-    //                  - http://localhost:8080/realms/my-realm
-    // ==================================================================
-    //      keycloak:
-    //        auth-server-url: http://localhost:8080
-    //        realm: my-realm
+    // JWT resource-server auth is optional for MVP deploy (app.security.jwt-enabled=false).
+    // Set JWT_ENABLED=true and JWT_ISSUER_URIS when /secured/* routes need Keycloak JWTs.
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            @Autowired(required = false) JwtDecoder jwtDecoder) throws Exception {
         http
             // no csrf because this is a stateless JWT API
             .csrf(AbstractHttpConfigurer::disable)
@@ -53,51 +41,38 @@ public class SpringSecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/public/**",
                 "/error",
-                "/swagger-ui/**", //swagger endpoints public for testing - consider securing or removing in production
+                "/test",
+                "/swagger-ui/**",
                 "/swagger-ui.html",
                 "/v3/api-docs/**",
-                "/test",
                 "/v3/api-docs.yaml",
-                "/api/v1/**").permitAll() // open API endpoints for MVP
-                .requestMatchers("/secured/admin").hasRole("ADMIN") //keycloak roles may need a jwt converter
+                "/api/v1/**").permitAll() // swagger paths only active when SWAGGER_UI_ENABLED=true
+                .requestMatchers("/secured/admin").hasRole("ADMIN")
                 .requestMatchers("/secured/user").hasAnyRole("USER", "ADMIN")
-                .anyRequest().authenticated())
+                .anyRequest().authenticated());
 
-            // validate incoming bearer tokens as JWTs when requests require authentication.
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        if (jwtDecoder != null) {
+            http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder)));
+        }
 
         return http.build();
     }
 
     @Bean
+    @ConditionalOnProperty(name = "app.security.jwt-enabled", havingValue = "true")
     public JwtDecoder jwtDecoder(Environment environment) {
-        // can use multiple trusted issuers configured via spring.security.oauth2.resourceserver.jwt.issuer-uris
-        List<String> issuerUris = Binder.get(environment)
-                .bind("spring.security.oauth2.resourceserver.jwt.issuer-uris", Bindable.listOf(String.class))
-                .orElse(List.of());
+        // Trusted issuers from JWT_ISSUER_URIS (comma-separated).
+        String configuredIssuers = environment.getProperty("JWT_ISSUER_URIS", "");
+        List<String> issuerUris = Arrays.stream(configuredIssuers.split(","))
+                .map(String::trim)
+                .filter(uri -> !uri.isEmpty())
+                .toList();
 
-        // alternatively a single Keycloak issuer defined via keycloak.* properties.
-        String keycloakAuthServerUrl = Binder.get(environment)
-                .bind("keycloak.auth-server-url", String.class)
-                .orElse(null);
-        String keycloakRealm = Binder.get(environment)
-                .bind("keycloak.realm", String.class)
-                .orElse(null);
-
-        if (keycloakAuthServerUrl != null && keycloakRealm != null) {
-            String keycloakIssuer = buildKeycloakIssuer(keycloakAuthServerUrl, keycloakRealm);
-            if (issuerUris.stream().noneMatch(uri -> normalizeIssuerUri(uri).equals(normalizeIssuerUri(keycloakIssuer)))) {
-                issuerUris = Stream.concat(issuerUris.stream(), Stream.of(keycloakIssuer)).toList();
-            }
+        if (issuerUris.isEmpty()) {
+            throw new IllegalStateException(
+                    "JWT_ENABLED=true requires JWT_ISSUER_URIS with at least one issuer URI");
         }
 
-        if (issuerUris.isEmpty()) { //no issuers
-            throw new IllegalStateException("Missing issuer URIs configuration and no Keycloak issuer configured");
-        }
-
-        // stop eagerly creating remote `JwtDecoder` instances (which perform network calls) during
-        // bean creation because placeholder or unreachable issuer URIs will
-        // otherwise fail application startup with errors like "Bad authority".
         var allowedIssuers = issuerUris.stream()
                 .map(this::normalizeIssuerUri)
                 .collect(Collectors.toUnmodifiableSet());
@@ -123,12 +98,6 @@ public class SpringSecurityConfig {
         };
     }
 
-
-    //Helper method to construct Keycloak issuer URI from auth server URL and realm
-    private String buildKeycloakIssuer(String authServerUrl, String realm) {
-        String normalized = authServerUrl.endsWith("/") ? authServerUrl.substring(0, authServerUrl.length() - 1) : authServerUrl;
-        return normalized + "/realms/" + realm;
-    }
 
     //Helper method to extract issuer without decoding entire jwt to determine which decoder to use
     private String getIssuer(String token) {

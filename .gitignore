@@ -1,3 +1,7 @@
+# Local secrets (never commit)
+.env
+.env.local
+
 # Compiled class file
 *.class
 

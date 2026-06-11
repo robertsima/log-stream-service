@@ -414,9 +414,23 @@
     });
   }
 
+  function initApiBaseUrlPlaceholders() {
+    const base = window.CONFIG?.API_BASE_URL;
+    if (!base) {
+      return;
+    }
+
+    document.querySelectorAll("code").forEach(function (code) {
+      if (code.textContent.includes("__API_BASE_URL__")) {
+        code.textContent = code.textContent.split("__API_BASE_URL__").join(base);
+      }
+    });
+  }
+
   function initSharedUI() {
     initNavBrand();
     initNavigation();
+    initApiBaseUrlPlaceholders();
     initCopyBlocks();
     updateStateSummary("session-state-summary");
     refreshIcons();
