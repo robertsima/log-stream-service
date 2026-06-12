@@ -48,7 +48,17 @@ public class WebCorsConfig {
     }
 
     private static List<String> parseOrigins(String raw) {
-        return Arrays.stream(raw.split(","))
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+
+        String cleaned = raw.trim();
+
+        if (cleaned.startsWith("ALLOWED_ORIGINS=")) {
+            cleaned = cleaned.substring("ALLOWED_ORIGINS=".length());
+        }
+
+        return Arrays.stream(cleaned.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toList();
