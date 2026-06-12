@@ -22,18 +22,28 @@ public class WebCorsConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
         List<String> origins = parseOrigins(allowedOrigins);
 
-        log.info("CORS allowed origins: {}", origins);
+        log.info("CORS raw allowed origins value: {}", allowedOrigins);
+        log.info("CORS parsed allowed origins: {}", origins);
 
+        CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Content-Type", "X-Ingestion-Token", "Authorization"));
+        config.setAllowedHeaders(List.of(
+                "Content-Type",
+                "X-Ingestion-Token",
+                "Authorization",
+                "Accept",
+                "Origin"
+        ));
+        config.setExposedHeaders(List.of("Location"));
+        config.setAllowCredentials(false);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 
