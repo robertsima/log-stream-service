@@ -20,9 +20,9 @@ export interface PrairieLogEvent {
   providedIn: 'root'
 })
 export class PrairieLogService {
-  // Point these at your PrairieLog API and app ingestion token
+  // PrairieLog API base URL and ingestion token (server-side or build-time env only)
   private readonly apiUrl = '__API_BASE_URL__/api/v1/log-events';
-  private readonly ingestionToken = 'lss_live_replace_with_your_token';
+  private readonly ingestionToken = 'YOUR_INGESTION_TOKEN';
 
   constructor(private readonly http: HttpClient) {}
 

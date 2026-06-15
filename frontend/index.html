@@ -34,83 +34,127 @@
   <section id="about" class="hero">
     <h1>Real-time app alerting for small apps</h1>
     <p>
-      PrairieLog API helps developers monitor applications and services in real-time.
-      Designed for small apps and services, it's a lightweight alternative to full-featured logging solutions.
+      Send <strong>ERROR</strong> logs from your app; get aggregated alerts in Slack or Discord.
+      Lightweight relay for small apps — no log warehouse required.
     </p>
     <div class="hero-actions">
-      <a class="button" href="getting-started.html">
-        <i data-lucide="rocket" class="icon" aria-hidden="true"></i>
-        <span>Get Started</span>
-      </a>
-      <a class="button secondary" href="dashboard.html">
+      <a class="button" href="dashboard.html">
         <i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i>
-        <span>Open Dashboard</span>
+        <span>Try the Dashboard</span>
+      </a>
+      <a class="button secondary" href="getting-started.html">
+        <i data-lucide="rocket" class="icon" aria-hidden="true"></i>
+        <span>API Guide (curl)</span>
       </a>
     </div>
   </section>
 
   <section class="page-section">
-    <h2><span> Overview </span></h2>
+    <h2><span>How it works</span></h2>
+    <p class="muted section-lead">You use two different credentials — don't mix them up:</p>
     <ol class="flow-list">
       <li class="flow-list-item">
-        <span class="flow-list-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i></span>
+        <span class="flow-list-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
-          <h3>Register</h3>
-          <p>Create a user and register your app as a log source.</p>
+          <h3>Alert webhook</h3>
+          <p>Your Slack or Discord <em>incoming</em> webhook URL — where PrairieLog <strong>sends</strong> alerts.</p>
         </div>
       </li>
       <li class="flow-list-item">
         <span class="flow-list-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
-          <h3>Generate token</h3>
-          <p>Get a one-time ingestion token for your application.</p>
+          <h3>Ingestion token</h3>
+          <p>A secret your <strong>app</strong> uses to <strong>send</strong> log events to PrairieLog (server-side only).</p>
         </div>
       </li>
       <li class="flow-list-item">
         <span class="flow-list-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
-          <h3>Send logs</h3>
-          <p>POST JSON log events to the ingestion endpoint with your token.</p>
+          <h3>Send ERROR logs</h3>
+          <p>POST JSON to <code>/api/v1/log-events</code> with the <code>X-Ingestion-Token</code> header.</p>
         </div>
       </li>
       <li class="flow-list-item">
-        <span class="flow-list-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i></span>
+        <span class="flow-list-icon"><i data-lucide="layers" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
-          <h3>Alert</h3>
-          <p>Configure Slack or Discord destinations for real-time alerts.</p>
+          <h3>Get alerts</h3>
+          <p>Matching ERROR logs are aggregated, then delivered to your alert webhook. INFO/WARN do not alert.</p>
         </div>
       </li>
     </ol>
   </section>
 
-<section class="page-section card-section">
-    <h2 class="heading-with-icon"><i data-lucide="info" class="icon" aria-hidden="true"></i><span> About PrairieLog
-            API</span></h2>
+  <section class="page-section card-section">
+    <h2 class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>Add to your app</span></h2>
     <p>
-        PrairieLog API is a lightweight relay service. Logs are processed in real time
-        then for forwarded to your configured destinations. Your logs are not stored outside of memory operations.
+      Two pieces work together: your app sends <strong>ERROR</strong> logs to PrairieLog;
+      PrairieLog forwards aggregated alerts to the <strong>Slack or Discord webhook</strong> you configure.
+    </p>
+    <ol class="integrate-steps">
+      <li>Paste your <strong>alert webhook</strong> in the <a href="dashboard.html">dashboard</a> to verify Slack/Discord delivery</li>
+      <li>Copy your <strong>ingestion token</strong> and starter code from the dashboard</li>
+      <li>Call it from your backend when an <strong>ERROR</strong> occurs</li>
+    </ol>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-label">Node / server-side</span>
+        <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="home-integrate-snippet" aria-label="Copy code">
+          <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Copy</span>
+        </button>
+      </div>
+      <pre id="home-integrate-snippet"><code>// Keep PRAIRIELOG_TOKEN in env — never in frontend bundles
+const PRAIRIELOG_TOKEN = process.env.PRAIRIELOG_TOKEN;
+
+async function reportError(message, logger = "my-app") {
+  await fetch("__API_BASE_URL__/api/v1/log-events", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Ingestion-Token": PRAIRIELOG_TOKEN
+    },
+    body: JSON.stringify({
+      id: crypto.randomUUID(),
+      level: "ERROR",
+      message,
+      occurredAt: new Date().toISOString(),
+      logger
+    })
+  });
+}
+
+// await reportError("Payment failed for user 123");</code></pre>
+    </div>
+    <p class="muted">Fastest path: use the <a href="dashboard.html">dashboard quick demo</a> to get a real token and test your alert webhook.</p>
+  </section>
+
+  <section class="page-section card-section">
+    <h2 class="heading-with-icon"><i data-lucide="info" class="icon" aria-hidden="true"></i><span>About PrairieLog API</span></h2>
+    <p>
+      PrairieLog is a lightweight relay. Logs are held in memory briefly for aggregation, then alerts go out to your
+      Slack or Discord channel. Logs are not stored long-term.
     </p>
     <p>
-        Once you generate a token, make sure you save it somewhere safe, as it will not be shown again.
+      Ingestion tokens are shown <strong>once</strong> at creation. Save yours in a server environment variable
+      (for example <code>PRAIRIELOG_TOKEN</code>) — not in browser code or git.
     </p>
     <p>
-        This browser portal is for developer demonstration purposes. For production apps, keep tokens
-        on your backend or somewhere safe and proxy log ingestion.
+      This portal is for trying the API. Production apps should send logs from the backend only.
     </p>
-</section>
+  </section>
 
   <section class="page-section card-section">
     <h2 class="heading-with-icon"><i data-lucide="compass" class="icon" aria-hidden="true"></i><span>Explore the portal</span></h2>
     <div class="link-grid">
-      <a class="link-card" href="getting-started.html">
-        <span class="link-card-icon"><i data-lucide="rocket" class="icon" aria-hidden="true"></i></span>
-        <h3>Getting Started</h3>
-        <p>Step-by-step setup, sample payloads, and curl commands.</p>
-      </a>
       <a class="link-card" href="dashboard.html">
         <span class="link-card-icon"><i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i></span>
         <h3>Dashboard</h3>
-        <p>Interactive control panel to try the full API flow.</p>
+        <p>Paste an alert webhook, get a test message, copy starter code.</p>
+      </a>
+      <a class="link-card" href="getting-started.html">
+        <span class="link-card-icon"><i data-lucide="rocket" class="icon" aria-hidden="true"></i></span>
+        <h3>Getting Started</h3>
+        <p>Full curl walkthrough for every API step.</p>
       </a>
       <a class="link-card" href="docs.html">
         <span class="link-card-icon"><i data-lucide="book-open-text" class="icon" aria-hidden="true"></i></span>

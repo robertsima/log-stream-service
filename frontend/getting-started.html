@@ -35,18 +35,27 @@
     <header class="page-header">
       <h1>Getting Started</h1>
       <p>
-        Use this guide to register an app, an ingestion token,
-        send log events, and configure alert destinations.
+        Curl reference for every API step. New here?
+        <a href="dashboard.html">Start with the dashboard</a> — paste an alert webhook and get copy-ready code in under a minute.
       </p>
       <a class="button" href="dashboard.html">
         <i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i>
-        <span>Try it in the Dashboard</span>
+        <span>Open Dashboard</span>
       </a>
     </header>
 
     <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="lightbulb" class="icon" aria-hidden="true"></i><span>Two credentials</span></h2>
+      <ul class="credential-list">
+        <li><strong>Ingestion token</strong> — your app sends logs <em>to</em> PrairieLog (header: <code>X-Ingestion-Token</code>)</li>
+        <li><strong>Alert webhook</strong> — Slack or Discord incoming URL where PrairieLog sends alerts <em>to your channel</em></li>
+      </ul>
+      <p class="muted">Only <strong>ERROR</strong> logs trigger aggregated alerts. INFO, WARN, DEBUG, and TRACE are accepted but do not notify.</p>
+    </section>
+
+    <section class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Create a user</span></h2>
-      <p>Bootstrap a user account (temporary until full authentication is added).</p>
+      <p>Bootstrap a user record. Full login is not implemented yet — this step registers an owner for your apps.</p>
       <div class="code-block">
         <div class="code-block-header">
           <span class="code-block-label">curl</span>
@@ -88,13 +97,14 @@
     <section class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Generate an ingestion token</span></h2>
       <p>
-        The raw token is returned once at creation. Copy it immediately and store
-        it securely, you won't see it again if you refresh the page.
+        The raw token is returned once at creation. Copy it immediately into a server env var
+        (for example <code>PRAIRIELOG_TOKEN</code>). The API will not show the full token again.
       </p>
       <div class="callout callout-warning">
-        <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
-        Your ingestion token is kept only in this browser page session when using
-        the dashboard. Refreshing or closing the page clears it and resets the dashboard state.
+        <p>
+          <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
+          <strong>Dashboard note:</strong> when you generate a token in the dashboard, it stays in this browser tab only until you refresh. Copy it before leaving the page.
+        </p>
       </div>
       <div class="code-block">
         <div class="code-block-header">
@@ -113,8 +123,49 @@
     </section>
 
     <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Add an alert destination</span></h2>
+      <p>
+        Register the Slack or Discord <strong>incoming webhook URL</strong> where you want alerts delivered.
+        This is not the same as your ingestion token — it is the channel endpoint PrairieLog posts to.
+      </p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step5" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step5"><code>curl -X POST __API_BASE_URL__/api/v1/apps/{appId}/alert-destinations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "DISCORD",
+    "name": "dev-alerts",
+    "webhookUrl": "https://discord.com/api/webhooks/..."
+  }'</code></pre>
+      </div>
+      <p>Destination types: <code>SLACK</code> or <code>DISCORD</code>. Webhook URLs are stored by the API but never returned in full from list endpoints.</p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test your alert destination</span></h2>
+      <p>Send a test message to confirm PrairieLog can reach your Slack or Discord channel.</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step6" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step6"><code>curl -X POST \
+  __API_BASE_URL__/api/v1/apps/{appId}/alert-destinations/{destinationId}/test</code></pre>
+      </div>
+    </section>
+
+    <section class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i><span>Send a log event</span></h2>
-      <p>POST a JSON log event with the <code>X-Ingestion-Token</code> header.</p>
+      <p>POST a JSON log event from your app using your <strong>ingestion token</strong> (not the alert webhook).</p>
       <div class="code-block">
         <div class="code-block-header">
           <span class="code-block-label">JSON payload</span>
@@ -156,48 +207,7 @@
     "traceId": "trace-abc-123"
   }'</code></pre>
       </div>
-      <p class="muted">Supported levels: TRACE, DEBUG, INFO, WARN, ERROR.</p>
-    </section>
-
-    <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Add a Slack or Discord destination</span></h2>
-      <p>
-        Create a webhook destination for aggregated ERROR alerts. Webhook URLs
-        are stored by the backend but are not returned in full from list endpoints.
-      </p>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-label">curl</span>
-          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step5" aria-label="Copy code">
-            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Copy</span>
-          </button>
-        </div>
-        <pre id="gs-step5"><code>curl -X POST __API_BASE_URL__/api/v1/apps/{appId}/alert-destinations \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "DISCORD",
-    "name": "dev-alerts",
-    "webhookUrl": "https://discord.com/api/webhooks/..."
-  }'</code></pre>
-      </div>
-      <p>Destination types: <code>SLACK</code> or <code>DISCORD</code>.</p>
-    </section>
-
-    <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test your destination</span></h2>
-      <p>Send a test alert to verify your webhook is configured correctly.</p>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-label">curl</span>
-          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step6" aria-label="Copy code">
-            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Copy</span>
-          </button>
-        </div>
-        <pre id="gs-step6"><code>curl -X POST \
-  __API_BASE_URL__/api/v1/apps/{appId}/alert-destinations/{destinationId}/test</code></pre>
-      </div>
+      <p class="muted">Use <code>level: "ERROR"</code> to trigger aggregated alerts. Other levels are accepted but do not notify.</p>
     </section>
   </main>
 

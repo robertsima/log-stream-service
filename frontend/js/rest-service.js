@@ -53,11 +53,11 @@ class RestService {
     }
 
     if (status === 409) {
-      return "That record already exists. If you are re-running the dashboard flow, use the same email and app name, or choose a new username.";
+      return "That record already exists. Use the same email and app name, or pick new values.";
     }
 
     if (status === 404) {
-      return "Nothing matched that request. For Register app, use the same owner email as Create user. For token generation, register the app first.";
+      return "Nothing matched that request. Check that the owner email matches your user and the app is registered.";
     }
 
     if (status === 401) {

@@ -35,184 +35,244 @@
   <main class="page-main">
     <header class="page-header">
       <h1 class="heading-with-icon"><i data-lucide="layout-dashboard" class="icon icon-page" aria-hidden="true"></i><span>Dashboard</span></h1>
-      <p id="dashboard-intro">Set up a new app or paste an existing ingestion token to get started.</p>
+      <p id="dashboard-intro">Paste your Slack or Discord <strong>alert webhook</strong> to send a test message in seconds.</p>
     </header>
 
-    <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="activity" class="icon" aria-hidden="true"></i><span>Session state</span></h2>
-      <p class="muted">State is kept in memory only and resets when you refresh the page.</p>
-      <div id="session-state-summary"></div>
-      <div class="section-actions">
-        <button type="button" id="clear-session-button" class="secondary">
-          <i data-lucide="rotate-ccw" class="icon" aria-hidden="true"></i>
-          <span class="btn-label">Clear session</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="page-section card-section" id="token-access-panel">
-      <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Ingestion token</span></h2>
-      <p id="token-access-description">
-        Paste an existing token at any time to unlock log-sending actions.
+    <section class="page-section card-section quick-demo-panel" id="quick-demo-panel">
+      <h2 class="heading-with-icon"><i data-lucide="zap" class="icon" aria-hidden="true"></i><span>Try it now</span></h2>
+      <p class="muted">
+        This is your <strong>alert webhook</strong> (incoming URL from Slack/Discord) — not an ingestion token.
+        We create a demo app behind the scenes, register the webhook, and send a test alert.
       </p>
-      <form id="paste-token-form">
+      <form id="quick-demo-form">
         <div class="form-group">
-          <label for="paste-token-input">Token</label>
-          <input id="paste-token-input" type="password" placeholder="lss_live_..." autocomplete="off" />
+          <label for="quick-webhook-input">Slack or Discord alert webhook URL</label>
+          <input
+            id="quick-webhook-input"
+            type="url"
+            required
+            placeholder="https://discord.com/api/webhooks/... or https://hooks.slack.com/..."
+            autocomplete="off"
+          />
         </div>
-        <button type="submit" id="paste-token-button">
-          <i data-lucide="key" class="icon" aria-hidden="true"></i>
-          <span class="btn-label">Use token</span>
-        </button>
-      </form>
-    </section>
-
-    <div id="token-warning-banner" class="callout callout-warning" hidden>
-      <p>
-        <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
-        <strong>Copy your ingestion token now.</strong>
-        Your ingestion token is kept only in this browser page session. Refreshing
-        or closing the page clears it. Copy it now because it will not be shown again.
-      </p>
-      <pre id="token-display" class="token-display" aria-live="polite"></pre>
-      <p class="muted token-display-note">Only the token prefix is shown here. The full token stays in page memory so you can copy it once — it is not saved to browser storage.</p>
-      <button type="button" id="copy-token-button" class="secondary">
-        <i data-lucide="copy" class="icon" aria-hidden="true"></i>
-        <span class="btn-label">Copy token</span>
-      </button>
-    </div>
-
-    <div id="dashboard-setup-panel" class="dashboard-grid">
-      <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Create user</span></h2>
-        <form id="create-user-form">
-          <div class="form-group">
-            <label for="user-email-input">Email</label>
-            <input id="user-email-input" type="email" required placeholder="dev@example.com" />
-          </div>
-          <div class="form-group">
-            <label for="username-input">Username</label>
-            <input id="username-input" type="text" required minlength="3" placeholder="devuser" />
-          </div>
-          <button type="submit">
-            <i data-lucide="user-plus" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Create user</span>
-          </button>
-        </form>
-      </section>
-
-      <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>Register app</span></h2>
-        <form id="create-app-form">
-          <div class="form-group">
-            <label for="app-owner-email-input">Owner email</label>
-            <input id="app-owner-email-input" type="email" required placeholder="dev@example.com" />
-          </div>
-          <div class="form-group">
-            <label for="app-name-input">App name</label>
-            <input id="app-name-input" type="text" required placeholder="payment-service" />
-          </div>
-          <div class="form-group">
-            <label for="app-description-input">Description</label>
-            <textarea id="app-description-input" rows="3" placeholder="Optional description"></textarea>
-          </div>
-          <button type="submit">
-            <i data-lucide="plus" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Register app</span>
-          </button>
-        </form>
-      </section>
-
-      <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Generate ingestion token</span></h2>
-        <form id="create-token-form">
-          <div class="form-group">
-            <label for="token-name-input">Token name</label>
-            <input id="token-name-input" type="text" placeholder="frontend-demo-token" />
-          </div>
-          <button type="submit">
-            <i data-lucide="sparkles" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Generate token</span>
-          </button>
-        </form>
-      </section>
-    </div>
-
-    <div id="dashboard-linked-summary" class="callout" hidden>
-      <p>
-        <i data-lucide="link" class="icon icon-inline" aria-hidden="true"></i>
-        Connected to <strong id="linked-app-name"></strong>
-        <span class="muted">· token <span id="linked-token-prefix"></span></span>
-      </p>
-    </div>
-
-    <div id="dashboard-logs-panel" class="dashboard-grid" hidden>
-      <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="scroll-text" class="icon" aria-hidden="true"></i><span>Send sample logs</span></h2>
-        <p>Uses the active ingestion token in this session.</p>
-        <div class="button-row">
-          <button type="button" id="send-error-log-button">
-            <i data-lucide="circle-alert" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Send sample ERROR</span>
-          </button>
-          <button type="button" id="send-info-log-button" class="secondary">
-            <i data-lucide="info" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Send sample INFO</span>
-          </button>
-        </div>
-      </section>
-    </div>
-
-    <div id="dashboard-app-panel" class="dashboard-grid" hidden>
-      <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Add alert destination</span></h2>
-        <form id="create-destination-form">
-          <div class="form-group">
-            <label for="destination-type-select">Type</label>
-            <select id="destination-type-select" required>
-              <option value="DISCORD">Discord</option>
-              <option value="SLACK">Slack</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="destination-name-input">Name</label>
-            <input id="destination-name-input" type="text" required placeholder="dev-alerts" />
-          </div>
-          <div class="form-group">
-            <label for="destination-webhook-input">Webhook URL</label>
-            <input id="destination-webhook-input" type="url" required placeholder="https://discord.com/api/webhooks/..." />
-          </div>
-          <button type="submit">
-            <i data-lucide="plus" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Add destination</span>
-          </button>
-        </form>
-        <div class="section-actions">
-          <button type="button" id="refresh-destinations-button" class="secondary">
-            <i data-lucide="refresh-cw" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Refresh list</span>
-          </button>
-        </div>
-        <div id="destinations-list" class="list-panel">
-          <p class="muted">No destinations yet. Click a destination below to select it for testing.</p>
-        </div>
-      </section>
-
-      <section class="page-section card-section">
-        <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test destination</span></h2>
-        <p id="test-destination-description">Send a test alert to the selected destination.</p>
-        <p id="test-destination-hint" class="muted" hidden>Add a destination first, then select it from the list.</p>
-        <button type="button" id="test-destination-button" disabled>
+        <button type="submit" id="quick-demo-button">
           <i data-lucide="send" class="icon" aria-hidden="true"></i>
           <span class="btn-label">Send test alert</span>
         </button>
-      </section>
-    </div>
-
-    <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="terminal" class="icon" aria-hidden="true"></i><span>API output</span></h2>
-      <div id="dashboard-output" class="output-panel">Responses and errors appear here.</div>
+      </form>
+      <div id="quick-demo-success" class="callout callout-success" hidden>
+        <p>
+          <i data-lucide="circle-check" class="icon icon-inline" aria-hidden="true"></i>
+          <strong>Test alert sent!</strong> Check your Discord or Slack channel.
+        </p>
+        <p class="muted">Next: copy the starter code below and call it from your app when errors happen.</p>
+      </div>
+      <div id="quick-demo-error" class="callout callout-warning" hidden></div>
     </section>
+
+    <section id="integrate-panel" class="page-section card-section integrate-panel" hidden>
+      <h2 class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>Use in your app</span></h2>
+      <p class="muted integrate-lead">
+        Your <strong>alert webhook</strong> receives notifications when your app sends <strong>ERROR</strong> logs.
+        Use the <strong>ingestion token</strong> below in server-side code — never in browser JavaScript.
+      </p>
+      <ol class="integrate-steps">
+        <li>Copy your ingestion token into <code>PRAIRIELOG_TOKEN</code></li>
+        <li>Paste the starter function into your backend or API route</li>
+        <li>Call it when something fails — PrairieLog aggregates and posts to your alert webhook</li>
+      </ol>
+      <div class="section-actions section-actions-tight">
+        <button type="button" id="integrate-copy-token-button" class="secondary">
+          <i data-lucide="key" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Copy token</span>
+        </button>
+        <button type="button" id="integrate-copy-snippet-button" class="secondary">
+          <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Copy starter code</span>
+        </button>
+      </div>
+      <div id="integrate-snippet-host"></div>
+      <p class="muted integrate-footer">
+        <a href="examples.html">React &amp; Angular examples</a>
+        · token prefix <span id="integrate-token-prefix" class="mono-inline"></span>
+      </p>
+    </section>
+
+    <details class="advanced-panel" id="advanced-panel">
+      <summary class="advanced-panel-summary">
+        <i data-lucide="settings-2" class="icon" aria-hidden="true"></i>
+        <span>Advanced setup &amp; API explorer</span>
+      </summary>
+
+      <div class="advanced-panel-body">
+        <div class="advanced-toolbar">
+          <div id="session-state-summary" class="advanced-session-summary"></div>
+          <button type="button" id="clear-session-button" class="secondary btn-compact">
+            <i data-lucide="rotate-ccw" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Clear</span>
+          </button>
+        </div>
+
+        <section id="advanced-active-panel" class="advanced-active-panel" hidden>
+          <h3 class="advanced-section-label">Active session</h3>
+          <div class="dashboard-grid">
+            <section class="page-section card-section card-section-compact" id="dashboard-logs-panel">
+              <h4 class="advanced-card-title"><i data-lucide="scroll-text" class="icon" aria-hidden="true"></i><span>Sample logs</span></h4>
+              <p class="muted compact-hint">Uses your ingestion token. Only <strong>ERROR</strong> logs trigger alerts to your webhook.</p>
+              <div class="button-row button-row-tight">
+                <button type="button" id="send-error-log-button">
+                  <i data-lucide="circle-alert" class="icon" aria-hidden="true"></i>
+                  <span class="btn-label">ERROR</span>
+                </button>
+                <button type="button" id="send-info-log-button" class="secondary">
+                  <i data-lucide="info" class="icon" aria-hidden="true"></i>
+                  <span class="btn-label">INFO</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="page-section card-section card-section-compact" id="dashboard-app-panel">
+              <h4 class="advanced-card-title"><i data-lucide="bell" class="icon" aria-hidden="true"></i><span>Destinations</span></h4>
+              <div id="destinations-list" class="list-panel list-panel-compact">
+                <p class="muted">No destinations yet.</p>
+              </div>
+              <div class="section-actions section-actions-tight">
+                <button type="button" id="test-destination-button" class="secondary" disabled>
+                  <i data-lucide="send" class="icon" aria-hidden="true"></i>
+                  <span class="btn-label">Test selected</span>
+                </button>
+                <button type="button" id="refresh-destinations-button" class="secondary">
+                  <i data-lucide="refresh-cw" class="icon" aria-hidden="true"></i>
+                  <span class="btn-label">Refresh</span>
+                </button>
+              </div>
+              <p id="test-destination-hint" class="muted compact-hint" hidden>Select a destination above to enable test.</p>
+              <details class="advanced-inline-details">
+                <summary>Add another destination</summary>
+                <form id="create-destination-form" class="compact-form">
+                  <div class="form-row-inline">
+                    <div class="form-group">
+                      <label for="destination-type-select">Type</label>
+                      <select id="destination-type-select" required>
+                        <option value="DISCORD">Discord</option>
+                        <option value="SLACK">Slack</option>
+                      </select>
+                    </div>
+                    <div class="form-group form-group-grow">
+                      <label for="destination-name-input">Name</label>
+                      <input id="destination-name-input" type="text" required placeholder="dev-alerts" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="destination-webhook-input">Alert webhook URL</label>
+                    <input id="destination-webhook-input" type="url" required placeholder="https://discord.com/api/webhooks/..." />
+                  </div>
+                  <button type="submit">
+                    <i data-lucide="plus" class="icon" aria-hidden="true"></i>
+                    <span class="btn-label">Add</span>
+                  </button>
+                </form>
+              </details>
+            </section>
+          </div>
+        </section>
+
+        <details class="advanced-subsection" id="resume-token-details">
+          <summary>Resume with ingestion token</summary>
+          <div class="advanced-subsection-body">
+            <p id="token-access-description" class="muted compact-hint">Paste an existing token to resume a session.</p>
+            <form id="paste-token-form" class="compact-form paste-token-form">
+              <div class="form-group form-group-grow">
+                <label for="paste-token-input">Token</label>
+                <input id="paste-token-input" type="password" placeholder="lss_live_..." autocomplete="off" />
+              </div>
+              <button type="submit" id="paste-token-button">
+                <i data-lucide="key" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Use token</span>
+              </button>
+            </form>
+          </div>
+        </details>
+
+        <details class="advanced-subsection" id="manual-setup-details">
+          <summary>Manual API setup</summary>
+          <div class="advanced-subsection-body">
+            <p class="muted compact-hint">Walk through user → app → token when you want full control over each step.</p>
+            <div id="dashboard-setup-panel" class="setup-steps">
+              <section class="setup-step">
+                <h4 class="setup-step-title"><span class="setup-step-num">1</span> User</h4>
+                <form id="create-user-form" class="compact-form">
+                  <div class="form-group">
+                    <label for="user-email-input">Email</label>
+                    <input id="user-email-input" type="email" required placeholder="dev@example.com" />
+                  </div>
+                  <div class="form-group">
+                    <label for="username-input">Username</label>
+                    <input id="username-input" type="text" required minlength="3" placeholder="devuser" />
+                  </div>
+                  <button type="submit">
+                    <i data-lucide="user-plus" class="icon" aria-hidden="true"></i>
+                    <span class="btn-label">Create</span>
+                  </button>
+                </form>
+              </section>
+              <section class="setup-step">
+                <h4 class="setup-step-title"><span class="setup-step-num">2</span> App</h4>
+                <form id="create-app-form" class="compact-form">
+                  <div class="form-group">
+                    <label for="app-owner-email-input">Owner email</label>
+                    <input id="app-owner-email-input" type="email" required placeholder="dev@example.com" />
+                  </div>
+                  <div class="form-group">
+                    <label for="app-name-input">App name</label>
+                    <input id="app-name-input" type="text" required placeholder="payment-service" />
+                  </div>
+                  <div class="form-group">
+                    <label for="app-description-input">Description</label>
+                    <input id="app-description-input" type="text" placeholder="Optional" />
+                  </div>
+                  <button type="submit">
+                    <i data-lucide="plus" class="icon" aria-hidden="true"></i>
+                    <span class="btn-label">Register</span>
+                  </button>
+                </form>
+              </section>
+              <section class="setup-step">
+                <h4 class="setup-step-title"><span class="setup-step-num">3</span> Token</h4>
+                <form id="create-token-form" class="compact-form">
+                  <div class="form-group">
+                    <label for="token-name-input">Token name</label>
+                    <input id="token-name-input" type="text" placeholder="frontend-demo-token" />
+                  </div>
+                  <button type="submit">
+                    <i data-lucide="sparkles" class="icon" aria-hidden="true"></i>
+                    <span class="btn-label">Generate</span>
+                  </button>
+                </form>
+              </section>
+            </div>
+            <div id="token-warning-banner" class="callout callout-warning" hidden>
+              <p>
+                <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
+                <strong>Copy your token now.</strong> It lives only in this page session and will not be shown again after refresh.
+              </p>
+              <pre id="token-display" class="token-display" aria-live="polite"></pre>
+              <button type="button" id="copy-token-button" class="secondary">
+                <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Copy token</span>
+              </button>
+            </div>
+          </div>
+        </details>
+
+        <details class="advanced-subsection">
+          <summary>API responses</summary>
+          <div class="advanced-subsection-body">
+            <div id="dashboard-output" class="output-panel">Responses and errors appear here.</div>
+          </div>
+        </details>
+      </div>
+    </details>
   </main>
 
   <footer class="footer">

@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Log Stream Service API",
+    "title": "PrairieLog API",
     "version": "1.1.0",
     "description": "Lightweight real-time log relay service. Applications register as log sources, generate ingestion tokens, send short-lived log events, and configure Slack or Discord webhook destinations for aggregated error alerts.\n"
   },
