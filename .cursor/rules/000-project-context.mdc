@@ -1,0 +1,22 @@
+---
+description: Always-loaded project identity and non-negotiable constraints for PrairieLog.
+alwaysApply: true
+---
+# PrairieLog Project Context
+
+PrairieLog is a lightweight Spring Boot log-ingestion and alerting service with a static vanilla JavaScript developer portal.
+
+Core MVP flow:
+1. User/app registers.
+2. Backend generates a raw ingestion token once.
+3. Backend stores only the token hash plus safe token prefix.
+4. Clients send logs with `X-Ingestion-Token`.
+5. Backend validates token, resolves the app, and accepts the event.
+6. ERROR events are aggregated and sent to enabled Slack/Discord destinations.
+
+Hard constraints:
+- Keep the frontend framework-free: HTML, CSS, vanilla JavaScript, Fetch API.
+- Do not add React, Angular, Vue, npm, Vite, bundlers, or frontend state libraries.
+- Do not add Kafka, RabbitMQ, Redis, Elasticsearch, or persistent log storage for the MVP.
+- Do not log secrets, raw ingestion tokens, full webhook URLs, or credentials.
+- Prefer small patch-style edits over rewrites.

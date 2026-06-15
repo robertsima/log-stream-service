@@ -4,11 +4,11 @@
             "type": "java",
             "name": "Spring Boot-LogStreamService<log-stream-service>",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/backend",
             "mainClass": "com.logstream.app.LogStreamService",
             "projectName": "log-stream-service",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env.local"
         }
     ]
 }

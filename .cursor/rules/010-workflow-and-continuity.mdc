@@ -1,0 +1,22 @@
+---
+description: Always-loaded workflow rules for safe edits, verification, and continuity.
+alwaysApply: true
+---
+# Workflow and Continuity
+
+Before editing:
+- Identify the goal, acceptance criteria, affected files, and likely verification command.
+- Read existing code before changing it.
+- If `.agent/CONTINUITY.md` exists, read it before starting multi-step repo work.
+
+While editing:
+- Keep changes inside the workspace.
+- Make the smallest safe change that solves the issue.
+- Preserve existing naming, structure, formatting, and conventions.
+- Do not make destructive remote API calls or production data changes.
+- Treat secrets as sensitive; never print or persist them.
+
+After editing source code:
+- Run the most relevant feasible check: build, unit tests, integration tests, lint, or typecheck.
+- If a check cannot be run, state why and list the command that should be run.
+- Update `.agent/CONTINUITY.md` only for meaningful plan, decision, progress, discovery, or outcome changes. Do not update it for tiny edits.

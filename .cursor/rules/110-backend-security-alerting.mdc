@@ -1,0 +1,32 @@
+---
+description: Use when editing token generation/validation, webhook handling, log ingestion, alert aggregation, or Slack/Discord delivery.
+globs:
+  - "backend/src/main/**/*.java"
+  - "backend/src/main/resources/**/*.yml"
+  - "backend/src/main/resources/**/*.yaml"
+  - "src/main/**/*.java"
+  - "src/main/resources/**/*.yml"
+  - "src/main/resources/**/*.yaml"
+alwaysApply: false
+---
+# Backend Security and Alerting Rules
+
+Token rules:
+- Raw ingestion tokens are returned only once at creation.
+- Store only token hashes plus safe token prefixes.
+- Never log raw tokens.
+- Never return raw tokens from list/detail endpoints.
+- Validate ingestion with `X-Ingestion-Token`, not JWT bearer auth.
+
+Webhook rules:
+- Webhook URLs may be stored because the backend needs them for delivery.
+- Never log full webhook URLs.
+- Never return full webhook URLs from GET/list endpoints.
+- Return masked URLs only when useful.
+
+Alert MVP rules:
+- Log ingestion should not fail just because alert delivery fails.
+- INFO/WARN logs should not alert unless explicitly requested.
+- ERROR logs go into lightweight in-memory aggregation.
+- The scheduler drains buckets on the configured interval and sends one summarized alert per bucket to enabled Slack/Discord destinations.
+- Do not add Kafka, RabbitMQ, Redis, Elasticsearch, or persistent log storage for this MVP.

@@ -1,0 +1,29 @@
+---
+description: Use when editing README, docs pages, examples, setup guides, API docs, or project marketing copy.
+globs:
+  - "README.md"
+  - "docs/**/*.md"
+  - "frontend/docs.html"
+  - "frontend/getting-started.html"
+  - "frontend/examples.html"
+  - "frontend/resources/openapi.json"
+alwaysApply: false
+---
+# Documentation Rules
+
+Documentation should explain:
+- What PrairieLog does
+- Why it exists
+- Tech stack
+- API flow
+- Example log payload
+- Maven commands
+- Docker/Podman commands when present
+- Deployment notes
+- MVP limitations
+- Future plans
+
+Do not oversell features that are not implemented.
+Do not claim persistent log storage.
+Do not claim full user authentication unless it exists.
+Do not imply webhook URLs or ingestion tokens are safe to expose publicly.

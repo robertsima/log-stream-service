@@ -1,0 +1,26 @@
+---
+description: Use when creating or editing Cursor rule files in .cursor/rules.
+globs:
+  - ".cursor/rules/**/*.mdc"
+alwaysApply: false
+---
+# Cursor Rule Maintenance
+
+Use valid `.mdc` frontmatter:
+```md
+---
+description: Clear trigger description.
+globs:
+  - "path/**/*.ext"
+alwaysApply: false
+---
+```
+
+Guidelines:
+- Keep only one or two `alwaysApply: true` rules.
+- Use glob-scoped rules for backend, frontend, tests, deployment, and docs.
+- Keep rules short, specific, and actionable.
+- Avoid duplicate rules that say the same thing.
+- Do not put `alwaysApply` inside the `globs` list.
+- Do not include duplicate frontmatter blocks.
+- If a rule is meant to load for every request, keep it concise.

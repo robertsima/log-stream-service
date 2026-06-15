@@ -1,0 +1,31 @@
+---
+description: Use when editing the Spring Boot backend, OpenAPI contract, controllers, services, repositories, or generated API models.
+globs:
+  - "backend/**/*.java"
+  - "backend/**/*.yaml"
+  - "backend/**/*.yml"
+  - "backend/pom.xml"
+  - "src/main/**/*.java"
+  - "src/main/resources/**/*.yaml"
+  - "src/main/resources/**/*.yml"
+  - "pom.xml"
+alwaysApply: false
+---
+# Backend Spring Boot and OpenAPI Rules
+
+This backend is contract-first.
+
+When changing API shape:
+1. Update the OpenAPI contract first, usually `src/main/resources/openapi/log-stream-service.yaml` or the backend equivalent.
+2. Regenerate OpenAPI sources through Maven if the project uses generated interfaces/models.
+3. Implement generated API interfaces from `com.logstream.generated.api`.
+4. Use generated boundary models from `com.logstream.generated.model` where appropriate.
+5. Do not hand-write duplicate controller DTOs when generated models already exist.
+
+Layering:
+- Controllers validate simple request/header presence, delegate to services, and return `ResponseEntity`.
+- Services contain business logic, token validation, alert aggregation, destination handling, and mapping.
+- Repositories are Spring Data JPA only; no business logic.
+- Entities are persistence models only; do not expose entities directly from controllers.
+
+Do not rewrite working services just to make them look cleaner. Fix the specific issue.

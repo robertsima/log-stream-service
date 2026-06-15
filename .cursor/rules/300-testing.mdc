@@ -1,0 +1,28 @@
+---
+description: Use when adding or changing tests for backend API, services, persistence, alerting, or frontend behavior.
+globs:
+  - "backend/src/test/**/*.java"
+  - "src/test/**/*.java"
+  - "**/*Test.java"
+  - "**/*IT.java"
+alwaysApply: false
+---
+# Testing Rules
+
+Prioritize tests for:
+- Token generation and validation
+- Log ingestion authentication
+- Alert destination CRUD
+- Alert aggregation grouping
+- Alert sender routing
+- Controller integration flow
+
+Backend tools:
+- JUnit 5
+- Spring Boot Test
+- MockMvc or TestRestTemplate
+- Testcontainers for Postgres integration tests
+- Mockito for unit-level service routing tests
+
+Do not call real Slack or Discord webhooks from automated tests.
+Webhook delivery should be covered with mocks or manually tested through the explicit test endpoint.
