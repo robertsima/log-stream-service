@@ -2,6 +2,9 @@
 .env
 .env.local
 
+# Optional frontend override for local backend dev (production default is js/env.js)
+frontend/js/env.local.js
+
 # Compiled class file
 *.class
 

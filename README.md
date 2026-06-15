@@ -199,11 +199,11 @@ MVP note: `/api/v1/**` is open without user login. Set `JWT_ENABLED=true` only w
 
 Static files live in `frontend/`. Deploy the folder to any static host (Netlify, S3, nginx, etc.).
 
-Before publishing:
+`frontend/js/env.js` defaults to the production API (`https://log-stream-service.onrender.com`). Before publishing to a different backend, update `CONFIG.API_BASE_URL` there.
 
-1. Copy `frontend/js/env.example.js` to `frontend/js/env.js` (or edit `env.js` in place).
-2. Set `CONFIG.API_BASE_URL` to your deployed backend URL (HTTPS in production).
-3. Ensure `ALLOWED_ORIGINS` on the backend includes your frontend URL exactly.
+For local static preview against a local Spring Boot instance, copy `frontend/js/env.local.example.js` to `frontend/js/env.local.js` and load it after `env.js` on the pages you are testing.
+
+Ensure `ALLOWED_ORIGINS` on the backend includes your frontend URL exactly.
 
 No npm build step is required.
 

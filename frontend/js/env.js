@@ -1,6 +1,6 @@
-// Local development — backend at http://localhost:8080 (see repo local.env).
-// For Netlify deploy, copy env.example.js to env.js and set the Render URL.
+// Production API — committed default for Netlify and local static preview.
+// For a local Spring Boot backend, copy env.local.example.js to env.local.js (gitignored).
 window.CONFIG = {
-  API_BASE_URL: "http://localhost:8080",
+  API_BASE_URL: "https://log-stream-service.onrender.com",
   OPENAPI_PATH: "./resources/openapi.json"
 };
