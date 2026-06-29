@@ -28,7 +28,7 @@ Do not add:
 
 Preferred script order:
 ```html
-<script src="js/config.js" defer></script>
+<script src="js/env.js" defer></script>
 <script src="js/state.js" defer></script>
 <script src="js/rest-service.js" defer></script>
 <script src="js/app.js" defer></script>

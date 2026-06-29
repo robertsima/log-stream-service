@@ -9,7 +9,9 @@ globs:
   - "**/Containerfile"
   - "**/netlify.toml"
   - "**/.env.example"
-  - "frontend/js/config.js"
+  - "frontend/js/env.js"
+  - "frontend/js/env.example.js"
+  - "frontend/js/env.local.example.js"
   - "README.md"
 alwaysApply: false
 ---

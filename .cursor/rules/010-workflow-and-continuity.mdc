@@ -6,17 +6,21 @@ alwaysApply: true
 
 Before editing:
 - Identify the goal, acceptance criteria, affected files, and likely verification command.
-- Read existing code before changing it.
-- If `.agent/CONTINUITY.md` exists, read it before starting multi-step repo work.
+- Read [AGENTS.md](../../AGENTS.md) for routing; use `.agent/manifests/` to pick role (router is default session).
+- Read `.agent/CONTINUITY.md` before multi-step work.
+- **Contract gate:** if the task touches more than one surface (e.g. API + UI, schema + service, deploy + app code), ensure `.agent/contracts/<slug>.md` exists and is **agreed** before implementers edit code. Route to planner manifest first. Skip for single-surface trivial fixes.
 
 While editing:
+- Implementers follow the contract section tagged for their manifest (`[backend]`, `[frontend]`, etc.).
 - Keep changes inside the workspace.
 - Make the smallest safe change that solves the issue.
 - Preserve existing naming, structure, formatting, and conventions.
 - Do not make destructive remote API calls or production data changes.
 - Treat secrets as sensitive; never print or persist them.
+- Implementer agents do not re-plan cross-surface work — escalate to planner.
 
 After editing source code:
 - Run the most relevant feasible check: build, unit tests, integration tests, lint, or typecheck.
 - If a check cannot be run, state why and list the command that should be run.
-- Update `.agent/CONTINUITY.md` only for meaningful plan, decision, progress, discovery, or outcome changes. Do not update it for tiny edits.
+- Cross-surface tasks: route to reviewer manifest against the contract before calling done.
+- Update `.agent/CONTINUITY.md` only for meaningful plan, decision, progress, discovery, or outcome changes — not for tiny edits.

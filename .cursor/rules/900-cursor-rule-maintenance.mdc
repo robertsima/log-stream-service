@@ -1,7 +1,10 @@
 ---
-description: Use when creating or editing Cursor rule files in .cursor/rules.
+description: Use when creating or editing Cursor rules, agent manifests, or contracts.
 globs:
   - ".cursor/rules/**/*.mdc"
+  - ".agent/**/*.md"
+  - "AGENTS.md"
+  - "**/AGENTS.md"
 alwaysApply: false
 ---
 # Cursor Rule Maintenance
@@ -23,4 +26,19 @@ Guidelines:
 - Avoid duplicate rules that say the same thing.
 - Do not put `alwaysApply` inside the `globs` list.
 - Do not include duplicate frontmatter blocks.
-- If a rule is meant to load for every request, keep it concise.
+
+# Agent Artifact Maintenance
+
+Manifests (`.agent/manifests/*.md`):
+- State **stability** (slow/fast), **inputs**, **outputs**, and **I do not** boundaries.
+- Reference `.cursor/rules` by id — do not duplicate coding standards.
+- Keep each manifest under ~40 lines; one role per file.
+
+Contracts (`.agent/contracts/*.md`):
+- Copy from `_template.md` for new cross-surface work.
+- Use tagged sections: `[core-data]`, `[backend]`, `[frontend]`, `[integration]`, `[infra]`.
+- Status lifecycle: draft → agreed → implementing → review → done.
+
+Do not use CONTINUITY.md as the only plan for cross-surface work — use a contract file.
+
+Router logic lives in root `AGENTS.md`, not in a bloated orchestrator manifest.
