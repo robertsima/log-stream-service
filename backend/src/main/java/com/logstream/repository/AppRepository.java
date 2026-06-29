@@ -13,4 +13,6 @@ public interface AppRepository extends JpaRepository<App, UUID> {
     Optional<App> findByOwnerUserAndName(Users ownerUser, String name);
     List<App> findByOwnerUserEmail(String ownerEmail);
     List<App> findByOwnerUserId(UUID ownerUserId);
+    long countByOwnerUserIdAndDeletedAtIsNull(UUID ownerUserId);
+    boolean existsByIdAndOwnerUserId(UUID appId, UUID ownerUserId);
 }

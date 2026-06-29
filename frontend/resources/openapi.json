@@ -1,20 +1,24 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "PrairieLog API",
+    "title": "Log Stream Service API",
     "version": "1.1.0",
     "description": "Lightweight real-time log relay service. Applications register as log sources, generate ingestion tokens, send short-lived log events, and configure Slack or Discord webhook destinations for aggregated error alerts.\n"
   },
   "servers": [
     {
-      "url": "https://log-stream-service.onrender.com",
-      "description": "Configured via env.js (CONFIG.API_BASE_URL)"
+      "url": "http://localhost:8080",
+      "description": "Local development server"
     }
   ],
   "tags": [
     {
+      "name": "Auth",
+      "description": "Dashboard authentication helpers"
+    },
+    {
       "name": "Users",
-      "description": "User bootstrap endpoints"
+      "description": "Authenticated user endpoints"
     },
     {
       "name": "Apps",
@@ -45,7 +49,8 @@
         ],
         "operationId": "createUser",
         "summary": "Create a user",
-        "description": "Temporary user bootstrap endpoint until full authentication/RBAC is added.",
+        "deprecated": true,
+        "description": "Local bootstrap endpoint for AUTH_ENABLED=false. Production clients should use GET /api/v1/users/me.",
         "requestBody": {
           "required": true,
           "content": {
@@ -76,6 +81,94 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "getCurrentUser",
+        "summary": "Get or create the signed-in management user",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signed-in user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/demo-session": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "createDemoSession",
+        "summary": "Create a demo dashboard session",
+        "description": "Returns a short-lived server-signed JWT only when demo bypass is enabled and the email matches DEMO_BYPASS_EMAIL.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Demo session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoSessionResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Demo bypass disabled or email not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -87,6 +180,11 @@
         ],
         "operationId": "createApp",
         "summary": "Register a log-producing app/source",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -109,7 +207,17 @@
             }
           },
           "404": {
-            "description": "Owner user not found",
+            "description": "Owner user not found when AUTH_ENABLED=false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "App quota or rate limit exceeded",
             "content": {
               "application/json": {
                 "schema": {
@@ -125,16 +233,22 @@
           "Apps"
         ],
         "operationId": "getAppsByOwnerEmail",
-        "summary": "Get apps by owner email",
+        "summary": "Get apps for the signed-in user",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "ownerEmail",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "format": "email"
-            }
+            },
+            "description": "Optional legacy filter. When AUTH_ENABLED=true it must match the signed-in email."
           }
         ],
         "responses": {
@@ -161,6 +275,11 @@
         ],
         "operationId": "getAppById",
         "summary": "Get app/source by id",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -186,6 +305,16 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "App is owned by another user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -198,6 +327,11 @@
         "operationId": "createAppToken",
         "summary": "Generate a one-time visible ingestion token",
         "description": "Creates an ingestion token for a registered app. The raw token is returned once. Store only a hash of the token in the database.\n",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -233,6 +367,16 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Token quota or rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -242,6 +386,11 @@
         ],
         "operationId": "getAppTokens",
         "summary": "List app tokens without raw token values",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -271,6 +420,11 @@
         ],
         "operationId": "revokeAppToken",
         "summary": "Revoke an ingestion token",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -304,6 +458,11 @@
         "operationId": "createAlertDestination",
         "summary": "Create a Slack or Discord alert destination",
         "description": "Registers a Slack or Discord webhook destination for an app. ERROR logs for the app are aggregated and sent to enabled destinations.\n",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -358,6 +517,11 @@
         ],
         "operationId": "getAlertDestinations",
         "summary": "List enabled alert destinations for an app",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -398,6 +562,11 @@
         "operationId": "deleteAlertDestination",
         "summary": "Delete an alert destination",
         "description": "Soft-deletes or disables a Slack/Discord alert destination.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -430,6 +599,11 @@
         ],
         "operationId": "testAlertDestination",
         "summary": "Send a test alert to a Slack or Discord destination",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AppId"
@@ -554,6 +728,14 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Firebase ID token or server-issued demo JWT for management API calls."
+      }
+    },
     "parameters": {
       "AppId": {
         "name": "appId",
@@ -648,13 +830,14 @@
       "CreateAppRequest": {
         "type": "object",
         "required": [
-          "ownerEmail",
           "name"
         ],
         "properties": {
           "ownerEmail": {
             "type": "string",
             "format": "email",
+            "deprecated": true,
+            "description": "Legacy local bootstrap field. Ignored when AUTH_ENABLED=true; owner is derived from Bearer token.",
             "example": "name@example.com"
           },
           "name": {
@@ -708,6 +891,41 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "DemoSessionRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "admin@email.com"
+          }
+        }
+      },
+      "DemoSessionResponse": {
+        "type": "object",
+        "required": [
+          "token",
+          "email",
+          "expiresInSeconds"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "example": 3600
           }
         }
       },
@@ -1002,6 +1220,10 @@
           "error": {
             "type": "string",
             "example": "Bad Request"
+          },
+          "code": {
+            "type": "string",
+            "example": "QUOTA_EXCEEDED"
           },
           "message": {
             "type": "string",

@@ -5,4 +5,5 @@ import com.logstream.generated.model.UserResponse;
 
 public interface UserService {
     UserResponse createUser(CreateUserRequest createUserRequest);
+    UserResponse getCurrentUser();
 }

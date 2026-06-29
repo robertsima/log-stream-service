@@ -979,6 +979,14 @@ pre {
   line-height: 1.45;
 }
 
+.auth-feedback-success {
+  color: #15803d;
+}
+
+.auth-feedback-error {
+  color: #b91c1c;
+}
+
 .button-row-tight,
 .section-actions-tight {
   margin-top: 0.65rem;

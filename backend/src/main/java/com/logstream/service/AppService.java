@@ -10,4 +10,5 @@ public interface AppService {
     AppResponse createApp(CreateAppRequest createAppRequest);
     AppResponse getAppById(UUID appId);
     List<AppResponse> getAppsByOwnerEmail(String ownerEmail);
+    void requireOwner(UUID appId);
 }

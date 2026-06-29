@@ -5,5 +5,8 @@ window.PrairieLogState = {
   alertDestination: null,
   destinationCount: 0,
   destinations: [],
-  tokenPrefix: null
+  tokenPrefix: null,
+  authToken: null,
+  authEmail: null,
+  authMode: null
 };

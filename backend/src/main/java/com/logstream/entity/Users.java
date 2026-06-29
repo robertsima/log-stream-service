@@ -21,6 +21,15 @@ public class Users {
     @Column(name = "username", nullable = false, length = 100, unique = true)
     private String username;
 
+    @Column(name = "role", nullable = false, length = 32)
+    private String role = "USER";
+
+    @Column(name = "auth_provider", length = 32)
+    private String authProvider = "firebase";
+
+    @Column(name = "auth_subject", length = 255)
+    private String authSubject;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -52,6 +61,30 @@ public class Users {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public String getAuthSubject() {
+        return authSubject;
+    }
+
+    public void setAuthSubject(String authSubject) {
+        this.authSubject = authSubject;
     }
 
     public OffsetDateTime getCreatedAt() {

@@ -12,10 +12,14 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.logstream.controller.dto.AppTokenDTO;
 import com.logstream.entity.App;
 import com.logstream.entity.AppToken;
+import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AppTokenResponse;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
@@ -31,18 +35,40 @@ public class AppTokenServiceImpl implements AppTokenService {
     private static final String TOKEN_PREFIX = "lss_live_";
     private static final int TOKEN_RANDOM_BYTES = 24;
 
-    private final AppTokenRepository appTokenRepository;
-    private final AppRepository appRepository;
+    private AppTokenRepository appTokenRepository;
+    private AppRepository appRepository;
+    private AppService appService;
+    private int maxActiveTokensPerApp = 5;
 
-    public AppTokenServiceImpl(AppTokenRepository appTokenRepository, AppRepository appRepository) {
+    @Autowired
+    public AppTokenServiceImpl(
+            AppTokenRepository appTokenRepository,
+            AppRepository appRepository,
+            AppService appService,
+            @Value("${app.quotas.max-active-tokens-per-app:5}") int maxActiveTokensPerApp) {
         this.appTokenRepository = appTokenRepository;
         this.appRepository = appRepository;
+        this.appService = appService;
+        this.maxActiveTokensPerApp = maxActiveTokensPerApp;
+    }
+
+    public AppTokenServiceImpl(AppTokenRepository appTokenRepository, AppRepository appRepository) {
+        this(appTokenRepository, appRepository, null, 5);
+    }
+
+    public AppTokenServiceImpl() {
     }
 
     @Override
     public CreateAppTokenResponse createAppToken(UUID appId, CreateAppTokenRequest createAppTokenRequest) {
+        requireOwner(appId);
         App app = appRepository.findById(appId)
                 .orElseThrow(() -> new NoSuchElementException("App not found"));
+
+        if (appTokenRepository.countByAppIdAndRevokedAtIsNull(appId) >= maxActiveTokensPerApp) {
+            throw new QuotaExceededException(
+                    "An app cannot have more than " + maxActiveTokensPerApp + " active ingestion tokens.");
+        }
 
         String rawToken = generateRawToken();
         String tokenPrefix = rawToken.substring(0, Math.min(rawToken.length(), 50));
@@ -66,6 +92,7 @@ public class AppTokenServiceImpl implements AppTokenService {
 
     @Override
     public List<AppTokenResponse> getAppTokens(UUID appId) {
+        requireOwner(appId);
         return appTokenRepository.findByAppId(appId).stream()
                 .map(AppTokenMapper::toDto)
                 .map(AppTokenMapper::toResponse)
@@ -74,6 +101,7 @@ public class AppTokenServiceImpl implements AppTokenService {
 
     @Override
     public void revokeAppToken(UUID appId, UUID tokenId) {
+        requireOwner(appId);
         AppToken token = appTokenRepository.findByIdAndAppId(tokenId, appId)
                 .orElseThrow(() -> new NoSuchElementException("Token not found"));
         token.setRevokedAt(OffsetDateTime.now());
@@ -81,6 +109,7 @@ public class AppTokenServiceImpl implements AppTokenService {
     }
 
     @Override
+    @Transactional
     public IngestionTokenSessionResponse resolveIngestionTokenSession(String rawToken) {
         AppTokenDTO token = validateAndRefreshToken(rawToken);
 
@@ -93,6 +122,7 @@ public class AppTokenServiceImpl implements AppTokenService {
     }
 
     @Override
+    @Transactional
     public AppTokenDTO validateAndRefreshToken(String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
             throw new IllegalArgumentException("Missing ingestion token");
@@ -118,6 +148,12 @@ public class AppTokenServiceImpl implements AppTokenService {
         byte[] bytes = new byte[TOKEN_RANDOM_BYTES];
         RANDOM.nextBytes(bytes);
         return TOKEN_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private void requireOwner(UUID appId) {
+        if (appService != null) {
+            appService.requireOwner(appId);
+        }
     }
 
     private String hash(String rawToken) {

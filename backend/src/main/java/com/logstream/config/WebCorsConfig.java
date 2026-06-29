@@ -58,9 +58,10 @@ public class WebCorsConfig {
             cleaned = cleaned.substring("ALLOWED_ORIGINS=".length());
         }
 
-        return Arrays.stream(cleaned.split(","))
+        return Arrays.stream(cleaned.split("[,|]"))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
+                .distinct()
                 .toList();
     }
 }

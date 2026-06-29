@@ -24,4 +24,13 @@
             splitStatements="true"
             stripComments="true" />
 	</changeSet>
+
+	<changeSet id="1.2.0-add-auth-columns" author="codex">
+	    <comment>Add user auth identity and role columns</comment>
+	    <sqlFile
+	            path="scripts/add-auth-columns.sql"
+	            relativeToChangelogFile="true"
+	            splitStatements="true"
+	            stripComments="true" />
+	</changeSet>
 </databaseChangeLog>

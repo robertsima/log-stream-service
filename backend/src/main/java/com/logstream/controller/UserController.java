@@ -27,4 +27,9 @@ public class UserController implements UsersApi {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
+
+    @Override
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        return ResponseEntity.ok(userService.getCurrentUser());
+    }
 }

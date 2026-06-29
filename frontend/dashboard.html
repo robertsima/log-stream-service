@@ -17,6 +17,9 @@
   <script src="js/env.js" defer></script>
   <script src="js/state.js" defer></script>
   <script src="js/rest-service.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js" defer></script>
+  <script src="js/auth.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="js/app.js" defer></script>
   <script src="js/dashboard.js" defer></script>
@@ -35,8 +38,31 @@
   <main class="page-main">
     <header class="page-header">
       <h1 class="heading-with-icon"><i data-lucide="layout-dashboard" class="icon icon-page" aria-hidden="true"></i><span>Dashboard</span></h1>
-      <p id="dashboard-intro">Paste your Slack or Discord <strong>alert webhook</strong> to send a test message in seconds.</p>
+      <p id="dashboard-intro">Sign in, then paste your Slack or Discord <strong>alert webhook</strong> to send a test message in seconds.</p>
     </header>
+
+    <section class="page-section card-section" id="auth-panel">
+      <div class="advanced-toolbar">
+        <div>
+          <h2 class="heading-with-icon"><i data-lucide="user-round-check" class="icon" aria-hidden="true"></i><span>Sign in</span></h2>
+          <p id="auth-status" class="muted compact-hint">Management actions require a signed-in email.</p>
+        </div>
+        <button type="button" id="sign-out-button" class="secondary btn-compact" hidden>
+          <i data-lucide="log-out" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Sign out</span>
+        </button>
+      </div>
+      <form id="sign-in-form" class="compact-form">
+        <div class="form-group">
+          <label for="sign-in-email-input">Email</label>
+          <input id="sign-in-email-input" type="email" required placeholder="admin@email.com" autocomplete="email" />
+        </div>
+        <button type="submit" id="sign-in-button">
+          <i data-lucide="mail" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Send sign-in link</span>
+        </button>
+      </form>
+    </section>
 
     <section class="page-section card-section quick-demo-panel" id="quick-demo-panel">
       <h2 class="heading-with-icon"><i data-lucide="zap" class="icon" aria-hidden="true"></i><span>Try it now</span></h2>

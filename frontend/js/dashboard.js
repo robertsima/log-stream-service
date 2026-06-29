@@ -2,7 +2,7 @@
   const OUTPUT_PANEL = "dashboard-output";
 
   const DEMO_USER = {
-    email: "demo@prairielog.local",
+    email: (window.CONFIG && window.CONFIG.DEMO_BYPASS_EMAIL) || "admin@email.com",
     username: "demo-user"
   };
 
@@ -17,6 +17,34 @@
 
   function hasApp() {
     return Boolean(window.PrairieLogState.app);
+  }
+
+  function isSignedIn() {
+    return Boolean(window.PrairieLogState.authToken);
+  }
+
+  function isDemoSignedIn() {
+    return Boolean(
+      window.PrairieLogState.authToken &&
+        window.PrairieLogState.authMode === "demo" &&
+        window.PrairieLogState.authEmail &&
+        window.PrairieLogState.authEmail.toLowerCase() === DEMO_USER.email.toLowerCase()
+    );
+  }
+
+  function resetManagedSessionResources() {
+    window.PrairieLogState.app = null;
+    window.PrairieLogState.ingestionToken = null;
+    window.PrairieLogState.alertDestination = null;
+    window.PrairieLogState.destinationCount = 0;
+    window.PrairieLogState.destinations = [];
+    window.PrairieLogState.tokenPrefix = null;
+  }
+
+  function requireSignedIn() {
+    if (!isSignedIn()) {
+      throw new Error("Sign in before managing apps, tokens, or destinations.");
+    }
   }
 
   function requireApp() {
@@ -150,6 +178,28 @@
     );
   }
 
+  function showAuthMessage(message, type) {
+    const status = document.getElementById("auth-status");
+    if (!status) {
+      return;
+    }
+    status.textContent = message;
+    status.classList.remove("auth-feedback-success", "auth-feedback-error");
+    if (type === "success") {
+      status.classList.add("auth-feedback-success");
+    } else if (type === "error") {
+      status.classList.add("auth-feedback-error");
+    }
+  }
+
+  function clearAuthMessage() {
+    const status = document.getElementById("auth-status");
+    if (!status) {
+      return;
+    }
+    status.classList.remove("auth-feedback-success", "auth-feedback-error");
+  }
+
   function showSuccess(data, message) {
     const content =
       (message ? message + "\n\n" : "") +
@@ -220,6 +270,13 @@
           "</span>"
       );
     }
+    if (!state.user && state.authEmail) {
+      chips.push(
+        '<span class="session-chip"><span class="session-chip-label">Signed in</span> ' +
+          window.PrairieLogUI.escapeHtml(state.authEmail) +
+          "</span>"
+      );
+    }
     if (state.app) {
       chips.push(
         '<span class="session-chip"><span class="session-chip-label">App</span> ' +
@@ -249,6 +306,27 @@
       : '<p class="muted compact-hint">No active session — try the quick demo above or manual setup below.</p>';
   }
 
+  function updateAuthPanel() {
+    const status = document.getElementById("auth-status");
+    const form = document.getElementById("sign-in-form");
+    const signOut = document.getElementById("sign-out-button");
+    const signedIn = isSignedIn();
+
+    if (status) {
+      clearAuthMessage();
+      status.textContent = signedIn
+        ? "Signed in as " + window.PrairieLogState.authEmail + ". Apps: " +
+            (window.PrairieLogState.appsCountHint || 0) + "/10."
+        : "Management actions require a signed-in email.";
+    }
+    if (form) {
+      form.hidden = signedIn;
+    }
+    if (signOut) {
+      signOut.hidden = !signedIn;
+    }
+  }
+
   function updateTestDestinationPanel() {
     const button = document.getElementById("test-destination-button");
     const hint = document.getElementById("test-destination-hint");
@@ -266,6 +344,7 @@
   function updateDashboardView() {
     const tokenActive = hasToken();
     const appActive = hasApp();
+    const signedIn = isSignedIn();
 
     const activePanel = document.getElementById("advanced-active-panel");
     const setupPanel = document.getElementById("dashboard-setup-panel");
@@ -281,11 +360,11 @@
     }
 
     if (setupPanel) {
-      setupPanel.hidden = tokenActive;
+      setupPanel.hidden = tokenActive || !signedIn;
     }
 
     if (manualSetupDetails) {
-      manualSetupDetails.hidden = tokenActive;
+      manualSetupDetails.hidden = tokenActive || !signedIn;
     }
 
     if (intro) {
@@ -296,7 +375,8 @@
           ". Copy starter code below, or send sample ERROR logs from Advanced setup.";
       } else {
         intro.textContent =
-          "Paste your Slack or Discord alert webhook to send a test message in seconds.";
+          (signedIn ? "" : "Sign in, then ") +
+          "paste your Slack or Discord alert webhook to send a test message in seconds.";
       }
     }
 
@@ -319,6 +399,7 @@
     }
 
     updateAdvancedSessionSummary();
+    updateAuthPanel();
     updateTestDestinationPanel();
     updateIntegratePanel();
   }
@@ -455,15 +536,22 @@
   }
 
   async function ensureDemoSession() {
+    if (!isDemoSignedIn()) {
+      resetManagedSessionResources();
+      window.PrairieLogState.user = await window.PrairieLogAuth.signInDemo(DEMO_USER.email);
+    }
+
     if (hasApp() && hasToken()) {
       return;
     }
 
-    const user = await window.restService.createUser(DEMO_USER);
+    let user = window.PrairieLogState.user;
+    if (!user) {
+      user = await window.PrairieLogAuth.signInDemo(DEMO_USER.email);
+    }
     window.PrairieLogState.user = user;
 
     const app = await window.restService.createApp({
-      ownerEmail: user.email,
       name: DEMO_APP.name,
       description: DEMO_APP.description
     });
@@ -666,7 +754,20 @@
     window.PrairieLogUI.setButtonLoading(button, true, "Creating...");
 
     try {
-      const user = await window.restService.createUser({ email, username });
+      let user;
+      if (isSignedIn()) {
+        user = await window.restService.getCurrentUser();
+      } else if (email.toLowerCase() === DEMO_USER.email.toLowerCase()) {
+        user = await window.PrairieLogAuth.signInDemo(email);
+      } else {
+        await window.PrairieLogAuth.sendMagicLink(email);
+        window.PrairieLogUI.renderOutput(
+          OUTPUT_PANEL,
+          "Check your email for a sign-in link, then return to this dashboard.",
+          "success"
+        );
+        return;
+      }
       applyUserToSession(user, "User ready.");
     } catch (error) {
       showError(error);
@@ -678,11 +779,12 @@
   async function handleCreateApp(event) {
     event.preventDefault();
 
+    if (!isSignedIn()) {
+      showError(new Error("Sign in before registering an app."));
+      return;
+    }
     const form = event.target;
     const button = form.querySelector('button[type="submit"]');
-    const ownerEmail = document
-      .getElementById("app-owner-email-input")
-      .value.trim();
     const name = document.getElementById("app-name-input").value.trim();
     const description = document
       .getElementById("app-description-input")
@@ -694,11 +796,12 @@
 
     try {
       const app = await window.restService.createApp({
-        ownerEmail,
         name,
         description: description || null
       });
       window.PrairieLogState.app = app;
+      window.PrairieLogState.appsCountHint =
+        (window.PrairieLogState.appsCountHint || 0) + 1;
       window.PrairieLogState.destinationCount = 0;
       window.PrairieLogState.destinations = [];
       window.PrairieLogState.alertDestination = null;
@@ -714,6 +817,11 @@
 
   async function handleCreateToken(event) {
     event.preventDefault();
+
+    if (!isSignedIn()) {
+      showError(new Error("Sign in before generating a token."));
+      return;
+    }
 
     const form = event.target;
     const button = form.querySelector('button[type="submit"]');
@@ -770,6 +878,11 @@
   async function handleCreateDestination(event) {
     event.preventDefault();
 
+    if (!isSignedIn()) {
+      showError(new Error("Sign in before saving an alert destination."));
+      return;
+    }
+
     const form = event.target;
     const button = form.querySelector('button[type="submit"]');
     const app = requireApp();
@@ -803,6 +916,11 @@
   }
 
   async function handleTestDestination() {
+    if (!isSignedIn()) {
+      showError(new Error("Sign in before testing an alert destination."));
+      return;
+    }
+
     const button = document.getElementById("test-destination-button");
     const app = requireApp();
     const destination = requireDestination();
@@ -920,10 +1038,130 @@
     clearSession();
   }
 
+  async function refreshAppsHint() {
+    if (!isSignedIn()) {
+      window.PrairieLogState.appsCountHint = 0;
+      return;
+    }
+    try {
+      const apps = await window.restService.getAppsByOwnerEmail(
+        window.PrairieLogState.authEmail
+      );
+      window.PrairieLogState.appsCountHint = apps.length;
+    } catch {
+      window.PrairieLogState.appsCountHint = 0;
+    }
+  }
+
+  async function handleSignIn(event) {
+    event.preventDefault();
+
+    const button = document.getElementById("sign-in-button");
+    const email = document.getElementById("sign-in-email-input").value.trim();
+    window.PrairieLogUI.setButtonLoading(button, true, "Signing in...");
+
+    try {
+      let user;
+      if (window.PrairieLogAuth.needsEmailForMagicLink()) {
+        user = await window.PrairieLogAuth.completeMagicLinkIfPresent(email);
+        window.PrairieLogState.user = user;
+        await refreshAppsHint();
+        prefillAdvancedFormsFromDemo();
+        updateDashboardView();
+        showSuccess(user, "Signed in.");
+        return;
+      }
+      if (email.toLowerCase() === DEMO_USER.email.toLowerCase()) {
+        user = await window.PrairieLogAuth.signInDemo(email);
+      } else {
+        await window.PrairieLogAuth.sendMagicLink(email);
+        showAuthMessage(
+          "Sign-in link sent. Open it once in this browser on " +
+            window.PrairieLogAuth.getSignInContinueUrl() +
+            ". Use the same email when finishing the link.",
+          "success"
+        );
+        window.PrairieLogUI.renderOutput(
+          OUTPUT_PANEL,
+          "Check your email for a sign-in link.",
+          "success"
+        );
+        return;
+      }
+      window.PrairieLogState.user = user;
+      await refreshAppsHint();
+      prefillAdvancedFormsFromDemo();
+      updateDashboardView();
+      showSuccess(user, "Signed in.");
+    } catch (error) {
+      showAuthMessage(window.PrairieLogUI.formatError(error), "error");
+      showError(error);
+    } finally {
+      window.PrairieLogUI.setButtonLoading(button, false);
+    }
+  }
+
+  async function handleSignOut() {
+    await window.PrairieLogAuth.signOut();
+    clearSession();
+  }
+
   function initDashboard() {
     prefillOwnerEmail();
     updateDashboardView();
 
+    if (window.PrairieLogAuth.needsEmailForMagicLink()) {
+      const storedEmail = window.PrairieLogAuth.getStoredSignInEmail();
+      const emailInput = document.getElementById("sign-in-email-input");
+      const signInButton = document.getElementById("sign-in-button");
+      if (storedEmail && emailInput) {
+        emailInput.value = storedEmail;
+      }
+      if (signInButton) {
+        signInButton.querySelector(".btn-label").textContent = "Finish sign-in";
+      }
+      showAuthMessage(
+        "Email link opened. Enter the same email here and click Finish sign-in.",
+        "success"
+      );
+    }
+
+    window.PrairieLogAuth.completeMagicLinkIfPresent()
+      .then(async function (user) {
+        if (user) {
+          window.PrairieLogState.user = user;
+          await refreshAppsHint();
+          updateDashboardView();
+          showSuccess(user, "Signed in.");
+        }
+      })
+      .catch(function (error) {
+        if (error && error.code === "auth/missing-email-for-link") {
+          showAuthMessage(error.message, "success");
+          return;
+        }
+        showAuthMessage(window.PrairieLogUI.formatError(error), "error");
+        showError(error);
+      });
+
+    window.PrairieLogAuth.onAuthStateChanged(async function (firebaseUser) {
+      if (firebaseUser && !window.PrairieLogState.user && !window.PrairieLogAuth.needsEmailForMagicLink()) {
+        try {
+          window.PrairieLogState.user = await window.restService.getCurrentUser();
+          await refreshAppsHint();
+          updateDashboardView();
+        } catch (error) {
+          showAuthMessage(window.PrairieLogUI.formatError(error), "error");
+        }
+      }
+    });
+
+    document
+      .getElementById("sign-in-form")
+      .addEventListener("submit", handleSignIn);
+    document
+      .getElementById("sign-out-button")
+      .addEventListener("click", handleSignOut);
     document
       .getElementById("quick-demo-form")
       .addEventListener("submit", handleQuickDemo);

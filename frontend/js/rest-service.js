@@ -16,6 +16,10 @@ class RestService {
       ...(options.headers || {})
     };
 
+    if (options.auth !== false && window.PrairieLogState?.authToken) {
+      headers.Authorization = `Bearer ${window.PrairieLogState.authToken}`;
+    }
+
     const response = await fetch(url, {
       method: options.method || "GET",
       headers,
@@ -61,7 +65,15 @@ class RestService {
     }
 
     if (status === 401) {
-      return "Invalid or expired ingestion token.";
+      return "Sign in again, or check that your ingestion token is valid for token-only endpoints.";
+    }
+
+    if (status === 403) {
+      return "You are signed in, but this resource belongs to another user.";
+    }
+
+    if (status === 429) {
+      return "Quota or rate limit reached. Try again later or remove an inactive resource.";
     }
 
     return `Request failed with status ${status}`;
@@ -83,6 +95,7 @@ class RestService {
   async resolveIngestionTokenSession(ingestionToken) {
     const response = await this.request("/api/v1/ingestion-tokens/session", {
       method: "GET",
+      auth: false,
       headers: {
         "X-Ingestion-Token": ingestionToken
       }
@@ -107,18 +120,43 @@ class RestService {
     return response.data;
   }
 
+  async getCurrentUser() {
+    const response = await this.request("/api/v1/users/me", {
+      method: "GET"
+    });
+
+    return response.data;
+  }
+
+  async createDemoSession(email) {
+    const response = await this.request("/api/v1/auth/demo-session", {
+      method: "POST",
+      auth: false,
+      body: {
+        email
+      }
+    });
+
+    return response.data;
+  }
+
   // -------------------------
   // Apps / Log Sources
   // -------------------------
 
   async createApp({ ownerEmail, name, description }) {
+    const body = {
+      name,
+      description
+    };
+
+    if (ownerEmail) {
+      body.ownerEmail = ownerEmail;
+    }
+
     const response = await this.request("/api/v1/apps", {
       method: "POST",
-      body: {
-        ownerEmail,
-        name,
-        description
-      }
+      body
     });
 
     return response.data;
@@ -261,6 +299,7 @@ class RestService {
 
     const response = await this.request("/api/v1/log-events", {
       method: "POST",
+      auth: false,
       headers: {
         "X-Ingestion-Token": ingestionToken
       },

@@ -6,7 +6,7 @@ Log Stream Service lets external applications send structured log events through
 
 ## Features
 
-* Register apps/log sources and users
+* Register apps/log sources for authenticated users
 * Generate one-time visible ingestion tokens for registered apps
 * Validate ingestion tokens for app-level authentication
 * Accept structured log event requests
@@ -14,7 +14,7 @@ Log Stream Service lets external applications send structured log events through
 * Send test alerts to configured webhook destinations
 * Aggregate matching error logs to prevent alert spam
 * Send summarized error alerts once per aggregation window
-* Daabase storage for users, apps, app tokens, and alert destinations
+* Database storage for users, apps, app tokens, and alert destinations
 * OpenAPI contract-first API generation
 * Liquibase-managed database schema
 * Unit and integration test coverage
@@ -146,6 +146,14 @@ The service is configured through environment variables for deployment.
 | `ALERTS_MAX_MESSAGES_PER_ALERT` | No | `5` | Max sample messages included per alert |
 | `JWT_ENABLED` | No | `false` | Enable JWT validation for `/secured/*` routes |
 | `JWT_ISSUER_URIS` | If JWT enabled | — | Comma-separated trusted JWT issuer URIs |
+| `AUTH_ENABLED` | Prod | `false` | Require bearer auth on management API routes under `/api/v1/**` |
+| `FIREBASE_PROJECT_ID` | When auth enabled for real users | none | Firebase project id used to validate dashboard ID tokens |
+| `DEMO_BYPASS_ENABLED` | Optional | `false` | Enable demo JWT creation through `/api/v1/auth/demo-session` |
+| `DEMO_BYPASS_EMAIL` | When demo enabled | `admin@email.com` | Only email allowed to use the demo bypass |
+| `DEMO_JWT_SECRET` | Recommended when demo enabled | ephemeral startup secret | HMAC secret for server-issued demo JWTs |
+| `APP_QUOTAS_MAX_APPS_PER_USER` | No | `10` | Max active, non-deleted apps per user |
+| `APP_QUOTAS_MAX_ACTIVE_TOKENS_PER_APP` | No | `5` | Max non-revoked ingestion tokens per app |
+| `APP_RATE_LIMIT_MANAGEMENT_RPM` | No | `60` | In-memory management API requests per minute per IP/user |
 | `SWAGGER_UI_ENABLED` | No | `false` | Enable Swagger UI and `/v3/api-docs` (local dev only) |
 
 Copy `.env.example` to your host or container environment and replace placeholder values.
@@ -193,7 +201,39 @@ docker build -t log-stream-service:latest .
 
 Liquibase runs on startup and applies schema migrations to `DB_URL`.
 
-MVP note: `/api/v1/**` is open without user login. Set `JWT_ENABLED=true` only when `/secured/*` routes are needed.
+Production note: set `AUTH_ENABLED=true` for the dashboard and management API. `POST /api/v1/log-events` and `/api/v1/ingestion-tokens/session` continue to use `X-Ingestion-Token` only. Set `JWT_ENABLED=true` only when legacy `/secured/*` routes are needed.
+
+### Firebase dashboard auth
+
+1. Create a Firebase project.
+2. In Firebase Console, enable Authentication -> Sign-in method -> Email/Password -> Email link sign-in.
+3. In Firebase Console, add authorized domains for the deployed frontend, plus `localhost` and `127.0.0.1` for local preview.
+4. On the backend host, set `AUTH_ENABLED=true` and `FIREBASE_PROJECT_ID=<your Firebase project id>`.
+5. In the frontend, set the public Firebase web app values in `frontend/js/env.js` for deployment, or copy `frontend/js/env.local.example.js` to `frontend/js/env.local.js` for local preview.
+
+Backend-only values:
+
+```bash
+AUTH_ENABLED=true
+FIREBASE_PROJECT_ID=your-firebase-project-id
+ALLOWED_ORIGINS=https://your-frontend.example.com
+```
+
+Frontend public values:
+
+```js
+FIREBASE: {
+  apiKey: "your-web-api-key",
+  authDomain: "your-firebase-project-id.firebaseapp.com",
+  projectId: "your-firebase-project-id",
+  appId: "your-web-app-id",
+  messagingSenderId: "your-sender-id"
+}
+```
+
+`FIREBASE_PROJECT_ID` on the backend must match `CONFIG.FIREBASE.projectId` on the frontend. The backend validates Firebase ID tokens against that project id as the token issuer and audience.
+
+For the public demo, set `DEMO_BYPASS_ENABLED=true`, `DEMO_BYPASS_EMAIL=admin@email.com`, and a strong server-only `DEMO_JWT_SECRET`.
 
 ### Frontend
 
@@ -221,8 +261,8 @@ No npm build step is required.
 
 Typical setup flow:
 
-1. Create a user
-2. Register an app/log source
+1. Sign in on the dashboard, or use the demo identity when enabled
+2. Register an app/log source for the signed-in user
 3. Generate an ingestion token for the app
 4. Configure a Slack or Discord alert destination
 5. Send logs to the ingestion endpoint using the generated token

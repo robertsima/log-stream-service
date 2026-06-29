@@ -20,10 +20,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.logstream.security.ManagementAuthFilter;
+import com.logstream.security.ManagementRateLimitFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -34,6 +37,8 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
+            ManagementAuthFilter managementAuthFilter,
+            ManagementRateLimitFilter managementRateLimitFilter,
             @Autowired(required = false) JwtDecoder jwtDecoder) throws Exception {
         http
             // no csrf because this is a stateless JWT API
@@ -51,6 +56,7 @@ public class SpringSecurityConfig {
                     "/swagger-ui.html",
                     "/v3/api-docs/**",
                     "/v3/api-docs.yaml",
+                    "/api/v1/auth/demo-session",
                     "/api/v1/**"
                 ).permitAll()
                 .requestMatchers("/secured/admin").hasRole("ADMIN")
@@ -61,6 +67,9 @@ public class SpringSecurityConfig {
         if (jwtDecoder != null) {
             http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder)));
         }
+
+        http.addFilterBefore(managementAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(managementRateLimitFilter, ManagementAuthFilter.class);
 
         return http.build();
     }
