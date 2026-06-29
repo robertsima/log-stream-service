@@ -34,16 +34,18 @@
 
   <main class="page-main docs-page">
     <header class="page-header">
-      <h1>API Documentation</h1>
+      <h1 class="heading-with-icon"><i data-lucide="book-open-text" class="icon icon-page" aria-hidden="true"></i><span>API Documentation</span></h1>
       <p>
-        Endpoint reference from the OpenAPI contract. Remember: apps send logs with an <strong>ingestion token</strong>;
-        alert destinations use a separate Slack/Discord <strong>alert webhook</strong>.
+        Endpoint reference generated from the OpenAPI contract. Apps send logs with an <strong>ingestion token</strong>;
+        alert destinations use a separate Slack or Discord <strong>alert webhook</strong>.
       </p>
-      <button type="button" id="download-openapi-button">
+      <button type="button" id="download-openapi-button" class="secondary">
         <i data-lucide="download" class="icon" aria-hidden="true"></i>
         <span class="btn-label">Download OpenAPI JSON</span>
       </button>
     </header>
+
+    <nav id="docs-tag-nav" class="docs-tag-nav" aria-label="Endpoint groups" hidden></nav>
 
     <div id="endpoint-list">
       <p class="muted loading-row"><i data-lucide="loader-circle" class="icon icon-spin" aria-hidden="true"></i> Loading API contract...</p>

@@ -16,6 +16,13 @@
 
   const SUCCESS_STATUS_CODES = ["200", "201", "202", "204"];
 
+  function slugify(text) {
+    return String(text)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  }
+
   function resolveRef(ref, schemas) {
     if (!ref || !ref.startsWith("#/")) {
       return null;
@@ -417,19 +424,51 @@
       }
 
       sections.push(
-        '<section class="endpoint-tag-group">' +
+        '<section class="endpoint-tag-group" id="docs-tag-' +
+        slugify(tag) +
+        '">' +
         '<h2 class="endpoint-tag-title">' +
         window.PrairieLogUI.escapeHtml(tag) +
-        "</h2>" +
-        '<div class="endpoint-list">' +
+        '<span class="endpoint-tag-count">' +
+        groups[tag].length +
+        "</span></h2>" +
+        '<div class="endpoint-cards">' +
         cards.join("") +
         "</div></section>"
       );
     }
 
     container.innerHTML = sections.join("");
+    renderTagNav(orderedTags, groups);
     window.PrairieLogUI.initSnippetInteractions(container);
     window.PrairieLogUI.refreshIcons(container);
+  }
+
+  function renderTagNav(orderedTags, groups) {
+    const nav = document.getElementById("docs-tag-nav");
+    if (!nav) {
+      return;
+    }
+
+    if (orderedTags.length < 2) {
+      nav.hidden = true;
+      return;
+    }
+
+    nav.innerHTML = orderedTags
+      .map(function (tag) {
+        return (
+          '<a class="docs-tag-link" href="#docs-tag-' +
+          slugify(tag) +
+          '">' +
+          window.PrairieLogUI.escapeHtml(tag) +
+          '<span class="docs-tag-link-count">' +
+          groups[tag].length +
+          "</span></a>"
+        );
+      })
+      .join("");
+    nav.hidden = false;
   }
 
   async function loadDocs() {

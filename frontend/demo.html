@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6MSYZQXVM2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-6MSYZQXVM2');
+  </script>
+  <title>Demo — PrairieLog API</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/env.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/rest-service.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/demo.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-logo"></div>
+      <div class="nav-menu">
+        <ul class="nav-links nav-links-main"></ul>
+        <ul class="nav-links nav-links-docs"></ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-main">
+    <header class="page-header">
+      <h1 class="heading-with-icon"><i data-lucide="zap" class="icon icon-page" aria-hidden="true"></i><span>Live Demo</span></h1>
+      <p id="demo-intro"> To try it out, paste a chat webhook below! API calls will show up in the console below.</p>
+    </header>
+
+    <div id="activity-banner" class="activity-banner" hidden role="status" aria-live="polite"></div>
+
+    <div class="demo-layout">
+      <div class="demo-main">
+        <section class="page-section card-section" aria-labelledby="quick-test-title">
+          <h2 id="quick-test-title" class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Send a test alert to your chat</span></h2>
+          <p id="quick-demo-lead" class="muted">
+            Paste a Slack or Discord <strong>incoming webhook</strong> — this is the URL your chat app gives you to post messages. PrairieLog can send a test alert right away.
+          </p>
+
+          <div class="quick-demo-panel" id="quick-demo-panel">
+            <p id="journey-connect-summary" class="flow-inline-success" hidden></p>
+            <form id="quick-demo-form" class="quick-test-form">
+              <div class="form-group">
+                <label for="quick-webhook-input">Slack or Discord webhook URL</label>
+                <input
+                  id="quick-webhook-input"
+                  type="url"
+                  required
+                  placeholder="https://discord.com/api/webhooks/..."
+                  autocomplete="off"
+                />
+              </div>
+              <button type="submit" id="quick-demo-button">
+                <i data-lucide="send" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Send test alert</span>
+              </button>
+            </form>
+
+            <div id="quick-demo-success" class="callout callout-success" hidden>
+              <p>
+                <i data-lucide="circle-check" class="icon icon-inline" aria-hidden="true"></i>
+                <strong>Test alert sent.</strong> <span id="quick-demo-success-detail">Check your channel.</span>
+              </p>
+              <div class="button-row button-row-tight quick-demo-actions">
+                <button type="button" id="quick-demo-send-error-button" class="secondary">
+                  <i data-lucide="circle-alert" class="icon" aria-hidden="true"></i>
+                  <span class="btn-label">Send sample ERROR log</span>
+                </button>
+                <button type="button" id="quick-demo-send-info-button" class="secondary">
+                  <i data-lucide="info" class="icon" aria-hidden="true"></i>
+                  <span class="btn-label">Send INFO (no alert)</span>
+                </button>
+                <a href="#integrate-panel" class="button-link secondary" id="quick-demo-goto-integrate">View integration code</a>
+              </div>
+              <p class="muted compact-hint quick-demo-hint">Only ERROR logs trigger alerts. INFO logs are stored but stay quiet.</p>
+            </div>
+
+            <div id="quick-demo-error" class="callout callout-warning" hidden></div>
+          </div>
+        </section>
+
+        <section class="page-section card-section" id="integrate-panel" aria-labelledby="integrate-title" hidden>
+          <h2 id="integrate-title" class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>Send logs from your app</span></h2>
+          <p class="muted integrate-lead">
+            Now the other direction: drop this <strong>ingestion token</strong> into your server-side code. PrairieLog forwards every ERROR log to the chat you just connected.
+          </p>
+
+          <div id="token-warning-banner" class="callout callout-warning" hidden>
+            <p>
+              <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
+              <strong>Copy your token now.</strong> It is shown once here and only lives in this page session.
+            </p>
+            <pre id="token-display" class="token-display" aria-live="polite"></pre>
+          </div>
+          <div class="section-actions section-actions-tight">
+            <button type="button" id="integrate-copy-token-button" class="secondary">
+              <i data-lucide="key" class="icon" aria-hidden="true"></i>
+              <span class="btn-label">Copy token</span>
+            </button>
+            <button type="button" id="integrate-copy-snippet-button" class="secondary">
+              <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+              <span class="btn-label">Copy starter code</span>
+            </button>
+          </div>
+          <div id="integrate-snippet-host"></div>
+          <p class="muted integrate-footer">
+            <a href="examples.html">React &amp; Angular examples</a>
+            · token prefix <span id="integrate-token-prefix" class="mono-inline"></span>
+          </p>
+        </section>
+
+        <p class="muted demo-account-note">
+          <i data-lucide="info" class="icon icon-inline" aria-hidden="true"></i>
+          This demo runs on a shared account and is not for production use. Want to keep apps, tokens, and destinations under your own email?
+          <a href="dashboard.html">Open the Dashboard</a> and sign in.
+        </p>
+      </div>
+
+      <aside class="demo-console-wrap">
+        <section class="page-section card-section demo-console-card" aria-labelledby="demo-console-title">
+          <div class="demo-console-head">
+            <h2 id="demo-console-title" class="heading-with-icon"><i data-lucide="terminal" class="icon" aria-hidden="true"></i><span>API console</span></h2>
+            <button type="button" id="demo-console-clear" class="secondary btn-compact">
+              <i data-lucide="eraser" class="icon" aria-hidden="true"></i>
+              <span class="btn-label">Clear</span>
+            </button>
+          </div>
+          <p class="muted compact-hint">Raw request &amp; response for every call. Tokens and webhook URLs are masked.</p>
+          <div id="demo-console" class="demo-console" aria-live="polite">
+            <p class="demo-console-empty muted">Waiting for your first request…</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+  </footer>
+</body>
+</html>

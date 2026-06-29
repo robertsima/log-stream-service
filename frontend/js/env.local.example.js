@@ -3,6 +3,9 @@
 Object.assign(window.CONFIG, {
   API_BASE_URL: "http://localhost:8080",
   DEMO_BYPASS_EMAIL: "admin@email.com",
+  // Optional: paste a pre-created ingestion token so the Demo page reuses one shared
+  // token for all visitors instead of minting per browser. Leave empty to mint locally.
+  DEMO_INGESTION_TOKEN: "lss_live_S8bSxrsILustTOkcLWjqY1KehkXyIMDN",
   SIGN_IN_CONTINUE_URL: "http://127.0.0.1:5500/frontend/dashboard.html",
   FIREBASE: {
     apiKey: "",

@@ -2,6 +2,7 @@
   const NAV_LINKS = [
     { href: "index.html", label: "Home", icon: "home" },
     { href: "getting-started.html", label: "Getting Started", icon: "rocket" },
+    { href: "demo.html", label: "Demo", icon: "zap" },
     { href: "dashboard.html", label: "Dashboard", icon: "layout-dashboard" },
     { href: "docs.html", label: "API Docs", icon: "book-open-text" },
     { href: "examples.html", label: "Examples", icon: "code-2" }

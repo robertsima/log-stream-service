@@ -2,172 +2,36 @@
   const OUTPUT_PANEL = "dashboard-output";
 
   const DEMO_USER = {
-    email: (window.CONFIG && window.CONFIG.DEMO_BYPASS_EMAIL) || "admin@email.com",
-    username: "demo-user"
+    email: (window.CONFIG && window.CONFIG.DEMO_BYPASS_EMAIL) || "admin@email.com"
   };
 
-  const DEMO_APP = {
-    name: "dashboard-demo",
-    description: "Quick demo from PrairieLog dashboard"
-  };
-
-  function hasToken() {
-    return Boolean(window.PrairieLogState.ingestionToken);
-  }
-
-  function hasApp() {
-    return Boolean(window.PrairieLogState.app);
-  }
+  let apps = [];
 
   function isSignedIn() {
     return Boolean(window.PrairieLogState.authToken);
   }
 
-  function isDemoSignedIn() {
-    return Boolean(
-      window.PrairieLogState.authToken &&
-        window.PrairieLogState.authMode === "demo" &&
-        window.PrairieLogState.authEmail &&
-        window.PrairieLogState.authEmail.toLowerCase() === DEMO_USER.email.toLowerCase()
-    );
-  }
-
-  function resetManagedSessionResources() {
-    window.PrairieLogState.app = null;
-    window.PrairieLogState.ingestionToken = null;
-    window.PrairieLogState.alertDestination = null;
-    window.PrairieLogState.destinationCount = 0;
-    window.PrairieLogState.destinations = [];
-    window.PrairieLogState.tokenPrefix = null;
-  }
-
-  function requireSignedIn() {
-    if (!isSignedIn()) {
-      throw new Error("Sign in before managing apps, tokens, or destinations.");
-    }
-  }
-
-  function requireApp() {
-    if (!hasApp()) {
-      throw new Error("Register an app first.");
-    }
+  function activeApp() {
     return window.PrairieLogState.app;
   }
 
-  function requireToken() {
-    if (!hasToken()) {
-      throw new Error("Provide an ingestion token first.");
-    }
-    return window.PrairieLogState.ingestionToken;
-  }
+  // -------------------------
+  // Feedback helpers
+  // -------------------------
 
-  function requireDestination() {
-    if (!window.PrairieLogState.alertDestination) {
-      throw new Error("Create an alert destination first.");
-    }
-    return window.PrairieLogState.alertDestination;
-  }
-
-  function buildLogIngestSnippet() {
-    const apiBase = window.PrairieLogUI.getApiBaseUrl();
-    return (
-      "// Server-side only — keep PRAIRIELOG_TOKEN in env, not in frontend code\n" +
-      "const PRAIRIELOG_TOKEN = process.env.PRAIRIELOG_TOKEN;\n\n" +
-      "async function reportError(message, logger = 'my-app') {\n" +
-      "  await fetch('" +
-      apiBase +
-      "/api/v1/log-events', {\n" +
-      "    method: 'POST',\n" +
-      "    headers: {\n" +
-      "      'Content-Type': 'application/json',\n" +
-      "      'X-Ingestion-Token': PRAIRIELOG_TOKEN\n" +
-      "    },\n" +
-      "    body: JSON.stringify({\n" +
-      "      id: crypto.randomUUID(),\n" +
-      "      level: 'ERROR',\n" +
-      "      message,\n" +
-      "      occurredAt: new Date().toISOString(),\n" +
-      "      logger\n" +
-      "    })\n" +
-      "  });\n" +
-      "}\n\n" +
-      "// await reportError('Payment failed for user 123');"
-    );
-  }
-
-  function updateIntegratePanel() {
-    const panel = document.getElementById("integrate-panel");
-    const host = document.getElementById("integrate-snippet-host");
-    const prefixEl = document.getElementById("integrate-token-prefix");
-    const token = window.PrairieLogState.ingestionToken;
-
-    if (!panel || !host) {
+  function showActivityBanner(message, type) {
+    const banner = document.getElementById("activity-banner");
+    if (!banner) {
       return;
     }
-
-    if (!token) {
-      panel.hidden = true;
-      return;
+    banner.textContent = message;
+    banner.classList.remove("activity-banner-success", "activity-banner-error");
+    if (type === "success") {
+      banner.classList.add("activity-banner-success");
+    } else if (type === "error") {
+      banner.classList.add("activity-banner-error");
     }
-
-    panel.hidden = false;
-    const snippet = buildLogIngestSnippet();
-    host.innerHTML = window.PrairieLogUI.buildCopyableCodeBlock(
-      "integrate-snippet-code",
-      snippet,
-      { label: "starter code", preClass: "docs-code docs-code-compact" }
-    );
-    window.PrairieLogUI.initCopyBlocks(host);
-
-    if (prefixEl) {
-      prefixEl.textContent = window.PrairieLogState.tokenPrefix || "(active in session)";
-    }
-
-    window.PrairieLogUI.refreshIcons(panel);
-  }
-
-  async function handleIntegrateCopyToken() {
-    const token = window.PrairieLogState.ingestionToken;
-    if (!token) {
-      return;
-    }
-
-    try {
-      await window.PrairieLogUI.copyToClipboard(token);
-      window.PrairieLogUI.renderOutput(
-        OUTPUT_PANEL,
-        "Ingestion token copied. Store it as PRAIRIELOG_TOKEN on your server.",
-        "success"
-      );
-    } catch (error) {
-      showError(error);
-    }
-  }
-
-  async function handleIntegrateCopySnippet() {
-    try {
-      await window.PrairieLogUI.copyToClipboard(buildLogIngestSnippet());
-      window.PrairieLogUI.renderOutput(
-        OUTPUT_PANEL,
-        "Starter code copied. Replace PRAIRIELOG_TOKEN with your env var value.",
-        "success"
-      );
-    } catch (error) {
-      showError(error);
-    }
-  }
-
-  function detectWebhookType(webhookUrl) {
-    const lower = webhookUrl.toLowerCase();
-    if (lower.includes("hooks.slack.com") || lower.includes("slack.com/services")) {
-      return "SLACK";
-    }
-    if (lower.includes("discord.com/api/webhooks") || lower.includes("discordapp.com/api/webhooks")) {
-      return "DISCORD";
-    }
-      throw new Error(
-      "Unrecognized URL. Use a Slack incoming webhook (hooks.slack.com) or Discord webhook (discord.com/api/webhooks/...)."
-    );
+    banner.hidden = !message;
   }
 
   function showError(error) {
@@ -176,28 +40,7 @@
       window.PrairieLogUI.formatError(error),
       "error"
     );
-  }
-
-  function showAuthMessage(message, type) {
-    const status = document.getElementById("auth-status");
-    if (!status) {
-      return;
-    }
-    status.textContent = message;
-    status.classList.remove("auth-feedback-success", "auth-feedback-error");
-    if (type === "success") {
-      status.classList.add("auth-feedback-success");
-    } else if (type === "error") {
-      status.classList.add("auth-feedback-error");
-    }
-  }
-
-  function clearAuthMessage() {
-    const status = document.getElementById("auth-status");
-    if (!status) {
-      return;
-    }
-    status.classList.remove("auth-feedback-success", "auth-feedback-error");
+    showActivityBanner(error.message || "Something went wrong.", "error");
   }
 
   function showSuccess(data, message) {
@@ -211,7 +54,6 @@
     if (!data || typeof data !== "object" || Array.isArray(data)) {
       return data;
     }
-
     const copy = Object.assign({}, data);
     if (copy.token) {
       copy.token = "(shown in banner above — copy it there)";
@@ -219,230 +61,18 @@
     return copy;
   }
 
-  function hideQuickDemoFeedback() {
-    const success = document.getElementById("quick-demo-success");
-    const error = document.getElementById("quick-demo-error");
-    if (success) {
-      success.hidden = true;
-    }
-    if (error) {
-      error.hidden = true;
-    }
-  }
-
-  function showQuickDemoSuccess() {
-    hideQuickDemoFeedback();
-    const success = document.getElementById("quick-demo-success");
-    if (success) {
-      success.hidden = false;
-    }
-    window.PrairieLogUI.refreshIcons(success);
-  }
-
-  function showQuickDemoError(message) {
-    hideQuickDemoFeedback();
-    const errorPanel = document.getElementById("quick-demo-error");
-    if (!errorPanel) {
-      return;
-    }
-    errorPanel.innerHTML =
-      '<p><i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>' +
-      "<strong>Could not send test alert.</strong> " +
-      window.PrairieLogUI.escapeHtml(message) +
-      "</p>";
-    errorPanel.hidden = false;
-    window.PrairieLogUI.refreshIcons(errorPanel);
-  }
-
-  function updateAdvancedSessionSummary() {
-    const container = document.getElementById("session-state-summary");
-    if (!container) {
-      return;
-    }
-
-    const state = window.PrairieLogState;
-    const chips = [];
-
-    if (state.user) {
-      chips.push(
-        '<span class="session-chip"><span class="session-chip-label">User</span> ' +
-          window.PrairieLogUI.escapeHtml(state.user.email) +
-          "</span>"
-      );
-    }
-    if (!state.user && state.authEmail) {
-      chips.push(
-        '<span class="session-chip"><span class="session-chip-label">Signed in</span> ' +
-          window.PrairieLogUI.escapeHtml(state.authEmail) +
-          "</span>"
-      );
-    }
-    if (state.app) {
-      chips.push(
-        '<span class="session-chip"><span class="session-chip-label">App</span> ' +
-          window.PrairieLogUI.escapeHtml(state.app.name) +
-          "</span>"
-      );
-    }
-    if (state.ingestionToken) {
-      chips.push(
-        '<span class="session-chip"><span class="session-chip-label">Token</span> ' +
-          window.PrairieLogUI.escapeHtml(
-            state.tokenPrefix ? state.tokenPrefix : "active"
-          ) +
-          "</span>"
-      );
-    }
-    if (state.alertDestination) {
-      chips.push(
-        '<span class="session-chip"><span class="session-chip-label">Destination</span> ' +
-          window.PrairieLogUI.escapeHtml(state.alertDestination.name) +
-          "</span>"
-      );
-    }
-
-    container.innerHTML = chips.length
-      ? '<div class="session-chip-row">' + chips.join("") + "</div>"
-      : '<p class="muted compact-hint">No active session — try the quick demo above or manual setup below.</p>';
-  }
-
-  function updateAuthPanel() {
+  function showAuthMessage(message, type) {
     const status = document.getElementById("auth-status");
-    const form = document.getElementById("sign-in-form");
-    const signOut = document.getElementById("sign-out-button");
-    const signedIn = isSignedIn();
-
-    if (status) {
-      clearAuthMessage();
-      status.textContent = signedIn
-        ? "Signed in as " + window.PrairieLogState.authEmail + ". Apps: " +
-            (window.PrairieLogState.appsCountHint || 0) + "/10."
-        : "Management actions require a signed-in email.";
+    if (!status) {
+      return;
     }
-    if (form) {
-      form.hidden = signedIn;
-    }
-    if (signOut) {
-      signOut.hidden = !signedIn;
-    }
-  }
-
-  function updateTestDestinationPanel() {
-    const button = document.getElementById("test-destination-button");
-    const hint = document.getElementById("test-destination-hint");
-    const destination = window.PrairieLogState.alertDestination;
-
-    if (button) {
-      button.disabled = !destination;
-    }
-
-    if (hint) {
-      hint.hidden = Boolean(destination);
-    }
-  }
-
-  function updateDashboardView() {
-    const tokenActive = hasToken();
-    const appActive = hasApp();
-    const signedIn = isSignedIn();
-
-    const activePanel = document.getElementById("advanced-active-panel");
-    const setupPanel = document.getElementById("dashboard-setup-panel");
-    const manualSetupDetails = document.getElementById("manual-setup-details");
-    const intro = document.getElementById("dashboard-intro");
-    const tokenDescription = document.getElementById("token-access-description");
-    const pasteInput = document.getElementById("paste-token-input");
-    const pasteButton = document.getElementById("paste-token-button");
-    const app = window.PrairieLogState.app;
-
-    if (activePanel) {
-      activePanel.hidden = !(tokenActive && appActive);
-    }
-
-    if (setupPanel) {
-      setupPanel.hidden = tokenActive || !signedIn;
-    }
-
-    if (manualSetupDetails) {
-      manualSetupDetails.hidden = tokenActive || !signedIn;
-    }
-
-    if (intro) {
-      if (tokenActive && appActive) {
-        intro.textContent =
-          "Session active for " +
-          app.name +
-          ". Copy starter code below, or send sample ERROR logs from Advanced setup.";
-      } else {
-        intro.textContent =
-          (signedIn ? "" : "Sign in, then ") +
-          "paste your Slack or Discord alert webhook to send a test message in seconds.";
-      }
-    }
-
-    if (tokenDescription) {
-      tokenDescription.textContent = tokenActive
-        ? "Replace the active token at any time."
-        : "Paste an existing token to resume a session.";
-    }
-
-    if (pasteButton) {
-      const label = pasteButton.querySelector(".btn-label");
-      if (label) {
-        label.textContent = tokenActive ? "Replace token" : "Use token";
-      }
-    }
-
-    if (pasteInput && tokenActive) {
-      pasteInput.value = "";
-      pasteInput.placeholder = "Paste a new token to replace the active one";
-    }
-
-    updateAdvancedSessionSummary();
-    updateAuthPanel();
-    updateTestDestinationPanel();
-    updateIntegratePanel();
-  }
-
-  function syncOwnerEmailFromUser() {
-    const userEmail = document.getElementById("user-email-input");
-    const ownerEmail = document.getElementById("app-owner-email-input");
-    if (userEmail && ownerEmail && userEmail.value.trim()) {
-      ownerEmail.value = userEmail.value.trim();
-    }
-  }
-
-  function prefillAdvancedFormsFromDemo() {
-    const userEmail = document.getElementById("user-email-input");
-    const username = document.getElementById("username-input");
-    const ownerEmail = document.getElementById("app-owner-email-input");
-    const appName = document.getElementById("app-name-input");
-
-    if (userEmail && window.PrairieLogState.user) {
-      userEmail.value = window.PrairieLogState.user.email;
-    }
-    if (username && window.PrairieLogState.user) {
-      username.value = window.PrairieLogState.user.username;
-    }
-    if (ownerEmail && window.PrairieLogState.user) {
-      ownerEmail.value = window.PrairieLogState.user.email;
-    }
-    if (appName && window.PrairieLogState.app) {
-      appName.value = window.PrairieLogState.app.name;
-    }
-  }
-
-  function applyUserToSession(user, message) {
-    window.PrairieLogState.user = user;
-    prefillOwnerEmail();
-    updateDashboardView();
-    showSuccess(user, message);
-  }
-
-  function prefillOwnerEmail() {
-    const ownerEmailInput = document.getElementById("app-owner-email-input");
-    if (ownerEmailInput && window.PrairieLogState.user) {
-      ownerEmailInput.value = window.PrairieLogState.user.email;
+    status.hidden = false;
+    status.textContent = message;
+    status.classList.remove("auth-feedback-success", "auth-feedback-error");
+    if (type === "success") {
+      status.classList.add("auth-feedback-success");
+    } else if (type === "error") {
+      status.classList.add("auth-feedback-error");
     }
   }
 
@@ -450,347 +80,140 @@
     if (!id || id.length <= 14) {
       return id;
     }
-
     return id.slice(0, 8) + "…" + id.slice(-4);
   }
 
-  function showTokenBanner(token, tokenPrefix) {
-    const banner = document.getElementById("token-warning-banner");
-    const tokenDisplay = document.getElementById("token-display");
-    if (!banner || !tokenDisplay) {
+  // -------------------------
+  // View toggle
+  // -------------------------
+
+  function updateView() {
+    const signedIn = isSignedIn();
+    const signedOut = document.getElementById("signedout-panel");
+    const content = document.getElementById("dashboard-content");
+    const demoHint = document.getElementById("demo-email-hint");
+
+    if (demoHint) {
+      demoHint.textContent = DEMO_USER.email;
+    }
+    if (signedOut) {
+      signedOut.hidden = signedIn;
+    }
+    if (content) {
+      content.hidden = !signedIn;
+    }
+
+    if (signedIn) {
+      const email = document.getElementById("account-email");
+      const meta = document.getElementById("account-meta");
+      if (email) {
+        email.textContent = window.PrairieLogState.authEmail || "Signed in";
+      }
+      if (meta) {
+        meta.textContent = "Apps " + apps.length + "/10";
+      }
+    }
+  }
+
+  // -------------------------
+  // Apps
+  // -------------------------
+
+  async function loadApps() {
+    const list = document.getElementById("apps-list");
+    if (!isSignedIn()) {
       return;
     }
-
-    banner.hidden = false;
-    tokenDisplay.textContent =
-      tokenPrefix || "Token active in this session — use Copy now.";
-    tokenDisplay.removeAttribute("title");
-  }
-
-  function applyLinkedSession(session) {
-    if (session && session.tokenPrefix) {
-      window.PrairieLogState.tokenPrefix = session.tokenPrefix;
+    try {
+      apps = await window.restService.getAppsByOwnerEmail(
+        window.PrairieLogState.authEmail
+      );
+      window.PrairieLogState.appsCountHint = apps.length;
+      renderApps();
+      updateView();
+    } catch (error) {
+      if (list) {
+        list.innerHTML =
+          '<p class="muted">Could not load apps: ' +
+          window.PrairieLogUI.escapeHtml(error.message) +
+          "</p>";
+      }
+      showError(error);
     }
   }
 
-  function selectDestination(destinationId) {
-    const destination = window.PrairieLogState.destinations.find(function (dest) {
-      return dest.id === destinationId;
-    });
-
-    if (!destination) {
-      return;
-    }
-
-    window.PrairieLogState.alertDestination = destination;
-    renderDestinationsList();
-    updateDashboardView();
-  }
-
-  function renderDestinationsList() {
-    const list = document.getElementById("destinations-list");
+  function renderApps() {
+    const list = document.getElementById("apps-list");
     if (!list) {
       return;
     }
 
-    const destinations = window.PrairieLogState.destinations;
-    const selectedId = window.PrairieLogState.alertDestination
-      ? window.PrairieLogState.alertDestination.id
-      : null;
-
-    if (!destinations.length) {
-      list.innerHTML = '<p class="muted">No destinations yet.</p>';
+    if (!apps.length) {
+      list.innerHTML =
+        '<p class="muted">No apps yet. Register one below to get started.</p>';
       return;
     }
 
-    list.innerHTML = destinations
-      .map(function (dest) {
+    const selectedId = activeApp() ? activeApp().id : null;
+
+    list.innerHTML = apps
+      .map(function (app) {
         return (
-          '<button type="button" class="destination-item' +
-          (dest.id === selectedId ? " is-selected" : "") +
-          '" data-destination-id="' +
-          window.PrairieLogUI.escapeHtml(dest.id) +
-          '" title="' +
-          window.PrairieLogUI.escapeHtml(dest.name) +
+          '<button type="button" class="app-card' +
+          (app.id === selectedId ? " is-selected" : "") +
+          '" data-app-id="' +
+          window.PrairieLogUI.escapeHtml(app.id) +
           '">' +
-          '<div class="destination-item-header">' +
-          '<span class="destination-item-name">' +
-          window.PrairieLogUI.escapeHtml(dest.name) +
+          '<span class="app-card-name">' +
+          window.PrairieLogUI.escapeHtml(app.name) +
           "</span>" +
-          '<span class="badge badge-success">' +
-          window.PrairieLogUI.escapeHtml(dest.type) +
-          "</span></div>" +
-          '<div class="destination-item-meta muted">' +
-          '<span class="destination-item-id" title="' +
-          window.PrairieLogUI.escapeHtml(dest.id) +
-          '">ID ' +
-          window.PrairieLogUI.escapeHtml(shortenId(dest.id)) +
+          '<span class="app-card-desc muted">' +
+          window.PrairieLogUI.escapeHtml(app.description || "No description") +
           "</span>" +
-          "<span>" +
-          (dest.enabled ? "Enabled" : "Disabled") +
-          (dest.id === selectedId ? " · Selected" : "") +
-          "</span></div></button>"
+          '<span class="app-card-id muted">ID ' +
+          window.PrairieLogUI.escapeHtml(shortenId(app.id)) +
+          "</span>" +
+          "</button>"
         );
       })
       .join("");
   }
 
-  async function ensureDemoSession() {
-    if (!isDemoSignedIn()) {
-      resetManagedSessionResources();
-      window.PrairieLogState.user = await window.PrairieLogAuth.signInDemo(DEMO_USER.email);
-    }
-
-    if (hasApp() && hasToken()) {
+  function handleAppsListClick(event) {
+    const item = event.target.closest("[data-app-id]");
+    if (!item) {
       return;
     }
+    selectApp(item.dataset.appId);
+  }
 
-    let user = window.PrairieLogState.user;
-    if (!user) {
-      user = await window.PrairieLogAuth.signInDemo(DEMO_USER.email);
+  function selectApp(appId) {
+    const app = apps.find(function (item) {
+      return item.id === appId;
+    });
+    if (!app) {
+      return;
     }
-    window.PrairieLogState.user = user;
-
-    const app = await window.restService.createApp({
-      name: DEMO_APP.name,
-      description: DEMO_APP.description
-    });
     window.PrairieLogState.app = app;
-
-    const tokenResponse = await window.restService.createAppToken(app.id, {
-      name: "quick-demo-token"
-    });
-    window.PrairieLogState.ingestionToken = tokenResponse.token;
-    window.PrairieLogState.tokenPrefix = tokenResponse.tokenPrefix;
-
-    applyLinkedSession({
-      appName: app.name,
-      tokenPrefix: tokenResponse.tokenPrefix
-    });
-    prefillAdvancedFormsFromDemo();
-  }
-
-  async function runQuickDemo(webhookUrl) {
-    const type = detectWebhookType(webhookUrl);
-
-    await ensureDemoSession();
-
-    const activeApp = window.PrairieLogState.app;
-    const destination = await window.restService.createAlertDestination(activeApp.id, {
-      type: type,
-      name: "quick-demo-" + Date.now().toString(36),
-      webhookUrl: webhookUrl
-    });
-
-    window.PrairieLogState.alertDestination = destination;
-    window.PrairieLogState.destinationCount =
-      (window.PrairieLogState.destinationCount || 0) + 1;
-    window.PrairieLogState.destinations = window.PrairieLogState.destinations || [];
-    window.PrairieLogState.destinations.unshift(destination);
-
-    const status = await window.restService.testAlertDestination(
-      activeApp.id,
-      destination.id
-    );
-
-    renderDestinationsList();
-    updateDashboardView();
-    return status;
-  }
-
-  async function loadSessionFromToken(token) {
-    const session = await window.restService.resolveIngestionTokenSession(token);
-    const app = await window.restService.getAppById(session.appId);
-    const destinations = await window.restService.getAlertDestinations(
-      session.appId
-    );
-
-    window.PrairieLogState.ingestionToken = token;
-    window.PrairieLogState.app = app;
-    window.PrairieLogState.destinationCount = destinations.length;
-    window.PrairieLogState.destinations = destinations;
-    window.PrairieLogState.alertDestination = destinations.length
-      ? destinations[0]
-      : null;
-
-    applyLinkedSession(session);
-    renderDestinationsList();
-    updateDashboardView();
-  }
-
-  function clearSession() {
-    window.PrairieLogState.user = null;
-    window.PrairieLogState.app = null;
-    window.PrairieLogState.ingestionToken = null;
     window.PrairieLogState.alertDestination = null;
-    window.PrairieLogState.destinationCount = 0;
-    window.PrairieLogState.destinations = [];
-    window.PrairieLogState.tokenPrefix = null;
-
-    const banner = document.getElementById("token-warning-banner");
-    const pasteInput = document.getElementById("paste-token-input");
-    const list = document.getElementById("destinations-list");
-    const quickInput = document.getElementById("quick-webhook-input");
-
-    hideQuickDemoFeedback();
-
-    const integratePanel = document.getElementById("integrate-panel");
-    if (integratePanel) {
-      integratePanel.hidden = true;
-    }
-
-    if (banner) {
-      banner.hidden = true;
-    }
-
-    if (pasteInput) {
-      pasteInput.value = "";
-      pasteInput.placeholder = "lss_live_...";
-    }
-
-    if (quickInput) {
-      quickInput.value = "";
-    }
-
-    if (list) {
-      list.innerHTML = '<p class="muted">No destinations yet.</p>';
-    }
-
-    updateDashboardView();
-    window.PrairieLogUI.refreshIcons();
-    window.PrairieLogUI.renderOutput(
-      OUTPUT_PANEL,
-      "Session cleared. Paste an alert webhook above to start again.",
-      "success"
-    );
-  }
-
-  function handleQuickDemo(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const button = document.getElementById("quick-demo-button");
-    const webhookInput = document.getElementById("quick-webhook-input");
-    const webhookUrl = webhookInput.value.trim();
-
-    hideQuickDemoFeedback();
-
-    if (!webhookUrl) {
-        showQuickDemoError("Enter a Slack or Discord alert webhook URL.");
-      return;
-    }
-
-    window.PrairieLogUI.setButtonLoading(button, true, "Setting up demo...");
-
-    runQuickDemo(webhookUrl)
-      .then(function (status) {
-        webhookInput.value = "";
-        showQuickDemoSuccess();
-        showSuccess(
-          { status: status, destination: window.PrairieLogState.alertDestination },
-          "Quick demo complete. Test alert accepted (HTTP " + status + ")."
-        );
-        window.PrairieLogUI.refreshIcons();
-      })
-      .catch(function (error) {
-        showQuickDemoError(error.message);
-        showError(error);
-      })
-      .finally(function () {
-        window.PrairieLogUI.setButtonLoading(button, false);
-      });
-  }
-
-  function handlePasteToken(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const button = form.querySelector('button[type="submit"]');
-    const token = document.getElementById("paste-token-input").value.trim();
-
-    if (!token) {
-      showError(new Error("Enter an ingestion token."));
-      return;
-    }
-
-    window.PrairieLogUI.setButtonLoading(button, true, "Connecting...");
-
-    loadSessionFromToken(token)
-      .then(function () {
-        hideQuickDemoFeedback();
-        updateDashboardView();
-        window.PrairieLogUI.refreshIcons();
-        const appName = window.PrairieLogState.app.name;
-        const destinationCount = window.PrairieLogState.destinationCount;
-        const destinationNote =
-          destinationCount === 0
-            ? "No alert destinations are configured yet."
-            : destinationCount === 1
-              ? "Loaded 1 alert destination."
-              : "Loaded " + destinationCount + " alert destinations.";
-
-        window.PrairieLogUI.renderOutput(
-          OUTPUT_PANEL,
-          "Connected to " + appName + ". " + destinationNote,
-          "success"
-        );
-      })
-      .catch(function (error) {
-        showError(error);
-      })
-      .finally(function () {
-        window.PrairieLogUI.setButtonLoading(button, false);
-      });
-  }
-
-  async function handleCreateUser(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const button = form.querySelector('button[type="submit"]');
-    const email = document.getElementById("user-email-input").value.trim();
-    const username = document.getElementById("username-input").value.trim();
-
-    window.PrairieLogUI.setButtonLoading(button, true, "Creating...");
-
-    try {
-      let user;
-      if (isSignedIn()) {
-        user = await window.restService.getCurrentUser();
-      } else if (email.toLowerCase() === DEMO_USER.email.toLowerCase()) {
-        user = await window.PrairieLogAuth.signInDemo(email);
-      } else {
-        await window.PrairieLogAuth.sendMagicLink(email);
-        window.PrairieLogUI.renderOutput(
-          OUTPUT_PANEL,
-          "Check your email for a sign-in link, then return to this dashboard.",
-          "success"
-        );
-        return;
-      }
-      applyUserToSession(user, "User ready.");
-    } catch (error) {
-      showError(error);
-    } finally {
-      window.PrairieLogUI.setButtonLoading(button, false);
-    }
+    hideTokenBanner();
+    renderApps();
+    loadAppDetail();
   }
 
   async function handleCreateApp(event) {
     event.preventDefault();
-
     if (!isSignedIn()) {
       showError(new Error("Sign in before registering an app."));
       return;
     }
+
     const form = event.target;
     const button = form.querySelector('button[type="submit"]');
     const name = document.getElementById("app-name-input").value.trim();
     const description = document
       .getElementById("app-description-input")
       .value.trim();
-
-    syncOwnerEmailFromUser();
 
     window.PrairieLogUI.setButtonLoading(button, true, "Registering...");
 
@@ -799,15 +222,15 @@
         name,
         description: description || null
       });
-      window.PrairieLogState.app = app;
-      window.PrairieLogState.appsCountHint =
-        (window.PrairieLogState.appsCountHint || 0) + 1;
-      window.PrairieLogState.destinationCount = 0;
-      window.PrairieLogState.destinations = [];
-      window.PrairieLogState.alertDestination = null;
-      updateDashboardView();
+      form.reset();
+      const details = document.getElementById("create-app-details");
+      if (details) {
+        details.open = false;
+      }
+      await loadApps();
+      selectApp(app.id);
+      showActivityBanner("App “" + app.name + "” registered.", "success");
       showSuccess(app, "App registered successfully.");
-      await refreshDestinationsList();
     } catch (error) {
       showError(error);
     } finally {
@@ -815,41 +238,161 @@
     }
   }
 
+  // -------------------------
+  // App detail (tokens + destinations)
+  // -------------------------
+
+  function loadAppDetail() {
+    const detail = document.getElementById("app-detail");
+    const app = activeApp();
+    if (!detail || !app) {
+      return;
+    }
+
+    detail.hidden = false;
+    const nameEl = document.getElementById("app-detail-name");
+    const descEl = document.getElementById("app-detail-desc");
+    if (nameEl) {
+      nameEl.textContent = app.name;
+    }
+    if (descEl) {
+      descEl.textContent = app.description || "";
+      descEl.hidden = !app.description;
+    }
+
+    window.PrairieLogUI.refreshIcons(detail);
+    loadTokens();
+    loadDestinations();
+    detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  // -------------------------
+  // Tokens
+  // -------------------------
+
+  function hideTokenBanner() {
+    const banner = document.getElementById("token-warning-banner");
+    if (banner) {
+      banner.hidden = true;
+    }
+    const display = document.getElementById("token-display");
+    if (display) {
+      display.textContent = "";
+    }
+  }
+
+  function showTokenBanner(token) {
+    const banner = document.getElementById("token-warning-banner");
+    const display = document.getElementById("token-display");
+    if (!banner || !display || !token) {
+      return;
+    }
+    banner.hidden = false;
+    display.textContent = token;
+    window.PrairieLogState.ingestionToken = token;
+    window.PrairieLogUI.refreshIcons(banner);
+  }
+
+  async function loadTokens() {
+    const list = document.getElementById("tokens-list");
+    const app = activeApp();
+    if (!list || !app) {
+      return;
+    }
+    try {
+      const tokens = await window.restService.getAppTokens(app.id);
+      renderTokens(tokens);
+    } catch (error) {
+      list.innerHTML =
+        '<p class="muted">Could not load tokens: ' +
+        window.PrairieLogUI.escapeHtml(error.message) +
+        "</p>";
+    }
+  }
+
+  function isTokenActive(token) {
+    const status = (token.status || "").toUpperCase();
+    if (status) {
+      return status === "ACTIVE";
+    }
+    return !token.revokedAt;
+  }
+
+  function renderTokens(tokens) {
+    const list = document.getElementById("tokens-list");
+    if (!list) {
+      return;
+    }
+    if (!tokens || !tokens.length) {
+      list.innerHTML = '<p class="muted">No tokens yet.</p>';
+      return;
+    }
+
+    list.innerHTML = tokens
+      .map(function (token) {
+        const active = isTokenActive(token);
+        const prefix = token.tokenPrefix || token.prefix || "";
+        return (
+          '<div class="token-item">' +
+          '<div class="token-item-main">' +
+          '<span class="token-item-name">' +
+          window.PrairieLogUI.escapeHtml(token.name || "(unnamed)") +
+          "</span>" +
+          '<span class="badge ' +
+          (active ? "badge-success" : "badge-muted") +
+          '">' +
+          (active ? "Active" : "Revoked") +
+          "</span>" +
+          "</div>" +
+          '<div class="token-item-meta muted">' +
+          (prefix
+            ? '<span class="mono-inline">' +
+              window.PrairieLogUI.escapeHtml(prefix) +
+              "…</span>"
+            : '<span class="mono-inline">ID ' +
+              window.PrairieLogUI.escapeHtml(shortenId(token.id)) +
+              "</span>") +
+          (active
+            ? '<button type="button" class="link-button token-revoke" data-token-id="' +
+              window.PrairieLogUI.escapeHtml(token.id) +
+              '">Revoke</button>'
+            : "") +
+          "</div>" +
+          "</div>"
+        );
+      })
+      .join("");
+  }
+
   async function handleCreateToken(event) {
     event.preventDefault();
-
-    if (!isSignedIn()) {
-      showError(new Error("Sign in before generating a token."));
+    const app = activeApp();
+    if (!app) {
+      showError(new Error("Select an app first."));
       return;
     }
 
     const form = event.target;
     const button = form.querySelector('button[type="submit"]');
-    const app = requireApp();
     const name = document.getElementById("token-name-input").value.trim();
 
     window.PrairieLogUI.setButtonLoading(button, true, "Generating...");
 
     try {
       const tokenResponse = await window.restService.createAppToken(app.id, {
-        name: name || "frontend-demo-token"
+        name: name || "dashboard-token"
       });
-
-      window.PrairieLogState.ingestionToken = tokenResponse.token;
-      window.PrairieLogState.tokenPrefix = tokenResponse.tokenPrefix;
-      showTokenBanner(tokenResponse.token, tokenResponse.tokenPrefix);
-      applyLinkedSession({
-        appName: app.name,
-        tokenPrefix: tokenResponse.tokenPrefix
-      });
-      await refreshDestinationsList();
-      updateDashboardView();
-      window.PrairieLogUI.refreshIcons();
-
+      form.reset();
+      showTokenBanner(tokenResponse.token);
+      showActivityBanner(
+        "Token generated — copy it now, it will not be shown again.",
+        "success"
+      );
       showSuccess(
         Object.assign({}, tokenResponse),
-        "Token generated. Copy it now — it will not be shown again after you leave this page."
+        "Token generated. Copy it now — it will not be shown again."
       );
+      await loadTokens();
     } catch (error) {
       showError(error);
     } finally {
@@ -862,30 +405,138 @@
     if (!token) {
       return;
     }
-
     try {
       await window.PrairieLogUI.copyToClipboard(token);
-      window.PrairieLogUI.renderOutput(
-        OUTPUT_PANEL,
-        "Ingestion token copied to clipboard.",
-        "success"
-      );
+      showActivityBanner("Ingestion token copied to clipboard.", "success");
     } catch (error) {
       showError(error);
     }
   }
 
+  async function handleTokensListClick(event) {
+    const button = event.target.closest(".token-revoke");
+    if (!button) {
+      return;
+    }
+    const app = activeApp();
+    if (!app) {
+      return;
+    }
+    if (!window.confirm("Revoke this token? Apps using it will stop ingesting.")) {
+      return;
+    }
+
+    try {
+      const status = await window.restService.revokeAppToken(
+        app.id,
+        button.dataset.tokenId
+      );
+      showActivityBanner("Token revoked (HTTP " + status + ").", "success");
+      hideTokenBanner();
+      await loadTokens();
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  // -------------------------
+  // Destinations
+  // -------------------------
+
+  async function loadDestinations() {
+    const list = document.getElementById("destinations-list");
+    const app = activeApp();
+    if (!list || !app) {
+      return;
+    }
+    try {
+      const destinations = await window.restService.getAlertDestinations(app.id);
+      window.PrairieLogState.destinations = destinations;
+      window.PrairieLogState.destinationCount = destinations.length;
+      if (
+        window.PrairieLogState.alertDestination &&
+        !destinations.some(function (dest) {
+          return dest.id === window.PrairieLogState.alertDestination.id;
+        })
+      ) {
+        window.PrairieLogState.alertDestination = null;
+      }
+      renderDestinations(destinations);
+    } catch (error) {
+      list.innerHTML =
+        '<p class="muted">Could not load destinations: ' +
+        window.PrairieLogUI.escapeHtml(error.message) +
+        "</p>";
+    }
+  }
+
+  function renderDestinations(destinations) {
+    const list = document.getElementById("destinations-list");
+    const hint = document.getElementById("destinations-hint");
+    if (!list) {
+      return;
+    }
+
+    if (!destinations || !destinations.length) {
+      list.innerHTML = '<p class="muted">No destinations yet.</p>';
+      if (hint) {
+        hint.hidden = true;
+      }
+      return;
+    }
+
+    const selectedId = window.PrairieLogState.alertDestination
+      ? window.PrairieLogState.alertDestination.id
+      : null;
+
+    list.innerHTML = destinations
+      .map(function (dest) {
+        return (
+          '<div class="destination-item' +
+          (dest.id === selectedId ? " is-selected" : "") +
+          '" data-destination-id="' +
+          window.PrairieLogUI.escapeHtml(dest.id) +
+          '">' +
+          '<div class="destination-item-header">' +
+          '<span class="destination-item-name">' +
+          window.PrairieLogUI.escapeHtml(dest.name) +
+          "</span>" +
+          '<span class="badge badge-success">' +
+          window.PrairieLogUI.escapeHtml(dest.type) +
+          "</span></div>" +
+          '<div class="destination-item-meta muted">' +
+          "<span>" +
+          (dest.enabled === false ? "Disabled" : "Enabled") +
+          (dest.id === selectedId ? " · Selected" : "") +
+          "</span>" +
+          '<span class="destination-item-actions">' +
+          '<button type="button" class="link-button dest-test" data-destination-id="' +
+          window.PrairieLogUI.escapeHtml(dest.id) +
+          '">Test</button>' +
+          '<button type="button" class="link-button dest-delete" data-destination-id="' +
+          window.PrairieLogUI.escapeHtml(dest.id) +
+          '">Delete</button>' +
+          "</span>" +
+          "</div></div>"
+        );
+      })
+      .join("");
+
+    if (hint) {
+      hint.hidden = true;
+    }
+  }
+
   async function handleCreateDestination(event) {
     event.preventDefault();
-
-    if (!isSignedIn()) {
-      showError(new Error("Sign in before saving an alert destination."));
+    const app = activeApp();
+    if (!app) {
+      showError(new Error("Select an app first."));
       return;
     }
 
     const form = event.target;
     const button = form.querySelector('button[type="submit"]');
-    const app = requireApp();
     const type = document.getElementById("destination-type-select").value;
     const name = document.getElementById("destination-name-input").value.trim();
     const webhookUrl = document
@@ -895,19 +546,19 @@
     window.PrairieLogUI.setButtonLoading(button, true, "Saving...");
 
     try {
-      const destination = await window.restService.createAlertDestination(
-        app.id,
-        { type, name, webhookUrl }
-      );
-
+      const destination = await window.restService.createAlertDestination(app.id, {
+        type,
+        name,
+        webhookUrl
+      });
+      form.reset();
       window.PrairieLogState.alertDestination = destination;
-      updateDashboardView();
-      document.getElementById("destination-webhook-input").value = "";
+      showActivityBanner("Destination “" + destination.name + "” added.", "success");
       showSuccess(
         destination,
         "Alert destination saved. The webhook URL is not shown again in API responses."
       );
-      await refreshDestinationsList();
+      await loadDestinations();
     } catch (error) {
       showError(error);
     } finally {
@@ -915,142 +566,59 @@
     }
   }
 
-  async function handleTestDestination() {
-    if (!isSignedIn()) {
-      showError(new Error("Sign in before testing an alert destination."));
+  async function handleDestinationsListClick(event) {
+    const testButton = event.target.closest(".dest-test");
+    const deleteButton = event.target.closest(".dest-delete");
+    const app = activeApp();
+    if (!app) {
       return;
     }
 
-    const button = document.getElementById("test-destination-button");
-    const app = requireApp();
-    const destination = requireDestination();
-
-    window.PrairieLogUI.setButtonLoading(button, true, "Sending test...");
-
-    try {
-      const status = await window.restService.testAlertDestination(
-        app.id,
-        destination.id
-      );
-      window.PrairieLogUI.renderOutput(
-        OUTPUT_PANEL,
-        "Test alert accepted (HTTP " + status + "). Check your Slack or Discord channel.",
-        "success"
-      );
-    } catch (error) {
-      showError(error);
-    } finally {
-      window.PrairieLogUI.setButtonLoading(button, false);
-    }
-  }
-
-  async function handleSendSampleError() {
-    const button = document.getElementById("send-error-log-button");
-    const token = requireToken();
-
-    window.PrairieLogUI.setButtonLoading(button, true, "Sending...");
-
-    try {
-      const status = await window.restService.sendSampleErrorLog(token);
-      window.PrairieLogUI.renderOutput(
-        OUTPUT_PANEL,
-        "Sample ERROR log accepted (HTTP " + status + ").",
-        "success"
-      );
-    } catch (error) {
-      showError(error);
-    } finally {
-      window.PrairieLogUI.setButtonLoading(button, false);
-    }
-  }
-
-  async function handleSendSampleInfo() {
-    const button = document.getElementById("send-info-log-button");
-    const token = requireToken();
-
-    window.PrairieLogUI.setButtonLoading(button, true, "Sending...");
-
-    try {
-      const status = await window.restService.sendSampleInfoLog(token);
-      window.PrairieLogUI.renderOutput(
-        OUTPUT_PANEL,
-        "Sample INFO log accepted (HTTP " + status + ").",
-        "success"
-      );
-    } catch (error) {
-      showError(error);
-    } finally {
-      window.PrairieLogUI.setButtonLoading(button, false);
-    }
-  }
-
-  async function refreshDestinationsList() {
-    const list = document.getElementById("destinations-list");
-    if (!list || !hasApp()) {
+    if (testButton) {
+      try {
+        window.PrairieLogUI.setButtonLoading(testButton, true, "Testing...");
+        const status = await window.restService.testAlertDestination(
+          app.id,
+          testButton.dataset.destinationId
+        );
+        showActivityBanner(
+          "Test alert accepted (HTTP " + status + "). Check your channel.",
+          "success"
+        );
+      } catch (error) {
+        showError(error);
+      } finally {
+        window.PrairieLogUI.setButtonLoading(testButton, false);
+      }
       return;
     }
 
-    try {
-      const destinations = await window.restService.getAlertDestinations(
-        window.PrairieLogState.app.id
-      );
-
-      window.PrairieLogState.destinationCount = destinations.length;
-      window.PrairieLogState.destinations = destinations;
-
-      if (!destinations.length) {
-        window.PrairieLogState.alertDestination = null;
-        renderDestinationsList();
-        updateDashboardView();
+    if (deleteButton) {
+      if (!window.confirm("Delete this alert destination?")) {
         return;
       }
-
-      const selectedStillExists =
-        window.PrairieLogState.alertDestination &&
-        destinations.some(function (dest) {
-          return dest.id === window.PrairieLogState.alertDestination.id;
-        });
-
-      if (!selectedStillExists) {
-        window.PrairieLogState.alertDestination = destinations[0];
+      try {
+        const status = await window.restService.deleteAlertDestination(
+          app.id,
+          deleteButton.dataset.destinationId
+        );
+        showActivityBanner("Destination deleted (HTTP " + status + ").", "success");
+        await loadDestinations();
+      } catch (error) {
+        showError(error);
       }
-
-      renderDestinationsList();
-      updateDashboardView();
-    } catch (error) {
-      list.innerHTML =
-        '<p class="muted">Could not load destinations: ' +
-        window.PrairieLogUI.escapeHtml(error.message) +
-        "</p>";
     }
   }
 
-  function handleDestinationListClick(event) {
-    const item = event.target.closest("[data-destination-id]");
-    if (!item) {
-      return;
-    }
+  // -------------------------
+  // Auth
+  // -------------------------
 
-    selectDestination(item.dataset.destinationId);
-  }
-
-  function handleClearSession() {
-    clearSession();
-  }
-
-  async function refreshAppsHint() {
-    if (!isSignedIn()) {
-      window.PrairieLogState.appsCountHint = 0;
-      return;
-    }
-    try {
-      const apps = await window.restService.getAppsByOwnerEmail(
-        window.PrairieLogState.authEmail
-      );
-      window.PrairieLogState.appsCountHint = apps.length;
-    } catch {
-      window.PrairieLogState.appsCountHint = 0;
-    }
+  async function applySignedInUser(user, message) {
+    window.PrairieLogState.user = user;
+    updateView();
+    await loadApps();
+    showActivityBanner(message || "Signed in as " + user.email + ".", "success");
   }
 
   async function handleSignIn(event) {
@@ -1064,38 +632,23 @@
       let user;
       if (window.PrairieLogAuth.needsEmailForMagicLink()) {
         user = await window.PrairieLogAuth.completeMagicLinkIfPresent(email);
-        window.PrairieLogState.user = user;
-        await refreshAppsHint();
-        prefillAdvancedFormsFromDemo();
-        updateDashboardView();
-        showSuccess(user, "Signed in.");
+        if (user) {
+          await applySignedInUser(user, "Signed in.");
+        }
         return;
       }
       if (email.toLowerCase() === DEMO_USER.email.toLowerCase()) {
         user = await window.PrairieLogAuth.signInDemo(email);
-      } else {
-        await window.PrairieLogAuth.sendMagicLink(email);
-        showAuthMessage(
-          "Sign-in link sent. Open it once in this browser on " +
-            window.PrairieLogAuth.getSignInContinueUrl() +
-            ". Use the same email when finishing the link.",
-          "success"
-        );
-        window.PrairieLogUI.renderOutput(
-          OUTPUT_PANEL,
-          "Check your email for a sign-in link.",
-          "success"
-        );
+        await applySignedInUser(user, "Signed in.");
         return;
       }
-      window.PrairieLogState.user = user;
-      await refreshAppsHint();
-      prefillAdvancedFormsFromDemo();
-      updateDashboardView();
-      showSuccess(user, "Signed in.");
+      await window.PrairieLogAuth.sendMagicLink(email);
+      showAuthMessage(
+        "Sign-in link sent. Keep this tab open — clicking the email link will finish sign-in here.",
+        "success"
+      );
     } catch (error) {
       showAuthMessage(window.PrairieLogUI.formatError(error), "error");
-      showError(error);
     } finally {
       window.PrairieLogUI.setButtonLoading(button, false);
     }
@@ -1103,13 +656,24 @@
 
   async function handleSignOut() {
     await window.PrairieLogAuth.signOut();
-    clearSession();
+    apps = [];
+    window.PrairieLogState.user = null;
+    window.PrairieLogState.app = null;
+    window.PrairieLogState.ingestionToken = null;
+    window.PrairieLogState.tokenPrefix = null;
+    window.PrairieLogState.alertDestination = null;
+    window.PrairieLogState.destinations = [];
+    window.PrairieLogState.destinationCount = 0;
+    const detail = document.getElementById("app-detail");
+    if (detail) {
+      detail.hidden = true;
+    }
+    hideTokenBanner();
+    updateView();
+    showActivityBanner("Signed out.", "success");
   }
 
-  function initDashboard() {
-    prefillOwnerEmail();
-    updateDashboardView();
-
+  function initMagicLink() {
     if (window.PrairieLogAuth.needsEmailForMagicLink()) {
       const storedEmail = window.PrairieLogAuth.getStoredSignInEmail();
       const emailInput = document.getElementById("sign-in-email-input");
@@ -1118,7 +682,10 @@
         emailInput.value = storedEmail;
       }
       if (signInButton) {
-        signInButton.querySelector(".btn-label").textContent = "Finish sign-in";
+        const label = signInButton.querySelector(".btn-label");
+        if (label) {
+          label.textContent = "Finish sign-in";
+        }
       }
       showAuthMessage(
         "Email link opened. Enter the same email here and click Finish sign-in.",
@@ -1126,13 +693,22 @@
       );
     }
 
+    window.PrairieLogAuth.initMagicLinkCrossTabListener();
+
+    window.PrairieLogAuth.onMagicLinkComplete(async function (user, error) {
+      if (error) {
+        showAuthMessage(window.PrairieLogUI.formatError(error), "error");
+        return;
+      }
+      if (user) {
+        await applySignedInUser(user, "Signed in from your email link.");
+      }
+    });
+
     window.PrairieLogAuth.completeMagicLinkIfPresent()
       .then(async function (user) {
         if (user) {
-          window.PrairieLogState.user = user;
-          await refreshAppsHint();
-          updateDashboardView();
-          showSuccess(user, "Signed in.");
+          await applySignedInUser(user, "Signed in.");
         }
       })
       .catch(function (error) {
@@ -1141,20 +717,27 @@
           return;
         }
         showAuthMessage(window.PrairieLogUI.formatError(error), "error");
-        showError(error);
       });
 
     window.PrairieLogAuth.onAuthStateChanged(async function (firebaseUser) {
-      if (firebaseUser && !window.PrairieLogState.user && !window.PrairieLogAuth.needsEmailForMagicLink()) {
+      if (
+        firebaseUser &&
+        !window.PrairieLogState.user &&
+        !window.PrairieLogAuth.needsEmailForMagicLink()
+      ) {
         try {
-          window.PrairieLogState.user = await window.restService.getCurrentUser();
-          await refreshAppsHint();
-          updateDashboardView();
+          const user = await window.restService.getCurrentUser();
+          await applySignedInUser(user, "Signed in.");
         } catch (error) {
           showAuthMessage(window.PrairieLogUI.formatError(error), "error");
         }
       }
     });
+  }
+
+  function initDashboard() {
+    updateView();
+    initMagicLink();
 
     document
       .getElementById("sign-in-form")
@@ -1163,17 +746,11 @@
       .getElementById("sign-out-button")
       .addEventListener("click", handleSignOut);
     document
-      .getElementById("quick-demo-form")
-      .addEventListener("submit", handleQuickDemo);
+      .getElementById("refresh-apps-button")
+      .addEventListener("click", loadApps);
     document
-      .getElementById("paste-token-form")
-      .addEventListener("submit", handlePasteToken);
-    document
-      .getElementById("user-email-input")
-      .addEventListener("input", syncOwnerEmailFromUser);
-    document
-      .getElementById("create-user-form")
-      .addEventListener("submit", handleCreateUser);
+      .getElementById("apps-list")
+      .addEventListener("click", handleAppsListClick);
     document
       .getElementById("create-app-form")
       .addEventListener("submit", handleCreateApp);
@@ -1181,36 +758,17 @@
       .getElementById("create-token-form")
       .addEventListener("submit", handleCreateToken);
     document
-      .getElementById("create-destination-form")
-      .addEventListener("submit", handleCreateDestination);
-
-    document
       .getElementById("copy-token-button")
       .addEventListener("click", handleCopyToken);
     document
-      .getElementById("test-destination-button")
-      .addEventListener("click", handleTestDestination);
+      .getElementById("tokens-list")
+      .addEventListener("click", handleTokensListClick);
     document
-      .getElementById("send-error-log-button")
-      .addEventListener("click", handleSendSampleError);
-    document
-      .getElementById("send-info-log-button")
-      .addEventListener("click", handleSendSampleInfo);
-    document
-      .getElementById("refresh-destinations-button")
-      .addEventListener("click", refreshDestinationsList);
+      .getElementById("create-destination-form")
+      .addEventListener("submit", handleCreateDestination);
     document
       .getElementById("destinations-list")
-      .addEventListener("click", handleDestinationListClick);
-    document
-      .getElementById("integrate-copy-token-button")
-      .addEventListener("click", handleIntegrateCopyToken);
-    document
-      .getElementById("integrate-copy-snippet-button")
-      .addEventListener("click", handleIntegrateCopySnippet);
-    document
-      .getElementById("clear-session-button")
-      .addEventListener("click", handleClearSession);
+      .addEventListener("click", handleDestinationsListClick);
   }
 
   document.addEventListener("DOMContentLoaded", initDashboard);

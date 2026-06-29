@@ -6,10 +6,28 @@ class RestService {
 
     this.apiBaseUrl = config.API_BASE_URL.replace(/\/$/, "");
     this.openapiPath = config.OPENAPI_PATH || "./resources/openapi.json";
+    this._requestObservers = [];
+  }
+
+  onRequest(observer) {
+    if (typeof observer === "function") {
+      this._requestObservers.push(observer);
+    }
+  }
+
+  notifyRequest(entry) {
+    this._requestObservers.forEach((observer) => {
+      try {
+        observer(entry);
+      } catch {
+        // Observers must never break the request flow.
+      }
+    });
   }
 
   async request(path, options = {}) {
     const url = `${this.apiBaseUrl}${path}`;
+    const method = options.method || "GET";
 
     const headers = {
       "Content-Type": "application/json",
@@ -21,7 +39,7 @@ class RestService {
     }
 
     const response = await fetch(url, {
-      method: options.method || "GET",
+      method,
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined
     });
@@ -39,11 +57,28 @@ class RestService {
 
     if (!response.ok) {
       const message = this.buildErrorMessage(response.status, data);
+      this.notifyRequest({
+        method,
+        path,
+        requestBody: options.body || null,
+        status: response.status,
+        ok: false,
+        responseData: data
+      });
       const error = new Error(message);
       error.status = response.status;
       error.data = data;
       throw error;
     }
+
+    this.notifyRequest({
+      method,
+      path,
+      requestBody: options.body || null,
+      status: response.status,
+      ok: true,
+      responseData: data
+    });
 
     return {
       status: response.status,

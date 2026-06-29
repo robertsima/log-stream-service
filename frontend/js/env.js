@@ -5,6 +5,11 @@ window.CONFIG = {
   API_BASE_URL: "http://localhost:8080",
   OPENAPI_PATH: "./resources/openapi.json",
   DEMO_BYPASS_EMAIL: "admin@email.com",
+  // Pre-created shared demo ingestion token for the public Demo page. When set, every
+  // visitor reuses this single token (and its app) instead of minting one each, so the
+  // shared demo app never hits its token quota. Leave empty to mint per browser (dev only).
+  // Prefer setting this via the gitignored env.local.js or your deploy env, not in git.
+  DEMO_INGESTION_TOKEN: "lss_live_S8bSxrsILustTOkcLWjqY1KehkXyIMDN",
   // Must match the exact dashboard URL you use in the browser (host + path, no query string).
   // SIGN_IN_CONTINUE_URL: "http://127.0.0.1:5500/frontend/dashboard.html",
   FIREBASE: {

@@ -38,9 +38,9 @@
       Lightweight relay for small apps — no log warehouse required.
     </p>
     <div class="hero-actions">
-      <a class="button" href="dashboard.html">
-        <i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i>
-        <span>Try the Dashboard</span>
+      <a class="button" href="demo.html">
+        <i data-lucide="zap" class="icon" aria-hidden="true"></i>
+        <span>Try the Live Demo</span>
       </a>
       <a class="button secondary" href="getting-started.html">
         <i data-lucide="rocket" class="icon" aria-hidden="true"></i>
@@ -91,8 +91,8 @@
       PrairieLog forwards aggregated alerts to the <strong>Slack or Discord webhook</strong> you configure.
     </p>
     <ol class="integrate-steps">
-      <li>Paste your <strong>alert webhook</strong> in the <a href="dashboard.html">dashboard</a> to verify Slack/Discord delivery</li>
-      <li>Copy your <strong>ingestion token</strong> and starter code from the dashboard</li>
+      <li>Paste your <strong>alert webhook</strong> in the <a href="demo.html">live demo</a> to verify Slack/Discord delivery</li>
+      <li>Copy your <strong>ingestion token</strong> and starter code from the demo</li>
       <li>Call it from your backend when an <strong>ERROR</strong> occurs</li>
     </ol>
     <div class="code-block">
@@ -125,7 +125,7 @@ async function reportError(message, logger = "my-app") {
 
 // await reportError("Payment failed for user 123");</code></pre>
     </div>
-    <p class="muted">Fastest path: sign in on the <a href="dashboard.html">dashboard quick demo</a> to get a real token and test your alert webhook.</p>
+    <p class="muted">Fastest path: run the <a href="demo.html">live demo</a> — no sign-in needed — to get a real token and test your alert webhook. Manage everything later from the <a href="dashboard.html">dashboard</a>.</p>
   </section>
 
   <section class="page-section card-section">
@@ -146,10 +146,15 @@ async function reportError(message, logger = "my-app") {
   <section class="page-section card-section">
     <h2 class="heading-with-icon"><i data-lucide="compass" class="icon" aria-hidden="true"></i><span>Explore the portal</span></h2>
     <div class="link-grid">
+      <a class="link-card" href="demo.html">
+        <span class="link-card-icon"><i data-lucide="zap" class="icon" aria-hidden="true"></i></span>
+        <h3>Live Demo</h3>
+        <p>Paste an alert webhook, get a test message, copy starter code.</p>
+      </a>
       <a class="link-card" href="dashboard.html">
         <span class="link-card-icon"><i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i></span>
         <h3>Dashboard</h3>
-        <p>Paste an alert webhook, get a test message, copy starter code.</p>
+        <p>Sign in to manage apps, ingestion tokens, and destinations.</p>
       </a>
       <a class="link-card" href="getting-started.html">
         <span class="link-card-icon"><i data-lucide="rocket" class="icon" aria-hidden="true"></i></span>
