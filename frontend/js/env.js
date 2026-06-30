@@ -10,7 +10,7 @@ window.CONFIG = {
   // Shared public demo ingestion token. It is intentionally served to the browser
   // so all Demo-page visitors reuse one token instead of minting per visitor.
   // It only grants ingestion to the throwaway demo app; revoke + replace if abused.
-  DEMO_INGESTION_TOKEN: "lss_live_S8bSxrsILustTOkcLWjqY1KehkXyIMDN",
+  DEMO_INGESTION_TOKEN: "lss_live_4VPM5vpES99cwcx6x2os45mN9g7V-nht",
 
   // Firebase config for email magic link auth. This can be public-facing.
   FIREBASE: {

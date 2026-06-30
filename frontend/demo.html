@@ -87,7 +87,7 @@
                 </button>
                 <a href="#integrate-panel" class="button-link secondary" id="quick-demo-goto-integrate">View integration code</a>
               </div>
-              <p class="muted compact-hint quick-demo-hint">Only ERROR logs trigger alerts. INFO logs are stored but stay quiet.</p>
+              <p class="muted compact-hint quick-demo-hint">Only error logs trigger alerts. All other logs are read but stay quiet.</p>
             </div>
 
             <div id="quick-demo-error" class="callout callout-warning" hidden></div>
@@ -99,19 +99,19 @@
           <p class="muted integrate-lead">
             Now the other direction: drop this <strong>ingestion token</strong> into your server-side code. PrairieLog forwards every ERROR log to the chat you just connected.
           </p>
-
+<!-- 
           <div id="token-warning-banner" class="callout callout-warning" hidden>
             <p>
               <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
               <strong>Copy your token now.</strong> It is shown once here and only lives in this page session.
             </p>
             <pre id="token-display" class="token-display" aria-live="polite"></pre>
-          </div>
+          </div> -->
           <div class="section-actions section-actions-tight">
-            <button type="button" id="integrate-copy-token-button" class="secondary">
+            <!-- <button type="button" id="integrate-copy-token-button" class="secondary">
               <i data-lucide="key" class="icon" aria-hidden="true"></i>
               <span class="btn-label">Copy token</span>
-            </button>
+            </button> -->
             <button type="button" id="integrate-copy-snippet-button" class="secondary">
               <i data-lucide="copy" class="icon" aria-hidden="true"></i>
               <span class="btn-label">Copy starter code</span>
@@ -126,9 +126,9 @@
 
         <p class="muted demo-account-note">
           <i data-lucide="info" class="icon icon-inline" aria-hidden="true"></i>
-          This demo runs on a shared account and is not for production use. Want to keep apps, tokens, and destinations under your own email?
-          <a href="dashboard.html">Open the Dashboard</a> and sign in.
+          This demo and related tokens are not for production use. To get a better idea of how PrairieLog works, create a free account and hook up your app/service.
         </p>
+        <a href="dashboard.html">Open the Dashboard</a>
       </div>
 
       <aside class="demo-console-wrap">
