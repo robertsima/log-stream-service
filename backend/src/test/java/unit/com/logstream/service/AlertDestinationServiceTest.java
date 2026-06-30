@@ -14,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -24,6 +23,7 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.logstream.entity.AlertDestination;
+import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AlertDestinationResponse;
 import com.logstream.generated.model.AlertDestinationType;
 import com.logstream.generated.model.CreateAlertDestinationRequest;
@@ -40,7 +40,6 @@ public class AlertDestinationServiceTest {
     @Mock
     private AlertSenderService alertSenderService;
 
-    @InjectMocks
     private AlertDestinationServiceImpl alertDestinationService;
 
     private UUID appId;
@@ -50,6 +49,9 @@ public class AlertDestinationServiceTest {
 
     @BeforeEach
     void setUp() {
+        alertDestinationService =
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 5);
+
         appId = UUID.randomUUID();
         destinationId = UUID.randomUUID();
 
@@ -84,6 +86,43 @@ public class AlertDestinationServiceTest {
         assertEquals(AlertDestinationType.SLACK, response.getType());
         assertTrue(response.getEnabled());
         verify(alertDestinationRepository, times(1)).save(any(AlertDestination.class));
+    }
+
+    @Test
+    void testCreate_QuotaExceeded() {
+        // Arrange: limit of 2, already at 2 active destinations
+        AlertDestinationServiceImpl limitedService =
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 2);
+        when(alertDestinationRepository.countByAppIdAndDeletedAtIsNull(appId)).thenReturn(2L);
+
+        // Act & Assert
+        assertThrows(QuotaExceededException.class, () -> {
+            limitedService.create(appId, createAlertDestinationRequest);
+        });
+
+        verify(alertDestinationRepository, never()).save(any(AlertDestination.class));
+    }
+
+    @Test
+    void testCreate_ReusesExistingWebhookBeforeQuotaCheck() {
+        // Arrange: limit is reached, but this webhook is already an active destination.
+        AlertDestinationServiceImpl limitedService =
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 2);
+        when(alertDestinationRepository.findFirstByAppIdAndWebhookUrlAndEnabledTrueAndDeletedAtIsNullOrderByCreatedAtDesc(
+                appId,
+                createAlertDestinationRequest.getWebhookUrl()))
+                .thenReturn(Optional.of(alertDestination));
+
+        // Act
+        AlertDestinationResponse response = limitedService.create(appId, createAlertDestinationRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(appId, response.getAppId());
+        assertEquals("Slack Webhook", response.getName());
+        assertEquals(AlertDestinationType.SLACK, response.getType());
+        verify(alertDestinationRepository, never()).countByAppIdAndDeletedAtIsNull(appId);
+        verify(alertDestinationRepository, never()).save(any(AlertDestination.class));
     }
 
     @Test

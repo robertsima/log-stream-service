@@ -15,6 +15,7 @@
   <title>PrairieLog API — Developer Portal</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/env.js" defer></script>
+  <script src="js/env.local.js" defer></script>
   <script src="js/state.js" defer></script>
   <script src="js/rest-service.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -32,9 +33,10 @@
   </nav>
 
   <section id="about" class="hero">
+    <p class="hero-kicker">PrairieLog API</p>
     <h1>Real-time app alerting for small apps</h1>
     <p>
-      Send <strong>ERROR</strong> logs from your app; get aggregated alerts in Slack or Discord.
+      Send logs from your app and get alerts in Slack or Discord.
       Lightweight relay for small apps — no log warehouse required.
     </p>
     <div class="hero-actions">
@@ -47,38 +49,43 @@
         <span>API Guide (curl)</span>
       </a>
     </div>
+    <div class="hero-signal-strip" aria-label="PrairieLog highlights">
+      <span><strong>Webhook first</strong> Slack and Discord alerts</span>
+      <span><strong>Token scoped</strong> Server-side ingestion only</span>
+      <span><strong>No warehouse</strong> Short-lived relay by design</span>
+    </div>
   </section>
 
   <section class="page-section">
     <h2><span>How it works</span></h2>
-    <p class="muted section-lead">You use two different credentials — don't mix them up:</p>
+    <p class="muted section-lead"> PrairieLog API sends you important alerts, here's the flow:</p>
     <ol class="flow-list">
       <li class="flow-list-item">
         <span class="flow-list-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
           <h3>Alert webhook</h3>
-          <p>Your Slack or Discord <em>incoming</em> webhook URL — where PrairieLog <strong>sends</strong> alerts.</p>
+          <p>Your Slack or Discord webhook URL — where you want PrairieLog to send alerts.</p>
         </div>
       </li>
       <li class="flow-list-item">
         <span class="flow-list-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
           <h3>Ingestion token</h3>
-          <p>A secret your <strong>app</strong> uses to <strong>send</strong> log events to PrairieLog (server-side only).</p>
+          <p>A secret your app uses to send logs to PrairieLog. You will want to hang onto it once you generate one.</p>
         </div>
       </li>
       <li class="flow-list-item">
         <span class="flow-list-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
           <h3>Send ERROR logs</h3>
-          <p>POST JSON to <code>/api/v1/log-events</code> with the <code>X-Ingestion-Token</code> header.</p>
+          <p>POST JSON formatted logs to <code>/api/v1/log-events</code> with the <code>X-Ingestion-Token</code> header.</p>
         </div>
       </li>
       <li class="flow-list-item">
         <span class="flow-list-icon"><i data-lucide="layers" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
           <h3>Get alerts</h3>
-          <p>Matching ERROR logs are aggregated, then delivered to your alert webhook. INFO/WARN do not alert.</p>
+          <p>Matching ERROR logs are aggregated, then delivered to your alert webhook. INFO/WARN do not alert as of now.</p>
         </div>
       </li>
     </ol>
@@ -87,8 +94,8 @@
   <section class="page-section card-section">
     <h2 class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>Add to your app</span></h2>
     <p>
-      Two pieces work together: your app sends <strong>ERROR</strong> logs to PrairieLog;
-      PrairieLog forwards aggregated alerts to the <strong>Slack or Discord webhook</strong> you configure.
+      Your app or service sends <strong>ERROR</strong> logs to PrairieLog;
+      PrairieLog forwards aggregated alerts/messages to the <strong>Slack or Discord webhook</strong> you configure.
     </p>
     <ol class="integrate-steps">
       <li>Paste your <strong>alert webhook</strong> in the <a href="demo.html">live demo</a> to verify Slack/Discord delivery</li>
@@ -125,7 +132,7 @@ async function reportError(message, logger = "my-app") {
 
 // await reportError("Payment failed for user 123");</code></pre>
     </div>
-    <p class="muted">Fastest path: run the <a href="demo.html">live demo</a> — no sign-in needed — to get a real token and test your alert webhook. Manage everything later from the <a href="dashboard.html">dashboard</a>.</p>
+    <p class="muted">Fastest path: run the <a href="demo.html">live demo</a> — no sign-in needed — to test your alert webhook. Set up a real project later from the <a href="dashboard.html">dashboard</a>.</p>
   </section>
 
   <section class="page-section card-section">
@@ -135,11 +142,10 @@ async function reportError(message, logger = "my-app") {
       Slack or Discord channel. Logs are not stored long-term.
     </p>
     <p>
-      Ingestion tokens are shown <strong>once</strong> at creation. Save yours in a server environment variable
-      (for example <code>PRAIRIELOG_TOKEN</code>) — not in browser code or git.
+      Ingestion tokens are shown <strong>once</strong> at creation. Save yours in a server environment variable — not in browser code or git.
     </p>
     <p>
-      This portal is for trying the API. Production apps should send logs from the backend only.
+      Production apps should send logs from the backend only, this portal is not a client side logging service.
     </p>
   </section>
 

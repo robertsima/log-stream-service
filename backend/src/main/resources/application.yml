@@ -41,8 +41,10 @@ app:
   quotas:
     max-apps-per-user: ${APP_QUOTAS_MAX_APPS_PER_USER:10}
     max-active-tokens-per-app: ${APP_QUOTAS_MAX_ACTIVE_TOKENS_PER_APP:5}
+    max-destinations-per-app: ${APP_QUOTAS_MAX_DESTINATIONS_PER_APP:5}
   rate-limit:
     management-requests-per-minute: ${APP_RATE_LIMIT_MANAGEMENT_RPM:60}
+    ingestion-requests-per-minute: ${APP_RATE_LIMIT_INGESTION_RPM:120}
 
 alerts:
   enabled: ${ALERTS_ENABLED:true}

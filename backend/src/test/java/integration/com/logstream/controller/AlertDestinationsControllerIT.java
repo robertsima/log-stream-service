@@ -103,4 +103,48 @@ class AlertDestinationsControllerIT extends PostgresBaseIT {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
     }
+
+    @Test
+    void createAlertDestination_shouldReturn429WhenQuotaExceeded() {
+        restTemplate.postForEntity(
+                "/api/v1/users",
+                Map.of("email", "quota-dest@example.com", "username", "quotadest"),
+                Map.class
+        );
+
+        ResponseEntity<Map> appResponse = restTemplate.postForEntity(
+                "/api/v1/apps",
+                Map.of("ownerEmail", "quota-dest@example.com", "name", "dest-quota-service"),
+                Map.class
+        );
+
+        String appId = String.valueOf(appResponse.getBody().get("id"));
+
+        // Default quota is 5 active destinations per app.
+        for (int i = 0; i < 5; i++) {
+            ResponseEntity<Map> created = restTemplate.postForEntity(
+                    "/api/v1/apps/" + appId + "/alert-destinations",
+                    Map.of(
+                            "type", "SLACK",
+                            "name", "dest-" + i,
+                            "webhookUrl", "https://hooks.slack.com/services/test/test/" + i
+                    ),
+                    Map.class
+            );
+            assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        }
+
+        ResponseEntity<Map> overLimit = restTemplate.postForEntity(
+                "/api/v1/apps/" + appId + "/alert-destinations",
+                Map.of(
+                        "type", "SLACK",
+                        "name", "dest-overflow",
+                        "webhookUrl", "https://hooks.slack.com/services/test/test/overflow"
+                ),
+                Map.class
+        );
+
+        assertThat(overLimit.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        assertThat(overLimit.getBody().get("code")).isEqualTo("QUOTA_EXCEEDED");
+    }
 }

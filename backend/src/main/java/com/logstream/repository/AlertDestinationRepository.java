@@ -12,6 +12,12 @@ public interface AlertDestinationRepository extends JpaRepository<AlertDestinati
 
     List<AlertDestination> findByAppIdAndEnabledTrueAndDeletedAtIsNull(UUID appId);
 
+    Optional<AlertDestination> findFirstByAppIdAndWebhookUrlAndEnabledTrueAndDeletedAtIsNullOrderByCreatedAtDesc(
+            UUID appId,
+            String webhookUrl);
+
     Optional<AlertDestination> findByIdAndAppIdAndDeletedAtIsNull(UUID id, UUID appId);
+
+    long countByAppIdAndDeletedAtIsNull(UUID appId);
 
 }

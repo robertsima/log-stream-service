@@ -648,7 +648,30 @@
         "success"
       );
     } catch (error) {
-      showAuthMessage(window.PrairieLogUI.formatError(error), "error");
+      showAuthMessage(
+        window.PrairieLogAuth.formatAuthError
+          ? window.PrairieLogAuth.formatAuthError(error)
+          : window.PrairieLogUI.formatError(error),
+        "error"
+      );
+    } finally {
+      window.PrairieLogUI.setButtonLoading(button, false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    const button = document.getElementById("google-sign-in-button");
+    window.PrairieLogUI.setButtonLoading(button, true, "Signing in...");
+
+    try {
+      const user = await window.PrairieLogAuth.signInWithGoogle();
+      if (!user) {
+        showAuthMessage("Opening Google sign-in...", "success");
+        return;
+      }
+      await applySignedInUser(user, "Signed in with Google.");
+    } catch (error) {
+      showAuthMessage(window.PrairieLogAuth.formatAuthError(error), "error");
     } finally {
       window.PrairieLogUI.setButtonLoading(button, false);
     }
@@ -697,7 +720,7 @@
 
     window.PrairieLogAuth.onMagicLinkComplete(async function (user, error) {
       if (error) {
-        showAuthMessage(window.PrairieLogUI.formatError(error), "error");
+        showAuthMessage(window.PrairieLogAuth.formatAuthError(error), "error");
         return;
       }
       if (user) {
@@ -716,7 +739,17 @@
           showAuthMessage(error.message, "success");
           return;
         }
-        showAuthMessage(window.PrairieLogUI.formatError(error), "error");
+        showAuthMessage(window.PrairieLogAuth.formatAuthError(error), "error");
+      });
+
+    window.PrairieLogAuth.completeGoogleRedirectIfPresent()
+      .then(async function (user) {
+        if (user) {
+          await applySignedInUser(user, "Signed in with Google.");
+        }
+      })
+      .catch(function (error) {
+        showAuthMessage(window.PrairieLogAuth.formatAuthError(error), "error");
       });
 
     window.PrairieLogAuth.onAuthStateChanged(async function (firebaseUser) {
@@ -742,6 +775,9 @@
     document
       .getElementById("sign-in-form")
       .addEventListener("submit", handleSignIn);
+    document
+      .getElementById("google-sign-in-button")
+      .addEventListener("click", handleGoogleSignIn);
     document
       .getElementById("sign-out-button")
       .addEventListener("click", handleSignOut);

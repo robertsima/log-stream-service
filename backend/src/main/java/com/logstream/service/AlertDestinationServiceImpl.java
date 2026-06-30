@@ -5,8 +5,10 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.logstream.entity.AlertDestination;
+import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AlertDestinationResponse;
 import com.logstream.generated.model.CreateAlertDestinationRequest;
 import com.logstream.repository.AlertDestinationRepository;
@@ -17,28 +19,48 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
     private final AlertDestinationRepository repository;
     private final AlertSenderService alertSenderService;
     private final AppService appService;
+    private final int maxDestinationsPerApp;
 
     @Autowired
     public AlertDestinationServiceImpl(
             AlertDestinationRepository repository,
             AlertSenderService alertSenderService,
-            AppService appService) {
+            AppService appService,
+            @Value("${app.quotas.max-destinations-per-app:5}") int maxDestinationsPerApp) {
         this.repository = repository;
         this.alertSenderService = alertSenderService;
         this.appService = appService;
+        this.maxDestinationsPerApp = maxDestinationsPerApp;
     }
 
     public AlertDestinationServiceImpl(AlertDestinationRepository repository, AlertSenderService alertSenderService) {
-        this(repository, alertSenderService, null);
+        this(repository, alertSenderService, null, 5);
     }
 
     @Override
     public AlertDestinationResponse create(UUID appId, CreateAlertDestinationRequest request) {
         requireOwner(appId);
+
+        String webhookUrl = request.getWebhookUrl();
+        if (webhookUrl != null && !webhookUrl.isBlank()) {
+            AlertDestination existingDestination = repository
+                    .findFirstByAppIdAndWebhookUrlAndEnabledTrueAndDeletedAtIsNullOrderByCreatedAtDesc(appId, webhookUrl)
+                    .orElse(null);
+            if (existingDestination != null) {
+                return toResponse(existingDestination);
+            }
+        }
+
+        if (maxDestinationsPerApp > 0
+                && repository.countByAppIdAndDeletedAtIsNull(appId) >= maxDestinationsPerApp) {
+            throw new QuotaExceededException(
+                    "An app cannot have more than " + maxDestinationsPerApp + " active alert destinations.");
+        }
+
         AlertDestination destination = new AlertDestination();
         destination.setAppId(appId);
         destination.setName(request.getName());
-        destination.setWebhookUrl(request.getWebhookUrl());
+        destination.setWebhookUrl(webhookUrl);
         destination.setDestinationType(
                 com.logstream.generated.model.AlertDestinationType.fromValue(request.getType().getValue())
         );

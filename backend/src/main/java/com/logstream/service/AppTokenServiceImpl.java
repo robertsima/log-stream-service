@@ -34,6 +34,7 @@ public class AppTokenServiceImpl implements AppTokenService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String TOKEN_PREFIX = "lss_live_";
     private static final int TOKEN_RANDOM_BYTES = 24;
+    private static final int TOKEN_PREFIX_DISPLAY_LENGTH = 16;
 
     private AppTokenRepository appTokenRepository;
     private AppRepository appRepository;
@@ -71,7 +72,7 @@ public class AppTokenServiceImpl implements AppTokenService {
         }
 
         String rawToken = generateRawToken();
-        String tokenPrefix = rawToken.substring(0, Math.min(rawToken.length(), 50));
+        String tokenPrefix = rawToken.substring(0, Math.min(rawToken.length(), TOKEN_PREFIX_DISPLAY_LENGTH));
         AppTokenDTO dto = AppTokenMapper.fromRequest(createAppTokenRequest, app, tokenPrefix);
 
         AppToken saved = appTokenRepository.save(AppTokenMapper.toEntity(dto, app, hash(rawToken)));

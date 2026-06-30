@@ -1,17 +1,18 @@
-// Production API — committed default for Netlify and local static preview.
-// For a local Spring Boot backend, copy env.local.example.js to env.local.js (gitignored).
+// Production config — served as-is by Netlify and committed to git.
+// For local backend dev, copy js/env.local.example.js to js/env.local.js (gitignored);
+// it loads after this file and overrides only what differs on your machine.
 window.CONFIG = {
-  // API_BASE_URL: "https://log-stream-service.onrender.com",
-  API_BASE_URL: "http://localhost:8080",
+  API_BASE_URL: "https://log-stream-service.onrender.com",
+  // API_BASE_URL: "http://localhost:8080",
+
   OPENAPI_PATH: "./resources/openapi.json",
   DEMO_BYPASS_EMAIL: "admin@email.com",
-  // Pre-created shared demo ingestion token for the public Demo page. When set, every
-  // visitor reuses this single token (and its app) instead of minting one each, so the
-  // shared demo app never hits its token quota. Leave empty to mint per browser (dev only).
-  // Prefer setting this via the gitignored env.local.js or your deploy env, not in git.
+  // Shared public demo ingestion token. It is intentionally served to the browser
+  // so all Demo-page visitors reuse one token instead of minting per visitor.
+  // It only grants ingestion to the throwaway demo app; revoke + replace if abused.
   DEMO_INGESTION_TOKEN: "lss_live_S8bSxrsILustTOkcLWjqY1KehkXyIMDN",
-  // Must match the exact dashboard URL you use in the browser (host + path, no query string).
-  // SIGN_IN_CONTINUE_URL: "http://127.0.0.1:5500/frontend/dashboard.html",
+
+  // Firebase config for email magic link auth. This can be public-facing.
   FIREBASE: {
     apiKey: "AIzaSyCuHoGHr7ntSVtk5uh2y5vYdfocPW_rRH4",
     authDomain: "prairie-log-api.firebaseapp.com",

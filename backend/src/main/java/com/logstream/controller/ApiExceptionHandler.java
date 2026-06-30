@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.logstream.exception.ForbiddenException;
 import com.logstream.exception.QuotaExceededException;
+import com.logstream.exception.RateLimitExceededException;
 import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.ErrorResponse;
 
@@ -20,6 +21,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(QuotaExceededException.class)
     public ResponseEntity<ErrorResponse> handleQuota(QuotaExceededException ex, HttpServletRequest request) {
         return error(HttpStatus.TOO_MANY_REQUESTS, "QUOTA_EXCEEDED", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimit(RateLimitExceededException ex, HttpServletRequest request) {
+        return error(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMIT_EXCEEDED", ex.getMessage(), request);
     }
 
     @ExceptionHandler(ForbiddenException.class)

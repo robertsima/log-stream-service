@@ -14,8 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +28,9 @@ import com.logstream.generated.model.AppResponse;
 import com.logstream.generated.model.CreateAppRequest;
 import com.logstream.repository.AppRepository;
 import com.logstream.repository.UserRepository;
+import com.logstream.security.CurrentUserProvider;
 import com.logstream.service.AppServiceImpl;
+import com.logstream.service.UserServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class AppServiceTest {
@@ -39,7 +41,12 @@ public class AppServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @InjectMocks
+    @Mock
+    private UserServiceImpl userService;
+
+    @Mock
+    private CurrentUserProvider currentUserProvider;
+
     private AppServiceImpl appService;
 
     private Users owner;
@@ -63,6 +70,9 @@ public class AppServiceTest {
         createAppRequest = new CreateAppRequest();
         createAppRequest.setName("Test App");
         createAppRequest.setOwnerEmail("owner@example.com");
+
+        lenient().when(currentUserProvider.getPrincipal()).thenReturn(Optional.empty());
+        appService = new AppServiceImpl(appRepository, userRepository, userService, currentUserProvider, false, 10);
     }
 
     @Test

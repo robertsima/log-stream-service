@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.logstream.controller.dto.AppTokenDTO;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.generated.model.LogLevel;
+import com.logstream.security.IngestionRateLimiter;
 import com.logstream.service.AlertAggregationService;
 import com.logstream.service.AppTokenService;
 import com.logstream.service.LogEventServiceImpl;
@@ -34,6 +35,9 @@ public class LogEventServiceTest {
 
     @Mock
     private AlertAggregationService alertAggregationService;
+
+    @Mock
+    private IngestionRateLimiter ingestionRateLimiter;
 
     @InjectMocks
     private LogEventServiceImpl logEventService;
@@ -76,6 +80,21 @@ public class LogEventServiceTest {
         // Assert
         verify(appTokenService, times(1)).validateAndRefreshToken(rawToken);
         verify(alertAggregationService, times(1)).accept(appId, logEventRequest);
+    }
+
+    @Test
+    void testIngestLogEvent_RateLimited() {
+        // Arrange
+        when(appTokenService.validateAndRefreshToken(rawToken)).thenReturn(appTokenDTO);
+        org.mockito.Mockito.doThrow(new com.logstream.exception.RateLimitExceededException("rate limited"))
+                .when(ingestionRateLimiter).check(any());
+
+        // Act & Assert
+        assertThrows(com.logstream.exception.RateLimitExceededException.class, () -> {
+            logEventService.ingestLogEvent(logEventRequest, rawToken);
+        });
+
+        verify(alertAggregationService, never()).accept(any(UUID.class), any(LogEventRequest.class));
     }
 
     @Test

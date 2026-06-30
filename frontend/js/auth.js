@@ -46,7 +46,12 @@
     if (config.SIGN_IN_CONTINUE_URL) {
       return String(config.SIGN_IN_CONTINUE_URL).split("#")[0];
     }
-    return window.location.origin + window.location.pathname;
+    // Derive from wherever the site is actually running (localhost, Netlify,
+    // deploy previews) so the magic link is always valid. Always land on the
+    // dashboard, which completes the sign-in. The resulting domain must be in
+    // Firebase Auth → Authorized domains.
+    const directory = window.location.pathname.replace(/[^/]*$/, "");
+    return window.location.origin + directory + "dashboard.html";
   }
 
   function clearMagicLinkFromUrl() {
@@ -61,6 +66,16 @@
   function isInvalidMagicLinkError(error) {
     const code = error && (error.code || error.message || "");
     return String(code).includes("auth/invalid-action-code");
+  }
+
+  function isGoogleRedirectFallbackError(error) {
+    const code = error && (error.code || error.message || "");
+    const codeStr = String(code);
+    return (
+      codeStr.includes("auth/popup-blocked") ||
+      codeStr.includes("auth/cancelled-popup-request") ||
+      codeStr.includes("auth/operation-not-supported-in-this-environment")
+    );
   }
 
   function isSignInPendingForAnotherTab() {
@@ -281,6 +296,82 @@
     window.PrairieLogState.authMode = "firebase";
   }
 
+  function formatAuthError(error) {
+    const code = error && (error.code || error.message || "");
+    const codeStr = String(code);
+
+    if (codeStr.includes("auth/quota-exceeded")) {
+      return (
+        "Daily email sign-in limit reached (Firebase free tier). " +
+        "Use Continue with Google instead, or sign in instantly with " +
+        (config.DEMO_BYPASS_EMAIL || "admin@email.com") +
+        "."
+      );
+    }
+    if (codeStr.includes("auth/popup-closed-by-user")) {
+      return "Sign-in cancelled.";
+    }
+    if (codeStr.includes("auth/popup-blocked")) {
+      return "Pop-up blocked. Redirecting to Google sign-in may work better on localhost.";
+    }
+    if (codeStr.includes("auth/operation-not-allowed")) {
+      return "That sign-in method is not enabled. Enable it in Firebase Console → Authentication → Sign-in method.";
+    }
+    if (codeStr.includes("auth/unauthorized-domain")) {
+      return "This domain is not authorized in Firebase. Add localhost under Authentication → Settings → Authorized domains.";
+    }
+
+    return (error && error.message) || "Sign-in failed.";
+  }
+
+  async function signInWithGoogle() {
+    const auth = initFirebase();
+    if (!auth) {
+      throw new Error(
+        "Firebase config is missing. Add CONFIG.FIREBASE values or use " +
+          (config.DEMO_BYPASS_EMAIL || "admin@email.com") +
+          " for the demo session."
+      );
+    }
+
+    if (!window.firebase.auth.GoogleAuthProvider) {
+      throw new Error("Google sign-in is unavailable in this browser.");
+    }
+
+    clearSignInPending();
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    let result;
+    try {
+      result = await auth.signInWithPopup(provider);
+    } catch (error) {
+      if (!isGoogleRedirectFallbackError(error)) {
+        throw error;
+      }
+      await auth.signInWithRedirect(provider);
+      return null;
+    }
+
+    await applyFirebaseSession(result.user);
+    return window.restService.getCurrentUser();
+  }
+
+  async function completeGoogleRedirectIfPresent() {
+    const auth = initFirebase();
+    if (!auth) {
+      return null;
+    }
+
+    const result = await auth.getRedirectResult();
+    if (!result || !result.user) {
+      return null;
+    }
+
+    await applyFirebaseSession(result.user);
+    return window.restService.getCurrentUser();
+  }
+
   async function signInDemo(email) {
     const demoEmail = config.DEMO_BYPASS_EMAIL || "admin@email.com";
     if (email.toLowerCase() !== demoEmail.toLowerCase()) {
@@ -304,10 +395,18 @@
 
     const normalizedEmail = email.trim();
     markSignInPendingForThisTab();
-    await auth.sendSignInLinkToEmail(normalizedEmail, {
-      url: getSignInContinueUrl(),
-      handleCodeInApp: true
-    });
+    try {
+      await auth.sendSignInLinkToEmail(normalizedEmail, {
+        url: getSignInContinueUrl(),
+        handleCodeInApp: true
+      });
+    } catch (error) {
+      const friendly = formatAuthError(error);
+      if (friendly !== ((error && error.message) || "Sign-in failed.")) {
+        throw new Error(friendly);
+      }
+      throw error;
+    }
     window.localStorage.setItem(SIGN_IN_EMAIL_KEY, normalizedEmail);
   }
 
@@ -422,6 +521,8 @@
 
   window.PrairieLogAuth = {
     completeMagicLinkIfPresent,
+    completeGoogleRedirectIfPresent,
+    formatAuthError,
     getSignInContinueUrl,
     getStoredSignInEmail,
     initMagicLinkCrossTabListener,
@@ -431,6 +532,7 @@
     onMagicLinkComplete,
     sendMagicLink,
     signInDemo,
+    signInWithGoogle,
     signOut
   };
 })();

@@ -24,6 +24,9 @@ Read [AGENTS.md](../AGENTS.md) for routing. Use contracts when planner runs.
 
 ## [OUTCOMES]
 
+- 2026-06-30 [CODE] Rate-limiting review + hardening for MVP scope: added `max-destinations-per-app` quota (default 5, `APP_QUOTAS_MAX_DESTINATIONS_PER_APP`, `<=0` disables) in `AlertDestinationServiceImpl` + repo `countByAppIdAndDeletedAtIsNull`; added per-token ingestion limiter `IngestionRateLimiter` (in-memory fixed window keyed by token hash, default 120/min, `APP_RATE_LIMIT_INGESTION_RPM`) wired into `LogEventServiceImpl` after token validation; new `RateLimitExceededException` -> 429 `RATE_LIMIT_EXCEEDED` in `ApiExceptionHandler`. Tests: unit (AlertDestination quota, LogEvent rate-limited) + ITs (AlertDestinations quota, IngestionRateLimit). Verified: `mvnw test -Dtest=AlertDestinationServiceTest,LogEventServiceTest` green; ITs need Docker (not running locally) — run `cd backend && ./mvnw test`.
+- 2026-06-30 [DISCOVERY] Pre-existing broken unit test `AppServiceTest` (fails before these changes: `@InjectMocks` doesn't supply `userService`/`currentUserProvider` mocks -> NPE). Unrelated to rate limiting; left as-is.
+
 - UNCONFIRMED — Completed summaries: what changed, what remains, verification run.
 
 ## Entry format
