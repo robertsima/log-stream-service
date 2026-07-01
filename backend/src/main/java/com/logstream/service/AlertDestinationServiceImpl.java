@@ -3,15 +3,15 @@ package com.logstream.service;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-import com.logstream.entity.AlertDestination;
+import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.repository.AlertDestinationRepository;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AlertDestinationResponse;
 import com.logstream.generated.model.CreateAlertDestinationRequest;
-import com.logstream.repository.AlertDestinationRepository;
 
 @Service
 public class AlertDestinationServiceImpl implements AlertDestinationService {

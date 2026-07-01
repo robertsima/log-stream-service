@@ -22,12 +22,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.logstream.entity.App;
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.App;
+import com.logstream.domain.entity.Users;
+import com.logstream.domain.repository.AppRepository;
+import com.logstream.domain.repository.UserRepository;
 import com.logstream.generated.model.AppResponse;
 import com.logstream.generated.model.CreateAppRequest;
-import com.logstream.repository.AppRepository;
-import com.logstream.repository.UserRepository;
 import com.logstream.security.CurrentUserProvider;
 import com.logstream.service.AppServiceImpl;
 import com.logstream.service.UserServiceImpl;

@@ -1,10 +1,10 @@
-package com.logstream.mapper;
+package com.logstream.domain.mapper;
 
 import java.time.OffsetDateTime;
 
 import com.logstream.controller.dto.AppDTO;
-import com.logstream.entity.App;
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.App;
+import com.logstream.domain.entity.Users;
 import com.logstream.generated.model.AppResponse;
 import com.logstream.generated.model.CreateAppRequest;
 

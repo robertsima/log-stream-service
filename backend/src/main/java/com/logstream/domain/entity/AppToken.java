@@ -1,4 +1,4 @@
-package com.logstream.entity;
+package com.logstream.domain.entity;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

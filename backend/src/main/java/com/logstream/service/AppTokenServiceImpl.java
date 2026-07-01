@@ -11,22 +11,22 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.logstream.controller.dto.AppTokenDTO;
-import com.logstream.entity.App;
-import com.logstream.entity.AppToken;
+import com.logstream.domain.entity.App;
+import com.logstream.domain.entity.AppToken;
+import com.logstream.domain.mapper.AppTokenMapper;
+import com.logstream.domain.repository.AppRepository;
+import com.logstream.domain.repository.AppTokenRepository;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AppTokenResponse;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
 import com.logstream.generated.model.IngestionTokenSessionResponse;
-import com.logstream.mapper.AppTokenMapper;
-import com.logstream.repository.AppRepository;
-import com.logstream.repository.AppTokenRepository;
 
 @Service
 public class AppTokenServiceImpl implements AppTokenService {

@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import com.logstream.entity.AlertDestination;
+import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.model.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
-import com.logstream.model.AlertBucket;
 
 @Service
 public class SlackWebhookSender {

@@ -7,8 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
+import com.logstream.domain.model.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
-import com.logstream.model.AlertBucket;
 
 @Service
 public class AlertAggregationServiceImpl implements AlertAggregationService {

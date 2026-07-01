@@ -15,10 +15,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.Users;
+import com.logstream.domain.repository.AppRepository;
+import com.logstream.domain.repository.UserRepository;
 import com.logstream.generated.model.CreateAppRequest;
-import com.logstream.repository.AppRepository;
-import com.logstream.repository.UserRepository;
 
 import integration.com.logstream.PostgresBaseIT;
 

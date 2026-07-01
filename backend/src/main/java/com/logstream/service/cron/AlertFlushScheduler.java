@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.logstream.entity.AlertDestination;
-import com.logstream.model.AlertBucket;
-import com.logstream.repository.AlertDestinationRepository;
+import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.model.AlertBucket;
+import com.logstream.domain.repository.AlertDestinationRepository;
 import com.logstream.service.AlertAggregationService;
 import com.logstream.service.AlertSenderService;
 

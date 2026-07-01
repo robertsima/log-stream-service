@@ -7,9 +7,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
+import com.logstream.domain.model.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.generated.model.LogLevel;
-import com.logstream.model.AlertBucket;
 import com.logstream.service.AlertAggregationServiceImpl;
 
 class AlertAggregationServiceTest {

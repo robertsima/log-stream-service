@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = "com.logstream")
-@EnableJpaRepositories(basePackages = "com.logstream.repository")
-@EntityScan(basePackages = "com.logstream.entity")
+@EnableJpaRepositories(basePackages = "com.logstream.domain.repository")
+@EntityScan(basePackages = "com.logstream.domain.entity")
 public class LogStreamService {
 
 	public static void main(String[] args) {

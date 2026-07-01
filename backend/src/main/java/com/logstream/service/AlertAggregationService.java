@@ -3,8 +3,8 @@ package com.logstream.service;
 import java.util.Map;
 import java.util.UUID;
 
+import com.logstream.domain.model.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
-import com.logstream.model.AlertBucket;
 
 public interface AlertAggregationService {
 

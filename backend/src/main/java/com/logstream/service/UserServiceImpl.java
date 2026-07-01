@@ -2,12 +2,12 @@ package com.logstream.service;
 
 import org.springframework.stereotype.Service;
 
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.Users;
+import com.logstream.domain.mapper.UserMapper;
+import com.logstream.domain.repository.UserRepository;
 import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.CreateUserRequest;
 import com.logstream.generated.model.UserResponse;
-import com.logstream.mapper.UserMapper;
-import com.logstream.repository.UserRepository;
 import com.logstream.security.CurrentUserProvider;
 import com.logstream.security.ManagementPrincipal;
 

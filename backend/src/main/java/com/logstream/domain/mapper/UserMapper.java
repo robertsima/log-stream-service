@@ -1,7 +1,7 @@
-package com.logstream.mapper;
+package com.logstream.domain.mapper;
 
 import com.logstream.controller.dto.UserDTO;
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.Users;
 import com.logstream.generated.model.CreateUserRequest;
 import com.logstream.generated.model.UserResponse;
 

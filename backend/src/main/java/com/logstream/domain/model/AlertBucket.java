@@ -1,4 +1,4 @@
-package com.logstream.model;
+package com.logstream.domain.model;
 
 import java.util.ArrayList;
 import java.util.List;

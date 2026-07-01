@@ -22,12 +22,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.logstream.entity.AlertDestination;
+import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.repository.AlertDestinationRepository;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AlertDestinationResponse;
 import com.logstream.generated.model.AlertDestinationType;
 import com.logstream.generated.model.CreateAlertDestinationRequest;
-import com.logstream.repository.AlertDestinationRepository;
 import com.logstream.service.AlertDestinationServiceImpl;
 import com.logstream.service.AlertSenderService;
 

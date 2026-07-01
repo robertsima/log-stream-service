@@ -1,8 +1,8 @@
-package com.logstream.mapper;
+package com.logstream.domain.mapper;
 
 import com.logstream.controller.dto.AppTokenDTO;
-import com.logstream.entity.App;
-import com.logstream.entity.AppToken;
+import com.logstream.domain.entity.App;
+import com.logstream.domain.entity.AppToken;
 import com.logstream.generated.model.AppTokenResponse;
 import com.logstream.generated.model.CreateAppTokenRequest;
 

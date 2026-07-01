@@ -2,9 +2,9 @@ package com.logstream.service;
 
 import org.springframework.stereotype.Service;
 
-import com.logstream.entity.AlertDestination;
+import com.logstream.domain.entity.AlertDestination;
 import com.logstream.generated.model.AlertDestinationType;
-import com.logstream.model.AlertBucket;
+import com.logstream.domain.model.AlertBucket;
 import com.logstream.webhooks.DiscordWebhookSender;
 import com.logstream.webhooks.SlackWebhookSender;
 

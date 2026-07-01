@@ -24,13 +24,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.logstream.entity.App;
-import com.logstream.entity.AppToken;
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.App;
+import com.logstream.domain.entity.AppToken;
+import com.logstream.domain.entity.Users;
+import com.logstream.domain.repository.AppRepository;
+import com.logstream.domain.repository.AppTokenRepository;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
-import com.logstream.repository.AppRepository;
-import com.logstream.repository.AppTokenRepository;
 import com.logstream.service.AppTokenServiceImpl;
 
 @ExtendWith(MockitoExtension.class)

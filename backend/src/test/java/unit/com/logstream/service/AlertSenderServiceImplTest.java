@@ -7,9 +7,9 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.logstream.entity.AlertDestination;
+import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.model.AlertBucket;
 import com.logstream.generated.model.AlertDestinationType;
-import com.logstream.model.AlertBucket;
 import com.logstream.service.AlertSenderServiceImpl;
 import com.logstream.webhooks.DiscordWebhookSender;
 import com.logstream.webhooks.SlackWebhookSender;

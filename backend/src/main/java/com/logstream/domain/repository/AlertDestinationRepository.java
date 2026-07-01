@@ -1,4 +1,4 @@
-package com.logstream.repository;
+package com.logstream.domain.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.logstream.entity.AlertDestination;
+import com.logstream.domain.entity.AlertDestination;
 
 public interface AlertDestinationRepository extends JpaRepository<AlertDestination, UUID> {
 

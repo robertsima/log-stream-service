@@ -5,20 +5,20 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-import com.logstream.entity.App;
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.App;
+import com.logstream.domain.entity.Users;
+import com.logstream.domain.mapper.AppMapper;
+import com.logstream.domain.repository.AppRepository;
+import com.logstream.domain.repository.UserRepository;
 import com.logstream.exception.ForbiddenException;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.AppResponse;
 import com.logstream.generated.model.CreateAppRequest;
-import com.logstream.mapper.AppMapper;
-import com.logstream.repository.AppRepository;
-import com.logstream.repository.UserRepository;
 import com.logstream.security.CurrentUserProvider;
 
 @Service

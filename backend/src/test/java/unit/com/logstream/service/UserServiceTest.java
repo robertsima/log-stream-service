@@ -1,5 +1,7 @@
 package unit.com.logstream.service;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -17,13 +19,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.logstream.entity.Users;
+import com.logstream.domain.entity.Users;
+import com.logstream.domain.repository.UserRepository;
 import com.logstream.generated.model.CreateUserRequest;
 import com.logstream.generated.model.UserResponse;
-import com.logstream.repository.UserRepository;
 import com.logstream.service.UserServiceImpl;
-
-import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
