@@ -1,0 +1,49 @@
+{
+  "folders": [
+    {
+      "name": "Backend",
+      "path": "../backend"
+    }
+  ],
+  "settings": {
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "chat.tools.terminal.autoApprove": {
+      ".\\mvnw.cmd": true
+    }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "java",
+        "name": "Spring Boot-LogStreamService<log-stream-service>",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "mainClass": "com.logstream.app.LogStreamService",
+        "projectName": "log-stream-service",
+        "args": "",
+        "envFile": "${workspaceFolder}/../.env.local"
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Backend: Run Unit Tests",
+        "type": "shell",
+        "command": "${workspaceFolder}/mvnw.cmd",
+        "args": ["test"],
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "group": {
+          "kind": "test",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      }
+    ]
+  }
+}

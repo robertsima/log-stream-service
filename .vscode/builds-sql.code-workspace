@@ -1,0 +1,52 @@
+{
+  "folders": [
+    {
+      "name": "Podman / Build",
+      "path": "../backend/podman"
+    },
+    {
+      "name": "SQL / Liquibase",
+      "path": "../backend/src/main/resources/db/changelog"
+    }
+  ],
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Podman: Build Backend Image",
+        "type": "shell",
+        "command": "podman",
+        "args": ["build", "-t", "spring-boot-starter-template:latest", "."],
+        "options": {
+          "cwd": "${workspaceFolder:Podman / Build}/.."
+        },
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Podman: Play Pods (postgres + app)",
+        "type": "shell",
+        "command": "podman",
+        "args": ["play", "kube", "pods.yaml"],
+        "options": {
+          "cwd": "${workspaceFolder:Podman / Build}"
+        },
+        "dependsOn": ["Podman: Build Backend Image"],
+        "problemMatcher": []
+      },
+      {
+        "label": "Podman: Down Pods",
+        "type": "shell",
+        "command": "podman",
+        "args": ["play", "kube", "--down", "pods.yaml"],
+        "options": {
+          "cwd": "${workspaceFolder:Podman / Build}"
+        },
+        "problemMatcher": []
+      }
+    ]
+  }
+}

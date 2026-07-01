@@ -3,8 +3,8 @@
         {
             "type": "java",
             "name": "Spring Boot-LogStreamService<log-stream-service>",
-                        "cwd": "${workspaceFolder}/backend",
-"request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "request": "launch",
             "mainClass": "com.logstream.app.LogStreamService",
             "projectName": "log-stream-service",
             "args": "",
