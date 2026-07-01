@@ -185,7 +185,7 @@
             <div id="destinations-list" class="list-panel list-panel-compact">
               <p class="muted">No destinations yet.</p>
             </div>
-            <p id="destinations-hint" class="muted compact-hint" hidden>Select a destination to test it.</p>
+            <p id="destinations-hint" class="muted compact-hint" hidden>Click a destination to select it for analysis delivery.</p>
 
             <details class="advanced-inline-details">
               <summary>Add a destination</summary>
@@ -215,6 +215,155 @@
             </details>
           </div>
         </div>
+      </section>
+
+      <section class="page-section card-section" id="alert-analysis-panel" hidden aria-labelledby="alert-analysis-title">
+        <div class="section-head">
+          <h2 id="alert-analysis-title" class="heading-with-icon">
+            <i data-lucide="brain-circuit" class="icon" aria-hidden="true"></i><span>Alert analysis test</span>
+          </h2>
+        </div>
+        <p class="muted compact-hint">
+          Paste an <code>events</code> array in the same shape as <code>AlertBucketAnalysisRequest</code> / ingested
+          <code>LogEventRequest</code> payloads. Production buckets contain ERROR events only; fingerprint is derived from the first error like aggregation does.
+          Click an alert destination above to also deliver analysis to that webhook when you run analysis.
+        </p>
+
+        <form id="alert-analysis-form" class="compact-form">
+          <div class="form-group">
+            <label for="analysis-events-input">Events JSON</label>
+            <textarea id="analysis-events-input" class="analysis-events-input" rows="28" spellcheck="false">[
+  {
+    "id": "evt_001",
+    "level": "DEBUG",
+    "message": "Incoming POST /api/v1/checkout remoteAddr=203.0.113.44 userAgent=AcmeWeb/2.4.1",
+    "occurredAt": "2026-07-01T12:00:00.120Z",
+    "logger": "com.acme.api.RequestLoggingFilter",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_api_gateway"
+  },
+  {
+    "id": "evt_002",
+    "level": "INFO",
+    "message": "Checkout started orderId=ord_8f2k9m userId=usr_10482 cartTotal=129.99 currency=USD",
+    "occurredAt": "2026-07-01T12:00:00.245Z",
+    "logger": "com.acme.checkout.CheckoutController",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_checkout_ctrl"
+  },
+  {
+    "id": "evt_003",
+    "level": "DEBUG",
+    "message": "Loaded cart snapshot items=3 weightKg=2.1 shipTo=US-CA-94107",
+    "occurredAt": "2026-07-01T12:00:00.318Z",
+    "logger": "com.acme.checkout.CartService",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_cart_svc"
+  },
+  {
+    "id": "evt_004",
+    "level": "INFO",
+    "message": "Reserved inventory holdId=hold_9912 skuCount=3 ttlSec=900",
+    "occurredAt": "2026-07-01T12:00:00.402Z",
+    "logger": "com.acme.inventory.InventoryService",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_inventory"
+  },
+  {
+    "id": "evt_005",
+    "level": "DEBUG",
+    "message": "Cache hit paymentMethod userId=usr_10482 pmId=pm_card_visa4242",
+    "occurredAt": "2026-07-01T12:00:00.489Z",
+    "logger": "com.acme.billing.PaymentMethodCache",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_billing_cache"
+  },
+  {
+    "id": "evt_006",
+    "level": "INFO",
+    "message": "Calling Stripe charge amount=12999 idempotencyKey=chk_ord_8f2k9m_v1 customer=cus_Q7x9",
+    "occurredAt": "2026-07-01T12:00:00.571Z",
+    "logger": "com.acme.billing.PaymentService",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_payment_svc"
+  },
+  {
+    "id": "evt_007",
+    "level": "DEBUG",
+    "message": "Stripe request POST /v1/charges timeoutMs=5000 connectTimeoutMs=2000",
+    "occurredAt": "2026-07-01T12:00:00.580Z",
+    "logger": "com.acme.billing.StripeClient",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_stripe_client"
+  },
+  {
+    "id": "evt_008",
+    "level": "WARN",
+    "message": "Stripe charge attempt 1 failed code=card_declined declineCode=insufficient_funds willRetry=false",
+    "occurredAt": "2026-07-01T12:00:01.104Z",
+    "logger": "com.acme.billing.StripeClient",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_stripe_client"
+  },
+  {
+    "id": "evt_009",
+    "level": "ERROR",
+    "message": "Charge failed for order ord_8f2k9m: card_declined insufficient_funds\ncom.stripe.exception.CardException: Your card has insufficient funds.; code: card_declined; request-id: req_1PqR2s3T4u5V6w\n\tat com.acme.billing.StripeClient.createCharge(StripeClient.java:87)\n\tat com.acme.billing.PaymentService.processPayment(PaymentService.java:142)\n\tat com.acme.checkout.CheckoutService.completeCheckout(CheckoutService.java:88)",
+    "occurredAt": "2026-07-01T12:00:01.112Z",
+    "logger": "com.acme.billing.PaymentService",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_payment_svc"
+  },
+  {
+    "id": "evt_010",
+    "level": "INFO",
+    "message": "Releasing inventory holdId=hold_9912 reason=PAYMENT_FAILED",
+    "occurredAt": "2026-07-01T12:00:01.180Z",
+    "logger": "com.acme.inventory.InventoryService",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_inventory"
+  },
+  {
+    "id": "evt_011",
+    "level": "DEBUG",
+    "message": "Published domain event OrderPaymentFailed orderId=ord_8f2k9m topic=order-events partition=7",
+    "occurredAt": "2026-07-01T12:00:01.245Z",
+    "logger": "com.acme.events.OutboxPublisher",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_outbox"
+  },
+  {
+    "id": "evt_012",
+    "level": "INFO",
+    "message": "Checkout completed status=FAILED orderId=ord_8f2k9m durationMs=1125 httpStatus=402",
+    "occurredAt": "2026-07-01T12:00:01.250Z",
+    "logger": "com.acme.checkout.CheckoutController",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_checkout_ctrl"
+  },
+  {
+    "id": "evt_013",
+    "level": "ERROR",
+    "message": "Charge failed for order ord_8f2k9m: card_declined insufficient_funds",
+    "occurredAt": "2026-07-01T12:00:15.000Z",
+    "logger": "com.acme.billing.PaymentService",
+    "traceId": "trace_ord_8f2k9m",
+    "spanId": "span_payment_svc"
+  }
+]</textarea>
+          </div>
+
+          <div class="button-row button-row-tight">
+            <button type="button" id="analysis-preview-button" class="secondary">
+              <i data-lucide="eye" class="icon" aria-hidden="true"></i>
+              <span class="btn-label">Preview prompt</span>
+            </button>
+            <button type="button" id="analysis-run-button">
+              <i data-lucide="sparkles" class="icon" aria-hidden="true"></i>
+              <span class="btn-label">Run analysis</span>
+            </button>
+          </div>
+        </form>
       </section>
 
       <details class="advanced-subsection" id="dashboard-output-details">

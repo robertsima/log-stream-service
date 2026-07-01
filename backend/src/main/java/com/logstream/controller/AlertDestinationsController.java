@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.logstream.generated.api.AlertDestinationsApi;
 import com.logstream.generated.model.AlertDestinationResponse;
 import com.logstream.generated.model.CreateAlertDestinationRequest;
+import com.logstream.generated.model.SendAnalyzedAlertRequest;
 import com.logstream.service.AlertDestinationService;
 
 @RestController
@@ -44,6 +45,20 @@ public class AlertDestinationsController implements AlertDestinationsApi {
     @Override
     public ResponseEntity<Void> testAlertDestination(UUID appId, UUID destinationId) {
         alertDestinationService.test(appId, destinationId);
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> sendAnalyzedAlert(
+            UUID appId,
+            UUID destinationId,
+            SendAnalyzedAlertRequest sendAnalyzedAlertRequest) {
+        alertDestinationService.sendAnalyzedAlert(
+                appId,
+                destinationId,
+                sendAnalyzedAlertRequest.getFingerprint(),
+                sendAnalyzedAlertRequest.getEvents(),
+                sendAnalyzedAlertRequest.getAnalysis());
         return ResponseEntity.accepted().build();
     }
 }

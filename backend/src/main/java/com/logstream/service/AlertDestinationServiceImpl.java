@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.model.AlertBucket;
 import com.logstream.domain.repository.AlertDestinationRepository;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AlertDestinationResponse;
 import com.logstream.generated.model.CreateAlertDestinationRequest;
+import com.logstream.generated.model.LogEventRequest;
 
 @Service
 public class AlertDestinationServiceImpl implements AlertDestinationService {
@@ -99,15 +101,30 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
         alertSenderService.sendTest(destination);
     }
 
+    @Override
+    public void sendAnalyzedAlert(
+            UUID appId,
+            UUID destinationId,
+            String fingerprint,
+            List<LogEventRequest> events,
+            String analysis) {
+        requireOwner(appId);
+        AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
+                .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
+
+        AlertBucket bucket = new AlertBucket(appId, fingerprint);
+        if (events != null) {
+            bucket.getEvents().addAll(events);
+        }
+
+        alertSenderService.sendAnalyzedAlert(destination, bucket, analysis);
+    }
+
     private AlertDestinationResponse toResponse(AlertDestination destination) {
-        return new AlertDestinationResponse()
-                .id(destination.getId())
-                .appId(destination.getAppId())
-                .type(destination.getDestinationType())
-                .name(destination.getName())
-                .enabled(destination.getEnabled())
-                .createdAt(destination.getCreatedAt())
-                .updatedAt(destination.getUpdatedAt());
+        AlertDestinationResponse response = new AlertDestinationResponse();
+        response.setId(destination.getId());
+        response.setAppId(destination.getAppId());
+        return response;
     }
 
     private void requireOwner(UUID appId) {

@@ -1,9 +1,15 @@
 // Production config — served as-is by Netlify and committed to git.
 // For local backend dev, copy js/env.local.example.js to js/env.local.js (gitignored);
 // it loads after this file and overrides only what differs on your machine.
+const isLocalFrontend =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.protocol === "file:";
+
 window.CONFIG = {
-  API_BASE_URL: "https://log-stream-service.onrender.com",
-  // API_BASE_URL: "http://localhost:8080",
+  API_BASE_URL: isLocalFrontend
+    ? "http://localhost:8080"
+    : "https://log-stream-service.onrender.com",
 
   OPENAPI_PATH: "./resources/openapi.json",
   DEMO_BYPASS_EMAIL: "admin@email.com",

@@ -45,4 +45,16 @@ public class AlertSenderServiceImpl implements AlertSenderService {
             slackWebhookSender.sendAggregatedAlert(destination, bucket);
         }
     }
+
+    @Override
+    public void sendAnalyzedAlert(AlertDestination destination, AlertBucket bucket, String analysis) {
+        if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
+            discordWebhookSender.sendAnalyzedAlert(destination, bucket, analysis);
+            return;
+        }
+
+        if (destination.getDestinationType() == AlertDestinationType.SLACK) {
+            slackWebhookSender.sendAnalyzedAlert(destination, bucket, analysis);
+        }
+    }
 }

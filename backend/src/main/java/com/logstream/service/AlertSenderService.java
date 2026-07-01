@@ -7,5 +7,7 @@ public interface AlertSenderService {
     public void sendTest(AlertDestination destination);
 
     public void sendAggregatedAlert(AlertDestination destination, AlertBucket bucket);
+
+    public void sendAnalyzedAlert(AlertDestination destination, AlertBucket bucket, String analysis);
     
 }

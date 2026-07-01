@@ -27,6 +27,8 @@ tags:
     description: Log ingestion endpoints
   - name: Alert Destinations
     description: Slack and Discord webhook destinations for aggregated error alerts
+  - name: Alert Analysis
+    description: Preview and analyze alert event payloads using the OpenAI prompt model
 
 paths:
   /api/v1/users:
@@ -387,6 +389,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/apps/{appId}/alert-destinations/{destinationId}/send-analyzed-alert:
+    post:
+      tags:
+        - Alert Destinations
+      operationId: sendAnalyzedAlert
+      summary: Deliver an analyzed alert bucket to a Slack or Discord destination
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/DestinationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendAnalyzedAlertRequest'
+      responses:
+        '202':
+          description: Analyzed alert accepted for delivery
+        '404':
+          description: Alert destination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/ingestion-tokens/session:
     get:
       tags:
@@ -446,6 +475,60 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '413':
           description: Log payload too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/alert-analysis/preview:
+    post:
+      tags:
+        - Alert Analysis
+      operationId: previewAlertPrompt
+      summary: Preview the OpenAI prompt for an alert bucket
+      description: Returns the generated prompt text without calling the model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertBucketAnalysisRequest'
+      responses:
+        '200':
+          description: Prompt preview generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertAnalysisPreviewResponse'
+        '400':
+          description: Invalid alert bucket payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/alert-analysis/analyze:
+    post:
+      tags:
+        - Alert Analysis
+      operationId: analyzeAlertBucket
+      summary: Analyze an alert bucket using the OpenAI model
+      description: Returns a concise analysis for the provided alert bucket.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertBucketAnalysisRequest'
+      responses:
+        '200':
+          description: Alert bucket analyzed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertAnalysisResponse'
+        '400':
+          description: Invalid alert bucket payload
           content:
             application/json:
               schema:
@@ -756,19 +839,89 @@ components:
         appId:
           type: string
           format: uuid
-        type:
-          $ref: '#/components/schemas/AlertDestinationType'
-        name:
+
+    AlertBucketAnalysisRequest:
+      type: object
+      required:
+        - appId
+        - fingerprint
+        - events
+      properties:
+        appId:
           type: string
-        enabled:
+          format: uuid
+        fingerprint:
+          type: string
+          example: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEventRequest'
+
+    SendAnalyzedAlertRequest:
+      type: object
+      required:
+        - fingerprint
+        - events
+        - analysis
+      properties:
+        fingerprint:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEventRequest'
+        analysis:
+          type: string
+          description: Formatted analysis text to include in the webhook payload.
+
+    AlertAnalysisPreviewResponse:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          example: "You are a concise incident-response assistant..."
+        promptCharCount:
+          type: integer
+          description: Character length of the full prompt text sent to the model.
+          example: 842
+        estimatedPromptTokens:
+          type: integer
+          description: Rough input token estimate (chars / 4). Preview only; analyze returns exact usage from OpenAI.
+          example: 211
+
+    TokenUsage:
+      type: object
+      properties:
+        promptTokens:
+          type: integer
+          example: 186
+        completionTokens:
+          type: integer
+          example: 94
+        totalTokens:
+          type: integer
+          example: 280
+
+    AlertAnalysisResponse:
+      type: object
+      required:
+        - analysis
+      properties:
+        analysis:
+          type: string
+          description: Human-readable analysis formatted for Slack, Discord, and the dashboard.
+        analysisJson:
+          type: string
+          description: Raw JSON object returned by the model before display formatting.
+        cached:
           type: boolean
-          example: true
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
+          description: True when the analysis was served from the in-memory cache (no OpenAI call).
+          example: false
+        tokenUsage:
+          $ref: '#/components/schemas/TokenUsage'
           nullable: true
 
     AlertDestinationType:

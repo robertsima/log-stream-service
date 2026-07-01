@@ -50,6 +50,10 @@ public class AlertDestination {
         return id;
     }
 
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
     public UUID getAppId() {
         return appId;
     }

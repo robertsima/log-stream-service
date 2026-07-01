@@ -96,6 +96,9 @@ class RestService {
     }
 
     if (status === 404) {
+      if (data && data.path && String(data.path).includes("/alert-analysis/")) {
+        return "Alert analysis is not available on this API host yet. Run the latest backend locally (localhost:8080) or deploy it before using this panel.";
+      }
       return "Nothing matched that request. Check that the owner email matches your user and the app is registered.";
     }
 
@@ -321,6 +324,54 @@ class RestService {
     );
 
     return response.status;
+  }
+
+  async sendAnalyzedAlert(appId, destinationId, { fingerprint, events, analysis }) {
+    const response = await this.request(
+      `/api/v1/apps/${encodeURIComponent(
+        appId
+      )}/alert-destinations/${encodeURIComponent(destinationId)}/send-analyzed-alert`,
+      {
+        method: "POST",
+        body: {
+          fingerprint,
+          events,
+          analysis
+        }
+      }
+    );
+
+    return response.status;
+  }
+
+  // -------------------------
+  // Alert Analysis
+  // -------------------------
+
+  async previewAlertAnalysis({ appId, fingerprint, events }) {
+    const response = await this.request("/api/v1/alert-analysis/preview", {
+      method: "POST",
+      body: {
+        appId,
+        fingerprint,
+        events
+      }
+    });
+
+    return response.data;
+  }
+
+  async analyzeAlertBucket({ appId, fingerprint, events }) {
+    const response = await this.request("/api/v1/alert-analysis/analyze", {
+      method: "POST",
+      body: {
+        appId,
+        fingerprint,
+        events
+      }
+    });
+
+    return response.data;
   }
 
   // -------------------------

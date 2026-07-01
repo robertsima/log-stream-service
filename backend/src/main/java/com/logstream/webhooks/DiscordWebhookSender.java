@@ -9,7 +9,8 @@ import org.springframework.web.client.RestClient;
 
 import com.logstream.domain.entity.AlertDestination;
 import com.logstream.domain.model.AlertBucket;
-import com.logstream.generated.model.LogEventRequest;
+import com.logstream.webhooks.AlertNotificationFormatter;
+import com.logstream.webhooks.AlertSummary;
 
 @Service
 public class DiscordWebhookSender {
@@ -50,17 +51,13 @@ public class DiscordWebhookSender {
             return;
         }
 
-        LogEventRequest first = bucket.getEvents().get(0);
+        AlertSummary summary = AlertNotificationFormatter.summarize(bucket, maxMessages);
 
         Map<String, Object> payload = Map.of(
                 "embeds", List.of(Map.of(
                         "title", "Error Alert",
-                        "description", buildDescription(bucket),
-                        "fields", List.of(
-                                Map.of("name", "Count", "value", String.valueOf(bucket.count()), "inline", true),
-                                Map.of("name", "Logger", "value", safe(first.getLogger()), "inline", true),
-                                Map.of("name", "Trace ID", "value", safe(first.getTraceId()), "inline", false)
-                        )
+                        "description", AlertNotificationFormatter.buildDiscordDescription(summary),
+                        "fields", AlertNotificationFormatter.buildDiscordFields(summary)
                 ))
         );
 
@@ -69,31 +66,6 @@ public class DiscordWebhookSender {
                 .body(payload)
                 .retrieve()
                 .toBodilessEntity();
-    }
-
-    private String buildDescription(AlertBucket bucket) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Received ")
-                .append(bucket.count())
-                .append(" matching ERROR log")
-                .append(bucket.count() == 1 ? "" : "s")
-                .append(" during the aggregation window.")
-                .append("\n\n");
-
-        bucket.getEvents().stream()
-                .limit(maxMessages)
-                .forEach(event -> sb.append("- ")
-                        .append(truncate(event.getMessage(), 250))
-                        .append("\n"));
-
-        if (bucket.count() > maxMessages) {
-            sb.append("\n...and ")
-                    .append(bucket.count() - maxMessages)
-                    .append(" more.");
-        }
-
-        return truncate(sb.toString(), 1800);
     }
 
     private String safe(Object value) {
@@ -112,5 +84,27 @@ public class DiscordWebhookSender {
         return value.length() <= max
                 ? value
                 : value.substring(0, max - 3) + "...";
+    }
+
+    public void sendAnalyzedAlert(AlertDestination destination, AlertBucket bucket, String analysis) {
+        if (bucket.getEvents().isEmpty()) {
+            return;
+        }
+
+        AlertSummary summary = AlertNotificationFormatter.summarize(bucket, maxMessages, analysis);
+
+        Map<String, Object> payload = Map.of(
+                "embeds", List.of(Map.of(
+                        "title", "Error Alert",
+                        "description", AlertNotificationFormatter.buildDiscordDescription(summary),
+                        "fields", AlertNotificationFormatter.buildDiscordFields(summary)
+                ))
+        );
+
+        restClient.post()
+                .uri(destination.getWebhookUrl())
+                .body(payload)
+                .retrieve()
+                .toBodilessEntity();
     }
 }

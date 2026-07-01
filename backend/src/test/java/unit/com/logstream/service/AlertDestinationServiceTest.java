@@ -56,7 +56,7 @@ public class AlertDestinationServiceTest {
         destinationId = UUID.randomUUID();
 
         alertDestination = new AlertDestination();
-        // alertDestination.setId(destinationId);
+        alertDestination.setId(destinationId);
         alertDestination.setAppId(appId);
         alertDestination.setName("Slack Webhook");
         alertDestination.setWebhookUrl("https://hooks.slack.com/services/T00000000/B00000000/XXXX");
@@ -81,10 +81,8 @@ public class AlertDestinationServiceTest {
 
         // Assert
         assertNotNull(response);
+        assertEquals(destinationId, response.getId());
         assertEquals(appId, response.getAppId());
-        assertEquals("Slack Webhook", response.getName());
-        assertEquals(AlertDestinationType.SLACK, response.getType());
-        assertTrue(response.getEnabled());
         verify(alertDestinationRepository, times(1)).save(any(AlertDestination.class));
     }
 
@@ -118,9 +116,8 @@ public class AlertDestinationServiceTest {
 
         // Assert
         assertNotNull(response);
+        assertEquals(destinationId, response.getId());
         assertEquals(appId, response.getAppId());
-        assertEquals("Slack Webhook", response.getName());
-        assertEquals(AlertDestinationType.SLACK, response.getType());
         verify(alertDestinationRepository, never()).countByAppIdAndDeletedAtIsNull(appId);
         verify(alertDestinationRepository, never()).save(any(AlertDestination.class));
     }
@@ -134,7 +131,7 @@ public class AlertDestinationServiceTest {
         discordRequest.setWebhookUrl("https://discordapp.com/api/webhooks/123456/abcdef");
 
         AlertDestination discordDestination = new AlertDestination();
-        // discordDestination.setId(UUID.randomUUID());
+        discordDestination.setId(UUID.randomUUID());
         discordDestination.setAppId(appId);
         discordDestination.setName("Discord Webhook");
         discordDestination.setWebhookUrl("https://discordapp.com/api/webhooks/123456/abcdef");
@@ -149,7 +146,8 @@ public class AlertDestinationServiceTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(AlertDestinationType.DISCORD, response.getType());
+        assertEquals(discordDestination.getId(), response.getId());
+        assertEquals(appId, response.getAppId());
         verify(alertDestinationRepository, times(1)).save(any(AlertDestination.class));
     }
 

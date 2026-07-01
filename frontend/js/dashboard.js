@@ -35,8 +35,7 @@
   }
 
   function showError(error) {
-    window.PrairieLogUI.renderOutput(
-      OUTPUT_PANEL,
+    showConsoleText(
       window.PrairieLogUI.formatError(error),
       "error"
     );
@@ -47,7 +46,19 @@
     const content =
       (message ? message + "\n\n" : "") +
       window.PrairieLogUI.formatJson(sanitizeOutputData(data));
-    window.PrairieLogUI.renderOutput(OUTPUT_PANEL, content, "success");
+    showConsoleText(content, "success");
+  }
+
+  function openApiConsole() {
+    const details = document.getElementById("dashboard-output-details");
+    if (details) {
+      details.open = true;
+    }
+  }
+
+  function showConsoleText(content, type) {
+    openApiConsole();
+    window.PrairieLogUI.renderOutput(OUTPUT_PANEL, content, type || "success");
   }
 
   function sanitizeOutputData(data) {
@@ -258,6 +269,12 @@
     if (descEl) {
       descEl.textContent = app.description || "";
       descEl.hidden = !app.description;
+    }
+
+    const analysisPanel = document.getElementById("alert-analysis-panel");
+    if (analysisPanel) {
+      analysisPanel.hidden = false;
+      window.PrairieLogUI.refreshIcons(analysisPanel);
     }
 
     window.PrairieLogUI.refreshIcons(detail);
@@ -523,8 +540,24 @@
       .join("");
 
     if (hint) {
-      hint.hidden = true;
+      hint.hidden = false;
     }
+  }
+
+  function selectDestination(destinationId) {
+    const destinations = window.PrairieLogState.destinations || [];
+    const destination = destinations.find(function (dest) {
+      return dest.id === destinationId;
+    });
+    if (!destination) {
+      return;
+    }
+    window.PrairieLogState.alertDestination = destination;
+    renderDestinations(destinations);
+    showActivityBanner(
+      "Destination “" + destination.name + "” selected for analysis delivery.",
+      "success"
+    );
   }
 
   async function handleCreateDestination(event) {
@@ -567,10 +600,16 @@
   }
 
   async function handleDestinationsListClick(event) {
+    const item = event.target.closest(".destination-item");
     const testButton = event.target.closest(".dest-test");
     const deleteButton = event.target.closest(".dest-delete");
     const app = activeApp();
     if (!app) {
+      return;
+    }
+
+    if (item && !testButton && !deleteButton) {
+      selectDestination(item.dataset.destinationId);
       return;
     }
 
@@ -607,6 +646,213 @@
       } catch (error) {
         showError(error);
       }
+    }
+  }
+
+  // -------------------------
+  // Alert analysis test
+  // -------------------------
+
+  function normalizeAggregationMessage(message) {
+    if (!message) {
+      return "";
+    }
+    return message
+      .toLowerCase()
+      .replace(/\b\d+\b/g, "{number}")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function computeAggregationFingerprint(appId, event) {
+    const logger = (event.logger && event.logger.trim()) || "unknown";
+    const message = normalizeAggregationMessage(event.message);
+    return appId + "|ERROR|" + logger + "|" + message;
+  }
+
+  function parseAnalysisEvents() {
+    const raw = document.getElementById("analysis-events-input").value.trim();
+    if (!raw) {
+      throw new Error("Paste an events JSON array.");
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      throw new Error("Events JSON is invalid: " + error.message);
+    }
+
+    if (!Array.isArray(parsed) || !parsed.length) {
+      throw new Error("Events must be a non-empty JSON array.");
+    }
+
+    return parsed.map(function (event, index) {
+      if (!event || typeof event !== "object") {
+        throw new Error("Event at index " + index + " must be an object.");
+      }
+      if (!event.id || !event.level || !event.message || !event.occurredAt) {
+        throw new Error(
+          "Event at index " +
+            index +
+            " must include id, level, message, and occurredAt."
+        );
+      }
+      return {
+        id: String(event.id),
+        level: String(event.level).toUpperCase(),
+        message: String(event.message),
+        occurredAt: String(event.occurredAt),
+        logger: event.logger ? String(event.logger) : null,
+        traceId: event.traceId ? String(event.traceId) : null,
+        spanId: event.spanId ? String(event.spanId) : null,
+        metadata: event.metadata || null
+      };
+    });
+  }
+
+  function buildAnalysisRequest() {
+    const app = activeApp();
+    if (!app) {
+      throw new Error("Select an app first.");
+    }
+
+    const events = parseAnalysisEvents();
+    const primaryError = events.find(function (event) {
+      return event.level === "ERROR";
+    });
+    if (!primaryError) {
+      throw new Error("Include at least one ERROR event — production buckets only aggregate errors.");
+    }
+
+    return {
+      appId: app.id,
+      fingerprint: computeAggregationFingerprint(app.id, primaryError),
+      events: events
+    };
+  }
+
+  function formatTokenUsageLine(result) {
+    if (result.cached) {
+      return "Token usage: cached response (no OpenAI call).";
+    }
+    if (!result.tokenUsage) {
+      return "";
+    }
+    const usage = result.tokenUsage;
+    return (
+      "Token usage — prompt: " +
+      (usage.promptTokens ?? "?") +
+      ", completion: " +
+      (usage.completionTokens ?? "?") +
+      ", total: " +
+      (usage.totalTokens ?? "?")
+    );
+  }
+
+  function formatPreviewUsageLine(result) {
+    if (result.estimatedPromptTokens == null && result.promptCharCount == null) {
+      return "";
+    }
+    return (
+      "Estimated input — chars: " +
+      (result.promptCharCount ?? "?") +
+      ", tokens ≈ " +
+      (result.estimatedPromptTokens ?? "?") +
+      " (preview only; run analysis for exact usage)"
+    );
+  }
+
+  function formatAnalysisOutput(result, deliveryNote) {
+    const sections = [];
+    if (result.analysis) {
+      sections.push(result.analysis);
+    }
+    const meta = [];
+    const usageLine = formatTokenUsageLine(result);
+    if (usageLine) {
+      meta.push(usageLine);
+    }
+    if (result.analysisJson) {
+      try {
+        meta.push(
+          "Raw JSON:\n" + window.PrairieLogUI.formatJson(JSON.parse(result.analysisJson))
+        );
+      } catch (error) {
+        meta.push("Raw JSON:\n" + result.analysisJson);
+      }
+    }
+    if (deliveryNote) {
+      meta.push(deliveryNote);
+    }
+    if (meta.length) {
+      sections.push("---\n" + meta.join("\n\n"));
+    }
+    return sections.join("\n\n") || "(empty analysis)";
+  }
+
+  async function handleAnalysisPreview() {
+    const button = document.getElementById("analysis-preview-button");
+    window.PrairieLogUI.setButtonLoading(button, true, "Previewing...");
+
+    try {
+      const request = buildAnalysisRequest();
+      const result = await window.restService.previewAlertAnalysis(request);
+      const usageLine = formatPreviewUsageLine(result);
+      const content =
+        (usageLine ? usageLine + "\n\n" : "") + (result.prompt || "(empty prompt)");
+      showConsoleText(content, "success");
+      showActivityBanner("Prompt preview ready.", "success");
+    } catch (error) {
+      showError(error);
+    } finally {
+      window.PrairieLogUI.setButtonLoading(button, false);
+    }
+  }
+
+  async function handleAnalysisRun() {
+    const button = document.getElementById("analysis-run-button");
+    window.PrairieLogUI.setButtonLoading(button, true, "Analyzing...");
+
+    try {
+      const app = activeApp();
+      const request = buildAnalysisRequest();
+      const result = await window.restService.analyzeAlertBucket(request);
+      const destination = window.PrairieLogState.alertDestination;
+      let deliveryNote = "";
+
+      if (destination) {
+        if (destination.enabled === false) {
+          deliveryNote = "Webhook: skipped disabled destination “" + destination.name + "”.";
+        } else {
+          window.PrairieLogUI.setButtonLoading(button, true, "Sending...");
+          const status = await window.restService.sendAnalyzedAlert(
+            app.id,
+            destination.id,
+            {
+              fingerprint: request.fingerprint,
+              events: request.events,
+              analysis: result.analysis
+            }
+          );
+          deliveryNote =
+            "Webhook: delivered to “" +
+            destination.name +
+            "” (HTTP " +
+            status +
+            ").";
+        }
+      }
+
+      showConsoleText(formatAnalysisOutput(result, deliveryNote), "success");
+      showActivityBanner(
+        deliveryNote || "Analysis complete.",
+        "success"
+      );
+    } catch (error) {
+      showError(error);
+    } finally {
+      window.PrairieLogUI.setButtonLoading(button, false);
     }
   }
 
@@ -690,6 +936,10 @@
     const detail = document.getElementById("app-detail");
     if (detail) {
       detail.hidden = true;
+    }
+    const analysisPanel = document.getElementById("alert-analysis-panel");
+    if (analysisPanel) {
+      analysisPanel.hidden = true;
     }
     hideTokenBanner();
     updateView();
@@ -805,6 +1055,12 @@
     document
       .getElementById("destinations-list")
       .addEventListener("click", handleDestinationsListClick);
+    document
+      .getElementById("analysis-preview-button")
+      .addEventListener("click", handleAnalysisPreview);
+    document
+      .getElementById("analysis-run-button")
+      .addEventListener("click", handleAnalysisRun);
   }
 
   document.addEventListener("DOMContentLoaded", initDashboard);

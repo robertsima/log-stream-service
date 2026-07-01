@@ -1448,6 +1448,12 @@ pre {
   font-size: 0.9rem;
 }
 
+.analysis-events-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
 .mono-inline {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.88em;
