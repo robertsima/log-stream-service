@@ -12,8 +12,18 @@
 
     gtag('config', 'G-6MSYZQXVM2');
   </script>
-  <title>PrairieLog API — Developer Portal</title>
+  <title>PrairieLog — Real-time error alerts for small apps in Slack or Discord</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <meta name="description" content="PrairieLog is a lightweight log alerting service: send logs from your app over a simple webhook API and get aggregated real-time error alerts in Slack or Discord. No log warehouse required." />
+  <link rel="canonical" href="https://prairie-log-api.netlify.app/" />
+  <link rel="icon" type="image/png" href="resources/images/prairie-dog-silhouette.png" />
+  <meta property="og:site_name" content="PrairieLog" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="PrairieLog — Real-time error alerts for small apps in Slack or Discord" />
+  <meta property="og:description" content="PrairieLog is a lightweight log alerting service: send logs from your app over a simple webhook API and get aggregated real-time error alerts in Slack or Discord. No log warehouse required." />
+  <meta property="og:url" content="https://prairie-log-api.netlify.app/" />
+  <meta property="og:image" content="https://prairie-log-api.netlify.app/resources/images/prairie-dog-silhouette.png" />
+  <meta name="twitter:card" content="summary" />
   <script src="js/env.js" defer></script>
   <script src="js/env.local.js" defer></script>
   <script src="js/state.js" defer></script>
@@ -165,6 +175,92 @@ prairieLog.installNodeHandlers();
       </a>
     </div>
   </section>
+
+  <section id="faq" class="page-section card-section">
+    <h2 class="heading-with-icon"><i data-lucide="circle-help" class="icon" aria-hidden="true"></i><span>Frequently asked questions</span></h2>
+
+    <h3>What is PrairieLog?</h3>
+    <p>
+      PrairieLog is a lightweight log alerting service for small apps. Your application sends log events to a
+      webhook-style ingestion endpoint (directly or through an SDK), and PrairieLog delivers aggregated real-time
+      error alerts to Slack or Discord. There is no log warehouse to run and nothing to self-host.
+    </p>
+
+    <h3>How do Slack and Discord error alerts work?</h3>
+    <p>
+      You register a Slack or Discord incoming webhook as an alert destination for your app. When matching
+      <strong>ERROR</strong> logs arrive, PrairieLog groups them over a short aggregation window (about one minute)
+      and sends one summarized alert to your channel instead of a message per log line.
+    </p>
+
+    <h3>Does PrairieLog store my logs?</h3>
+    <p>
+      No. Logs are held in memory briefly for aggregation and then discarded — PrairieLog is a relay, not a log
+      warehouse. If you need long-term retention or search, pair it with a storage-focused tool.
+    </p>
+
+    <h3>Which languages and loggers are supported?</h3>
+    <p>
+      There are SDKs for TypeScript/JavaScript (browser, Node, React, Angular), a Python <code>logging</code>
+      handler, and a Java Logback appender. The ingestion API also accepts tolerant JSON from common logging
+      stacks like Logstash, python-json-logger, Winston, and Pino without client-side mapping. The SDKs are
+      currently installed from the repository — registry packages (npm, PyPI, Maven Central) are not published yet.
+    </p>
+
+    <h3>Who is PrairieLog for?</h3>
+    <p>
+      Indie developers and small teams who want simple log monitoring and real-time error alerts without running
+      observability infrastructure. If a full APM or log warehouse is overkill for your app, PrairieLog covers the
+      "tell me in Slack when something breaks" part. It is currently free to use.
+    </p>
+  </section>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "PrairieLog",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "url": "https://prairie-log-api.netlify.app/",
+        "description": "Lightweight log alerting for small apps: webhook log ingestion with aggregated real-time error alerts in Slack or Discord. No log warehouse required.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is PrairieLog?",
+            "acceptedAnswer": { "@type": "Answer", "text": "PrairieLog is a lightweight log alerting service for small apps. Your application sends log events to a webhook-style ingestion endpoint (directly or through an SDK), and PrairieLog delivers aggregated real-time error alerts to Slack or Discord. There is no log warehouse to run and nothing to self-host." }
+          },
+          {
+            "@type": "Question",
+            "name": "How do Slack and Discord error alerts work?",
+            "acceptedAnswer": { "@type": "Answer", "text": "You register a Slack or Discord incoming webhook as an alert destination for your app. When matching ERROR logs arrive, PrairieLog groups them over a short aggregation window (about one minute) and sends one summarized alert to your channel instead of a message per log line." }
+          },
+          {
+            "@type": "Question",
+            "name": "Does PrairieLog store my logs?",
+            "acceptedAnswer": { "@type": "Answer", "text": "No. Logs are held in memory briefly for aggregation and then discarded — PrairieLog is a relay, not a log warehouse. If you need long-term retention or search, pair it with a storage-focused tool." }
+          },
+          {
+            "@type": "Question",
+            "name": "Which languages and loggers are supported?",
+            "acceptedAnswer": { "@type": "Answer", "text": "There are SDKs for TypeScript/JavaScript (browser, Node, React, Angular), a Python logging handler, and a Java Logback appender. The ingestion API also accepts tolerant JSON from common logging stacks like Logstash, python-json-logger, Winston, and Pino without client-side mapping. The SDKs are currently installed from the repository — registry packages are not published yet." }
+          },
+          {
+            "@type": "Question",
+            "name": "Who is PrairieLog for?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Indie developers and small teams who want simple log monitoring and real-time error alerts without running observability infrastructure. It is currently free to use." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <footer class="footer">
     <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
