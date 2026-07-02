@@ -12,7 +12,7 @@
 
     gtag('config', 'G-6MSYZQXVM2');
   </script>
-  <title>Getting Started — PrairieLog API</title>
+  <title>Getting Started - PrairieLog API</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/env.js" defer></script>
   <script src="js/env.local.js" defer></script>
@@ -20,6 +20,7 @@
   <script src="js/rest-service.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="js/app.js" defer></script>
+  <script src="js/examples.js" defer></script>
 </head>
 <body>
   <nav class="navbar">
@@ -34,35 +35,89 @@
 
   <main class="page-main getting-started">
     <header class="page-header">
-      <h1>Getting Started</h1>
+      <h1>Getting Started with PrairieLog SDKs</h1>
       <p>
-        Curl reference for every API step. New here?
-        <a href="demo.html">Start with the live demo</a> — paste an alert webhook and get copy-ready code in under a minute.
+        Create an app token, install the SDK for your runtime, and send ERROR logs to PrairieLog.
+        Drop into the raw API flow only when you need curl or schema-level detail.
       </p>
-      <a class="button" href="demo.html">
-        <i data-lucide="zap" class="icon" aria-hidden="true"></i>
-        <span>Try the Live Demo</span>
-      </a>
+      <div class="button-row">
+        <a class="button" href="demo.html">
+          <i data-lucide="zap" class="icon" aria-hidden="true"></i>
+          <span>Try the Live Demo</span>
+        </a>
+        <a class="secondary" href="docs.html">
+          <i data-lucide="book-open-text" class="icon" aria-hidden="true"></i>
+          <span>API Docs</span>
+        </a>
+      </div>
     </header>
 
-    <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="lightbulb" class="icon" aria-hidden="true"></i><span>Two credentials</span></h2>
-      <ul class="credential-list">
-        <li><strong>Ingestion token</strong> — your app sends logs <em>to</em> PrairieLog (header: <code>X-Ingestion-Token</code>)</li>
-        <li><strong>Alert webhook</strong> — Slack or Discord incoming URL where PrairieLog sends alerts <em>to your channel</em></li>
-      </ul>
-      <p class="muted">Only <strong>ERROR</strong> logs trigger aggregated alerts. INFO, WARN, DEBUG, and TRACE are accepted but do not notify.</p>
-    </section>
+    <div class="guide-layout">
+      <aside class="guide-toc" aria-label="Getting started sections">
+        <div class="guide-toc-inner">
+          <p class="guide-toc-title">On this page</p>
+          <a href="#requirements">Requirements</a>
+          <a href="#sdk-install">SDK install</a>
+          <a href="#runtime-config">Runtime config</a>
+          <a href="#framework-examples-section">Framework patterns</a>
+          <a href="#api-reference">API docs</a>
+          <a href="#raw-api-bootstrap">Raw API bootstrap</a>
+          <a class="guide-toc-sub" href="#create-user">Create user</a>
+          <a class="guide-toc-sub" href="#register-app">Register app</a>
+          <a class="guide-toc-sub" href="#generate-token">Generate token</a>
+          <a class="guide-toc-sub" href="#alert-destination">Alert destination</a>
+          <a class="guide-toc-sub" href="#send-log-event">Send log event</a>
+        </div>
+      </aside>
 
-    <section class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="package" class="icon" aria-hidden="true"></i><span>Use an SDK</span></h2>
+      <div class="guide-content">
+        <section id="requirements" class="page-section card-section">
+          <h2 class="heading-with-icon"><i data-lucide="lightbulb" class="icon" aria-hidden="true"></i><span>Requirements</span></h2>
+          <ul class="credential-list">
+            <li><strong>App record</strong> - the PrairieLog service that owns the logs.</li>
+            <li><strong>Ingestion token</strong> - the token your app uses to send logs.</li>
+            <li><strong>Alert webhook</strong> - the Slack or Discord URL that receives alerts.</li>
+          </ul>
+          <p class="muted">Only <strong>ERROR</strong> logs trigger aggregated alerts. INFO, WARN, DEBUG, and TRACE are accepted but do not notify.</p>
+        </section>
+
+        <section id="sdk-install" class="page-section card-section">
+          <h2 class="heading-with-icon"><i data-lucide="package" class="icon" aria-hidden="true"></i><span>SDK install</span></h2>
       <p>
-        SDKs are the preferred integration path. TypeScript covers browser, React, Angular, Node, and vanilla JS;
-        Python and Java starters cover <code>logging.Handler</code> and Logback services.
+        SDKs are the normal integration path. They batch events, normalize levels, and fill required fields.
       </p>
+      <ul class="credential-list">
+        <li><strong>TypeScript</strong> - browser, React, Angular, vanilla JS, and Node services.</li>
+        <li><strong>Python</strong> - attach <code>PrairieLogHandler</code> to standard <code>logging</code>.</li>
+        <li><strong>Java</strong> - add the Logback appender for JVM services.</li>
+      </ul>
       <div class="code-block">
         <div class="code-block-header">
-          <span class="code-block-label">npm package</span>
+          <span class="code-block-label">Package install targets</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-sdk-install" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-sdk-install"><code># After registry publishing
+npm install @prairielog/client
+pip install prairielog-handler
+
+&lt;dependency&gt;
+  &lt;groupId&gt;com.prairielog&lt;/groupId&gt;
+  &lt;artifactId&gt;prairielog-logback&lt;/artifactId&gt;
+  &lt;version&gt;0.1.0&lt;/version&gt;
+&lt;/dependency&gt;
+
+# Local workspace today
+npm install ./frontend/sdk/typescript
+pip install ./frontend/sdk/python
+mvn install -f frontend/sdk/java-logback/pom.xml</code></pre>
+      </div>
+      <p class="muted">Packages are shaped for npm, PyPI, and Maven Central. Until publishing happens, use the local workspace install commands.</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">TypeScript / JavaScript</span>
           <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-sdk" aria-label="Copy code">
             <i data-lucide="copy" class="icon" aria-hidden="true"></i>
             <span class="btn-label">Copy</span>
@@ -73,17 +128,22 @@
 const prairieLog = new PrairieLogClient({
   apiUrl: "__API_BASE_URL__",
   ingestionToken: "YOUR_INGESTION_TOKEN",
-  defaultLogger: "my-app",
+  defaultLogger: "checkout-web",
+  batchSize: 50,
   storageKey: "prairielog-buffer"
 });
 
 prairieLog.installGlobalHandlers();
 
-await prairieLog.info("App started");</code></pre>
+await prairieLog.info("Checkout loaded", { route: "/checkout" });
+await prairieLog.captureException(error, {
+  endpoint: "/api/v1/checkout",
+  orderId: "ord_123"
+});</code></pre>
       </div>
       <div class="code-block">
         <div class="code-block-header">
-          <span class="code-block-label">Python</span>
+          <span class="code-block-label">Python logging</span>
           <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-sdk-python" aria-label="Copy code">
             <i data-lucide="copy" class="icon" aria-hidden="true"></i>
             <span class="btn-label">Copy</span>
@@ -95,8 +155,11 @@ from prairielog_handler import PrairieLogHandler
 logging.getLogger().addHandler(PrairieLogHandler(
     api_url="__API_BASE_URL__",
     ingestion_token="YOUR_INGESTION_TOKEN",
-    logger_name="my-python-service",
-))</code></pre>
+    logger_name="checkout-worker",
+    batch_size=50,
+))
+
+logging.exception("Payment failed")</code></pre>
       </div>
       <div class="code-block">
         <div class="code-block-header">
@@ -106,14 +169,62 @@ logging.getLogger().addHandler(PrairieLogHandler(
             <span class="btn-label">Copy</span>
           </button>
         </div>
-        <pre id="gs-sdk-java"><code>&lt;appender name="PRAIRIELOG" class="com.prairielog.logback.PrairieLogAppender"&gt;
+<pre id="gs-sdk-java"><code>&lt;appender name="PRAIRIELOG" class="com.prairielog.logback.PrairieLogAppender"&gt;
   &lt;apiUrl&gt;__API_BASE_URL__&lt;/apiUrl&gt;
   &lt;ingestionToken&gt;${PRAIRIELOG_INGESTION_TOKEN}&lt;/ingestionToken&gt;
-&lt;/appender&gt;</code></pre>
-      </div>
-    </section>
+  &lt;batchSize&gt;50&lt;/batchSize&gt;
+&lt;/appender&gt;
 
-    <section class="page-section card-section">
+&lt;root level="INFO"&gt;
+  &lt;appender-ref ref="PRAIRIELOG"/&gt;
+&lt;/root&gt;</code></pre>
+      </div>
+        </section>
+
+        <section id="runtime-config" class="page-section card-section">
+          <h2 class="heading-with-icon"><i data-lucide="settings-2" class="icon" aria-hidden="true"></i><span>Runtime config</span></h2>
+      <p>
+        Keep server tokens in environment variables. Browser apps should use a scoped browser token only for client-side telemetry.
+      </p>
+      <ul class="credential-list">
+        <li><code>apiUrl</code> is the PrairieLog API base URL, currently <code>__API_BASE_URL__</code>.</li>
+        <li><code>ingestionToken</code> is the token created for your PrairieLog app.</li>
+        <li><code>batchSize</code> controls how many events the SDK sends per request. The API accepts up to 100.</li>
+        <li><code>metadata</code> should carry route, order, status, user, or feature context.</li>
+      </ul>
+        </section>
+
+        <section id="framework-examples-section" class="page-section">
+          <h2 class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>Framework patterns</span></h2>
+      <p class="muted">
+        React and Angular examples build on the TypeScript client for global error capture, boundaries, and dependency-injected logging.
+      </p>
+      <div id="framework-examples">
+        <p class="muted loading-row"><i data-lucide="loader-circle" class="icon icon-spin" aria-hidden="true"></i> Loading framework snippets...</p>
+      </div>
+        </section>
+
+        <section id="api-reference" class="page-section card-section">
+          <h2 class="heading-with-icon"><i data-lucide="route" class="icon" aria-hidden="true"></i><span>API docs</span></h2>
+      <p>
+        Use the API docs for endpoint groups, curl examples, OpenAPI schemas, and response shapes.
+      </p>
+      <div class="button-row button-row-tight">
+        <a class="button" href="docs.html">
+          <i data-lucide="book-open-text" class="icon" aria-hidden="true"></i>
+          <span>Open API Docs</span>
+        </a>
+      </div>
+        </section>
+
+        <section id="raw-api-bootstrap" class="page-section card-section">
+          <h2 class="heading-with-icon"><i data-lucide="terminal" class="icon" aria-hidden="true"></i><span>Raw API bootstrap reference</span></h2>
+      <p>
+        Use these curl steps for credentials and one-off tests. Application logging should use an SDK.
+      </p>
+        </section>
+
+        <section id="create-user" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Create a user</span></h2>
       <p>Bootstrap a user record. Full login is not implemented yet — this step registers an owner for your apps.</p>
       <div class="code-block">
@@ -131,9 +242,9 @@ logging.getLogger().addHandler(PrairieLogHandler(
     "username": "devuser"
   }'</code></pre>
       </div>
-    </section>
+        </section>
 
-    <section class="page-section card-section">
+        <section id="register-app" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="app-window" class="icon" aria-hidden="true"></i><span>Register your app</span></h2>
       <p>Register the application or service that will send logs to PrairieLog API.</p>
       <div class="code-block">
@@ -151,9 +262,9 @@ logging.getLogger().addHandler(PrairieLogHandler(
     "description": "Sends live logs from the payment API."
   }'</code></pre>
       </div>
-    </section>
+        </section>
 
-    <section class="page-section card-section">
+        <section id="generate-token" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Generate an ingestion token</span></h2>
       <p>
         The raw token is returned once at creation. Copy it immediately into a server env var
@@ -179,9 +290,9 @@ logging.getLogger().addHandler(PrairieLogHandler(
     "name": "local-dev-token"
   }'</code></pre>
       </div>
-    </section>
+        </section>
 
-    <section class="page-section card-section">
+        <section id="alert-destination" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="bell-plus" class="icon" aria-hidden="true"></i><span>Add an alert destination</span></h2>
       <p>
         Register the Slack or Discord <strong>incoming webhook URL</strong> where you want alerts delivered.
@@ -204,9 +315,9 @@ logging.getLogger().addHandler(PrairieLogHandler(
   }'</code></pre>
       </div>
       <p>Destination types: <code>SLACK</code> or <code>DISCORD</code>. Webhook URLs are stored by the API but never returned in full from list endpoints.</p>
-    </section>
+        </section>
 
-    <section class="page-section card-section">
+        <section id="test-destination" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test your alert destination</span></h2>
       <p>Send a test message to confirm PrairieLog can reach your Slack or Discord channel.</p>
       <div class="code-block">
@@ -220,9 +331,9 @@ logging.getLogger().addHandler(PrairieLogHandler(
         <pre id="gs-step6"><code>curl -X POST \
   __API_BASE_URL__/api/v1/apps/{appId}/alert-destinations/{destinationId}/test</code></pre>
       </div>
-    </section>
+        </section>
 
-    <section class="page-section card-section">
+        <section id="send-log-event" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i><span>Send a log event</span></h2>
       <p>POST a JSON log event from your app using your <strong>ingestion token</strong> (not the alert webhook).</p>
       <div class="code-block">
@@ -265,7 +376,9 @@ logging.getLogger().addHandler(PrairieLogHandler(
   }]'</code></pre>
       </div>
       <p class="muted">Use <code>level: "ERROR"</code> to trigger aggregated alerts. Other levels are accepted but do not notify.</p>
-    </section>
+        </section>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">

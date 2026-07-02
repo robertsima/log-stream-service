@@ -12,7 +12,7 @@
 
     gtag('config', 'G-6MSYZQXVM2');
   </script>
-  <title>API Docs — PrairieLog API</title>
+  <title>API Reference - PrairieLog API</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/env.js" defer></script>
   <script src="js/env.local.js" defer></script>
@@ -35,33 +35,77 @@
 
   <main class="page-main docs-page">
     <header class="page-header">
-      <h1 class="heading-with-icon"><i data-lucide="book-open-text" class="icon icon-page" aria-hidden="true"></i><span>API Documentation</span></h1>
+      <h1 class="heading-with-icon"><i data-lucide="book-open-text" class="icon icon-page" aria-hidden="true"></i><span>API Reference</span></h1>
       <p>
-        Endpoint reference generated from the OpenAPI contract. Apps send logs with an <strong>ingestion token</strong>;
-        alert destinations use a separate Slack or Discord <strong>alert webhook</strong>.
+        OpenAPI-backed reference for PrairieLog endpoints, request examples, response bodies, and raw curl calls.
+        Use Getting Started for SDK setup.
       </p>
       <p>
-        For apps, prefer an SDK. TypeScript covers browser, React, Angular, Node, and vanilla JS; Python and Java
-        starters cover <code>logging.Handler</code> and Logback integrations.
+        Log ingestion uses <strong>ingestion tokens</strong>. Slack and Discord alert destinations use separate
+        <strong>alert webhooks</strong>; list responses never expose full webhook URLs.
       </p>
-      <button type="button" id="download-openapi-button" class="secondary">
-        <i data-lucide="download" class="icon" aria-hidden="true"></i>
-        <span class="btn-label">Download OpenAPI JSON</span>
-      </button>
+      <div class="button-row">
+        <a class="button" href="getting-started.html">
+          <i data-lucide="rocket" class="icon" aria-hidden="true"></i>
+          <span>SDK Guide</span>
+        </a>
+        <button type="button" id="download-openapi-button" class="secondary">
+          <i data-lucide="download" class="icon" aria-hidden="true"></i>
+          <span class="btn-label">Download OpenAPI JSON</span>
+        </button>
+      </div>
     </header>
 
-    <section class="page-section card-section card-section-compact">
-      <h2 class="heading-with-icon"><i data-lucide="package" class="icon" aria-hidden="true"></i><span>SDK Quick Start</span></h2>
-      <p class="muted">All SDKs send through the batch endpoint and keep ingestion tokens out of user-facing copy.</p>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-label">TypeScript</span>
-          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-quickstart" aria-label="Copy code">
-            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Copy</span>
-          </button>
+    <div class="guide-layout">
+      <aside class="guide-toc" aria-label="API documentation sections">
+        <div class="guide-toc-inner">
+          <p class="guide-toc-title">On this page</p>
+          <a href="#docs-sdk-entry">SDK entry points</a>
+          <a href="#endpoint-list">Endpoint reference</a>
+          <nav id="docs-tag-nav" class="guide-toc-dynamic" aria-label="Endpoint groups" hidden></nav>
         </div>
-        <pre id="docs-sdk-quickstart"><code>import { PrairieLogClient } from "@prairielog/client";
+      </aside>
+
+      <div class="guide-content">
+        <section id="docs-sdk-entry" class="page-section card-section card-section-compact">
+          <h2 class="heading-with-icon"><i data-lucide="package" class="icon" aria-hidden="true"></i><span>SDK entry points</span></h2>
+          <p class="muted">
+            Prefer SDKs for application logging. This page keeps the package install targets visible,
+            then drops into the generated endpoint reference below.
+          </p>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span class="code-block-label">Package install targets</span>
+              <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-install" aria-label="Copy code">
+                <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Copy</span>
+              </button>
+            </div>
+            <pre id="docs-sdk-install"><code># After registry publishing
+npm install @prairielog/client
+pip install prairielog-handler
+
+&lt;dependency&gt;
+  &lt;groupId&gt;com.prairielog&lt;/groupId&gt;
+  &lt;artifactId&gt;prairielog-logback&lt;/artifactId&gt;
+  &lt;version&gt;0.1.0&lt;/version&gt;
+&lt;/dependency&gt;
+
+# Local workspace today
+npm install ./frontend/sdk/typescript
+pip install ./frontend/sdk/python
+mvn install -f frontend/sdk/java-logback/pom.xml</code></pre>
+          </div>
+          <p class="muted">Packages are shaped for npm, PyPI, and Maven Central. Until publishing happens, use the local workspace install commands.</p>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span class="code-block-label">TypeScript / Node</span>
+              <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-quickstart" aria-label="Copy code">
+                <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Copy</span>
+              </button>
+            </div>
+            <pre id="docs-sdk-quickstart"><code>import { PrairieLogClient } from "@prairielog/client";
 
 const prairieLog = new PrairieLogClient({
   apiUrl: "__API_BASE_URL__",
@@ -76,16 +120,16 @@ await prairieLog.captureException(error, {
   endpoint: "/api/v1/checkout",
   orderId: "ord_123"
 });</code></pre>
-      </div>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-label">Python logging</span>
-          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-python" aria-label="Copy code">
-            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Copy</span>
-          </button>
-        </div>
-        <pre id="docs-sdk-python"><code>import logging
+          </div>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span class="code-block-label">Python logging</span>
+              <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-python" aria-label="Copy code">
+                <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Copy</span>
+              </button>
+            </div>
+            <pre id="docs-sdk-python"><code>import logging
 from prairielog_handler import PrairieLogHandler
 
 logging.getLogger().addHandler(PrairieLogHandler(
@@ -95,27 +139,37 @@ logging.getLogger().addHandler(PrairieLogHandler(
 ))
 
 logging.exception("Payment failed")</code></pre>
-      </div>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-label">Java Logback</span>
-          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-java" aria-label="Copy code">
-            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Copy</span>
-          </button>
-        </div>
-        <pre id="docs-sdk-java"><code>&lt;appender name="PRAIRIELOG" class="com.prairielog.logback.PrairieLogAppender"&gt;
+          </div>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span class="code-block-label">Java Logback</span>
+              <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-java" aria-label="Copy code">
+                <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Copy</span>
+              </button>
+            </div>
+            <pre id="docs-sdk-java"><code>&lt;appender name="PRAIRIELOG" class="com.prairielog.logback.PrairieLogAppender"&gt;
   &lt;apiUrl&gt;__API_BASE_URL__&lt;/apiUrl&gt;
   &lt;ingestionToken&gt;${PRAIRIELOG_INGESTION_TOKEN}&lt;/ingestionToken&gt;
   &lt;batchSize&gt;50&lt;/batchSize&gt;
-&lt;/appender&gt;</code></pre>
+&lt;/appender&gt;
+
+&lt;root level="INFO"&gt;
+  &lt;appender-ref ref="PRAIRIELOG"/&gt;
+&lt;/root&gt;</code></pre>
+          </div>
+          <div class="button-row button-row-tight">
+            <a class="secondary" href="getting-started.html">
+              <i data-lucide="rocket" class="icon" aria-hidden="true"></i>
+              <span>Full SDK guide</span>
+            </a>
+          </div>
+        </section>
+
+        <div id="endpoint-list">
+          <p class="muted loading-row"><i data-lucide="loader-circle" class="icon icon-spin" aria-hidden="true"></i> Loading API contract...</p>
+        </div>
       </div>
-    </section>
-
-    <nav id="docs-tag-nav" class="docs-tag-nav" aria-label="Endpoint groups" hidden></nav>
-
-    <div id="endpoint-list">
-      <p class="muted loading-row"><i data-lucide="loader-circle" class="icon icon-spin" aria-hidden="true"></i> Loading API contract...</p>
     </div>
   </main>
 

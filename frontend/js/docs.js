@@ -16,6 +16,16 @@
       id: "docs-node-sdk",
       title: "Node SDK",
       path: "./resources/snippets/sdk/node.ts.txt"
+    },
+    {
+      id: "docs-python-sdk",
+      title: "Python logging handler",
+      path: "./resources/snippets/sdk/python-handler.py.txt"
+    },
+    {
+      id: "docs-java-sdk",
+      title: "Java Logback appender",
+      path: "./resources/snippets/sdk/logback-appender.xml.txt"
     }
   ];
 
@@ -246,7 +256,7 @@
 
     return (
       '<div class="endpoint-integration-examples">' +
-      '<h4 class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>Integration examples</span></h4>' +
+      '<h4 class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>SDK patterns for this endpoint</span></h4>' +
       blocks.join("") +
       "</div>"
     );
@@ -463,11 +473,11 @@
     nav.innerHTML = orderedTags
       .map(function (tag) {
         return (
-          '<a class="docs-tag-link" href="#docs-tag-' +
+      '<a class="guide-toc-sub" href="#docs-tag-' +
           slugify(tag) +
           '">' +
           window.PrairieLogUI.escapeHtml(tag) +
-          '<span class="docs-tag-link-count">' +
+          '<span class="guide-toc-count">' +
           groups[tag].length +
           "</span></a>"
         );

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prairielog-handler"
+version = "0.1.0"
+description = "Python logging handler for PrairieLog ingestion."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+  { name = "PrairieLog" }
+]
+keywords = ["prairielog", "logging", "logs", "observability"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: System :: Logging"
+]
+
+[project.urls]
+Homepage = "https://prairielog.dev"
+Documentation = "https://prairielog.dev/docs.html"
+
+[tool.setuptools]
+py-modules = ["prairielog_handler"]

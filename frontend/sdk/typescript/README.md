@@ -2,6 +2,14 @@
 
 Dependency-free TypeScript client for sending browser, React, Angular, vanilla JS, and Node logs to PrairieLog.
 
+# After registry publishing:
+
+```bash
+npm install @prairielog/client
+```
+
+Until then, install from this repo with `npm install ./frontend/sdk/typescript`.
+
 ```ts
 import { PrairieLogClient } from "@prairielog/client";
 
