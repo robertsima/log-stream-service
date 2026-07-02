@@ -284,6 +284,12 @@ Typical setup flow:
 * [x] Static developer portal (vanilla HTML/JS)
 * [x] Deployment-ready env-based configuration
 
+## License
+
+This repository is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE): you may use, copy, and modify the service for noncommercial purposes, but you may not sell it or use it commercially.
+
+**Exception:** the client SDKs under `frontend/sdk/` (TypeScript, Python, Java Logback) are licensed under the [MIT License](frontend/sdk/typescript/LICENSE) so that any application — including commercial ones — can embed them to send logs to a PrairieLog instance. Each SDK directory contains its own MIT `LICENSE` file.
+
 ## Future Plans
 
 * [ ] Add user authentication and role-based access control

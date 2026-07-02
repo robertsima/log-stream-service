@@ -1,32 +1,28 @@
 # Phase 1 SDK Release Readiness Audit
 
-Status: complete (audit + metadata patches), publish blocked on license decision
+Status: complete. License decision resolved 2026-07-02 (dual-license, see below).
 Date: 2026-07-02
 Verification tier: Tier 2, SDK-local only. No publish/deploy commands were run.
 
-## Release Blockers
+## License Decision (resolved)
 
-1. **License conflict (must resolve before any publish).** Root `LICENSE` is
-   PolyForm Noncommercial 1.0.0 (Copyright 2026 Robert Sima), but all three SDK
-   packages declare MIT (`package.json` license, `pyproject.toml` license,
-   `pom.xml` licenses). Publishing MIT-labeled packages from a
-   PolyForm-Noncommercial repo is contradictory. Decide one of:
-   - dual-license: keep repo PolyForm, add per-SDK MIT `LICENSE` files and state
-     the split in the root README; or
-   - change SDK metadata to match the repo license (note: PolyForm Noncommercial
-     is unusual for client SDKs and will deter adoption); or
-   - relicense the repo.
-   This is a user decision; metadata was intentionally left as MIT.
-2. **No LICENSE file ships in any package.** npm tarball, Python wheel/sdist,
-   and jar contain no license text. Blocked by #1; once decided, add a
-   `LICENSE` file to each SDK directory (npm includes it automatically;
-   setuptools picks up `LICENSE` via `license-files`; Maven needs it in the
-   jar or relies on POM metadata).
-3. **Maven Central additional requirements** (beyond metadata fixed in this
+User goal: keep the product free and prevent commercial resale of the software.
+Resolution: dual-license. The repository (backend service + frontend app) stays
+under PolyForm Noncommercial 1.0.0, which forbids commercial use/resale. The
+three client SDKs under `frontend/sdk/` are MIT so that any application,
+including commercial ones, can embed them to send logs to PrairieLog. Each SDK
+directory now has its own MIT `LICENSE` file (Copyright 2026 Robert Sima), the
+root `README.md` has a License section stating the split, and packaging was
+verified to ship the license text (npm tarball includes `LICENSE`; Python wheel
+includes `dist-info/licenses/LICENSE`; Maven relies on POM license metadata).
+
+## Remaining Release Blockers
+
+1. **Maven Central additional requirements** (beyond metadata fixed in this
    pass): javadoc + sources jars, GPG signing, and a registered
    `com.prairielog` namespace (requires proving domain ownership of
    prairielog.dev via Central Portal). Not needed for local/GitHub installs.
-4. **npm scope `@prairielog` and PyPI name `prairielog-handler`** must be
+2. **npm scope `@prairielog` and PyPI name `prairielog-handler`** must be
    claimed/verified available at publish time. Not verified in this audit
    (no registry commands run). Do not claim they are live anywhere in docs.
 
@@ -82,7 +78,7 @@ Java (`frontend/sdk/java-logback/`; no system `mvn`, use backend wrapper):
 
 ## Publish-Readiness Checklist (Phase 6 input)
 
-- [ ] Resolve license conflict (blocker #1) and add LICENSE file per SDK
+- [x] Resolve license conflict and add LICENSE file per SDK (done: dual-license, MIT SDKs)
 - [ ] Confirm `@prairielog` npm scope and `prairielog-handler` PyPI name are available
 - [ ] npm: `npm publish --dry-run` review, then publish with 2FA; verify README renders
 - [ ] PyPI: consider migrating `license = { text = "MIT" }` to SPDX string form
