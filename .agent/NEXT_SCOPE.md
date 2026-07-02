@@ -2,8 +2,8 @@
 
 Status: ready for next agent
 Created: 2026-07-02
-Current recommended phase: Phase 3 - Security review
-Completed: Phase 1 (see `.agent/SDK_RELEASE_AUDIT.md`), Phase 2 (see `.agent/DOCS_ACCURACY_PASS.md`)
+Current recommended phase: Phase 4 - Frontend UX cleanup
+Completed: Phase 1 (see `.agent/SDK_RELEASE_AUDIT.md`), Phase 2 (see `.agent/DOCS_ACCURACY_PASS.md`), Phase 3 (see `.agent/SECURITY_REVIEW.md`)
 
 This packet defines the next staged project scope after agent/context optimization. It is not a cross-surface implementation contract. Create a contract only if a later phase requires API shape, schema, backend behavior, and frontend behavior to change together.
 

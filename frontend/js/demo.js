@@ -658,15 +658,20 @@
     document
       .getElementById("quick-demo-send-info-button")
       .addEventListener("click", handleQuickDemoSendInfo);
-    document
-      .getElementById("integrate-copy-token-button")
-      .addEventListener("click", handleIntegrateCopyToken);
-    document
-      .getElementById("integrate-copy-snippet-button")
-      .addEventListener("click", handleIntegrateCopySnippet);
-    document
-      .getElementById("demo-console-clear")
-      .addEventListener("click", clearConsole);
+    // The raw-token banner and copy-token button are currently commented out in
+    // demo.html (the shared demo token is not displayed), so guard these bindings.
+    const copyTokenButton = document.getElementById("integrate-copy-token-button");
+    if (copyTokenButton) {
+      copyTokenButton.addEventListener("click", handleIntegrateCopyToken);
+    }
+    const copySnippetButton = document.getElementById("integrate-copy-snippet-button");
+    if (copySnippetButton) {
+      copySnippetButton.addEventListener("click", handleIntegrateCopySnippet);
+    }
+    const consoleClearButton = document.getElementById("demo-console-clear");
+    if (consoleClearButton) {
+      consoleClearButton.addEventListener("click", clearConsole);
+    }
   }
 
   document.addEventListener("DOMContentLoaded", initDemo);
