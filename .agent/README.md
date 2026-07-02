@@ -1,23 +1,26 @@
 # Agent workspace
 
-Artifacts for multi-step and cross-surface work. Coding standards stay in `.cursor/rules/`; this folder holds **routing, contracts, and continuity**.
+Artifacts for multi-step and cross-surface work. Coding standards stay in `.cursor/rules/`; this folder holds routing, contracts, continuity, context indexes, and summaries.
 
 ## Layout
 
 ```text
 .agent/
-  README.md           ← this file
-  CONTINUITY.md       ← durable facts between sessions (not a contract)
-  manifests/          ← capability manifests (router reads these)
-  contracts/          ← shared specs (planner writes; implementers follow)
+  README.md           <- this file
+  CONTINUITY.md       <- durable facts between sessions (not a contract)
+  CONTEXT_INDEX.md    <- summary-first retrieval map
+  NEXT_SCOPE.md       <- staged handoff plan for the next practical project scope
+  summaries/          <- short stable context packets
+  manifests/          <- capability manifests (router reads these)
+  contracts/          <- shared specs (planner writes; implementers follow)
     _template.md
-    <slug>.md         ← one file per cross-surface task
+    <slug>.md         <- one file per cross-surface task
 ```
 
 ## Roles
 
 | Role | Writes code? | Primary output |
-|------|----------------|----------------|
+|------|--------------|----------------|
 | Router (default session / AGENTS.md) | No | Route + enforce contract gate |
 | Planner | No | `.agent/contracts/<slug>.md` |
 | Slow implementers (core-data, infra) | Yes | Broad, stable layers |
@@ -30,9 +33,12 @@ Artifacts for multi-step and cross-surface work. Coding standards stay in `.curs
 
 **No:** one HTML page copy fix, one service bug in an existing endpoint, test-only change, README typo.
 
-## Continuity vs contract
+## Continuity, Index, And Contract
 
-- **CONTINUITY.md** — session memory (decisions, discoveries, outcomes). Update sparingly.
-- **contracts/** — binding spec for a specific task. Planner creates; reviewer validates against it.
+- **CONTEXT_INDEX.md** - retrieval map; read it before loading broad source context.
+- **NEXT_SCOPE.md** - active staged plan for SDK readiness, docs, security, UX, SEO/GEO, and publish preparation.
+- **summaries/** - short stable packets to read before full source files.
+- **CONTINUITY.md** - session memory (decisions, discoveries, outcomes). Update sparingly.
+- **contracts/** - binding spec for a specific task. Planner creates; reviewer validates against it.
 
-Do not put implementation plans only in CONTINUITY when a contract is required — use a contract file.
+Do not put implementation plans only in `CONTINUITY.md` when a contract is required; use a contract file.

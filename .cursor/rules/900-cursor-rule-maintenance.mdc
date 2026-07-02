@@ -1,5 +1,5 @@
 ---
-description: Use when creating or editing Cursor rules, agent manifests, or contracts.
+description: Use when creating or editing Cursor rules, agent manifests, contracts, or AGENTS files.
 globs:
   - ".cursor/rules/**/*.mdc"
   - ".agent/**/*.md"
@@ -9,36 +9,31 @@ alwaysApply: false
 ---
 # Cursor Rule Maintenance
 
-Use valid `.mdc` frontmatter:
-```md
----
-description: Clear trigger description.
-globs:
-  - "path/**/*.ext"
-alwaysApply: false
----
-```
+Valid `.mdc` rules have one frontmatter block at the top with:
+- `description`
+- optional `globs` for scoped rules
+- `alwaysApply: true` or `alwaysApply: false`
 
 Guidelines:
-- Keep only one or two `alwaysApply: true` rules.
-- Use glob-scoped rules for backend, frontend, tests, deployment, and docs.
-- Keep rules short, specific, and actionable.
+- Keep always-loaded rules short and stable.
+- Use glob-scoped rules for backend, frontend, tests, deployment, docs, SDK, and agent maintenance.
+- Keep rules specific and actionable.
 - Avoid duplicate rules that say the same thing.
 - Do not put `alwaysApply` inside the `globs` list.
-- Do not include duplicate frontmatter blocks.
+- Do not include duplicate frontmatter blocks or sample delimiter blocks.
 
 # Agent Artifact Maintenance
 
 Manifests (`.agent/manifests/*.md`):
 - State **stability** (slow/fast), **inputs**, **outputs**, and **I do not** boundaries.
-- Reference `.cursor/rules` by id — do not duplicate coding standards.
+- Reference `.cursor/rules` by id; do not duplicate coding standards.
 - Keep each manifest under ~40 lines; one role per file.
 
 Contracts (`.agent/contracts/*.md`):
 - Copy from `_template.md` for new cross-surface work.
 - Use tagged sections: `[core-data]`, `[backend]`, `[frontend]`, `[integration]`, `[infra]`.
-- Status lifecycle: draft → agreed → implementing → review → done.
+- Status lifecycle: draft -> agreed -> implementing -> review -> done.
 
-Do not use CONTINUITY.md as the only plan for cross-surface work — use a contract file.
+Do not use `CONTINUITY.md` as the only plan for cross-surface work; use a contract file.
 
 Router logic lives in root `AGENTS.md`, not in a bloated orchestrator manifest.

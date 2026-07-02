@@ -1,6 +1,7 @@
 # Backend agents
 
 Work under `backend/` routes by **stability**, not a single "backend domain" agent.
+Read [../.agent/CONTEXT_INDEX.md](../.agent/CONTEXT_INDEX.md) first for scoped retrieval and verification tier.
 
 ## Pick manifest
 
@@ -13,12 +14,7 @@ Work under `backend/` routes by **stability**, not a single "backend domain" age
 
 If the task also changes `frontend/`, start with [planner.md](../.agent/manifests/planner.md) and a contract in `.agent/contracts/`.
 
-## Build / test
-
-```bash
-cd backend && mvn -q clean package -DskipTests
-cd backend && mvn -q test
-```
+Verification is tiered by impact; see `030-verification-cost-control` before running Maven.
 
 ## Parent
 

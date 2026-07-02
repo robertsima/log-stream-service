@@ -1,0 +1,24 @@
+---
+description: Use when editing SDK source, examples, docs, packaging, or release metadata under frontend/sdk.
+globs:
+  - "frontend/sdk/**"
+alwaysApply: false
+---
+# SDK Release Rules
+
+SDK work stays inside the affected SDK unless the user explicitly expands scope.
+
+Do not run:
+- `npm publish`
+- `twine upload`
+- Maven deploy/release commands
+- Registry, package publishing, or release automation commands
+
+Do not change package names, coordinates, versions, registry config, or release metadata unless the task is specifically about packaging or release prep.
+
+Verification is SDK-local:
+- TypeScript SDK: build/typecheck/test only in `frontend/sdk/typescript/`.
+- Python SDK: import/package/unit checks only in `frontend/sdk/python/`.
+- Java Logback SDK: Maven only in `frontend/sdk/java-logback/`.
+
+Never run full backend Maven for SDK-only changes.

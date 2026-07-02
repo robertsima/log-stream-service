@@ -1,0 +1,30 @@
+---
+description: Use when editing docs, examples, snippets, OpenAPI JSON, or frontend flows that mention tokens, webhooks, auth, demo, or dashboard behavior.
+globs:
+  - "frontend/docs.html"
+  - "frontend/getting-started.html"
+  - "frontend/examples.html"
+  - "frontend/demo.html"
+  - "frontend/dashboard.html"
+  - "frontend/js/docs.js"
+  - "frontend/js/examples.js"
+  - "frontend/js/demo.js"
+  - "frontend/js/dashboard.js"
+  - "frontend/resources/openapi.json"
+  - "frontend/resources/snippets/**"
+  - "frontend/examples/**"
+  - "docs/**/*.md"
+  - "README.md"
+alwaysApply: false
+---
+# Frontend Docs Security
+
+Docs, examples, snippets, demo flows, and dashboard flows must not teach unsafe handling of secrets.
+
+Rules:
+- Do not include real ingestion tokens, webhook URLs, JWT secrets, Firebase secrets, database credentials, or production credentials.
+- Use placeholders for tokens, webhook URLs, and credentials.
+- Do not imply raw ingestion tokens or full webhook URLs can be recovered later.
+- Do not suggest storing raw tokens or webhook URLs in browser storage.
+- Keep examples compatible with the static frontend and documented SDK behavior.
+- Do not claim persistent log storage, full user auth, or production-grade secret management unless implemented.

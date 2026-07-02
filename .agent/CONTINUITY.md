@@ -6,6 +6,7 @@ Read [AGENTS.md](../AGENTS.md) for routing. Use contracts when planner runs.
 
 ## [PLANS]
 
+- 2026-07-02 [USER] Next practical project scope captured in `.agent/NEXT_SCOPE.md`; recommended current phase is SDK release readiness audit before docs/security/UX/SEO/publish prep.
 - 2026-06-11 [USER] Contract **agreed**: magic link auth; demo bypass `admin@email.com`; non-revoked token quota; no ADMIN role v1.
 
 ## [DECISIONS]
