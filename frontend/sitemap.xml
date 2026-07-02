@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://prairie-log-api.netlify.app/</loc>
+    <loc>https://prairie-log-api.com/</loc>
     <lastmod>2026-07-02</lastmod>
   </url>
   <url>
-    <loc>https://prairie-log-api.netlify.app/getting-started.html</loc>
+    <loc>https://prairie-log-api.com/getting-started.html</loc>
     <lastmod>2026-07-02</lastmod>
   </url>
   <url>
-    <loc>https://prairie-log-api.netlify.app/demo.html</loc>
+    <loc>https://prairie-log-api.com/demo.html</loc>
     <lastmod>2026-07-02</lastmod>
   </url>
   <url>
-    <loc>https://prairie-log-api.netlify.app/docs.html</loc>
+    <loc>https://prairie-log-api.com/docs.html</loc>
     <lastmod>2026-07-02</lastmod>
   </url>
   <url>
-    <loc>https://prairie-log-api.netlify.app/dashboard.html</loc>
+    <loc>https://prairie-log-api.com/dashboard.html</loc>
     <lastmod>2026-07-02</lastmod>
   </url>
 </urlset>

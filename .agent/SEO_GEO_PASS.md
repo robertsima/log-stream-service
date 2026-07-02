@@ -15,6 +15,18 @@ sitemap, robots, JSON-LD) use the live Netlify URL today — pointing them at a
 dead domain would hurt indexing. The base URL appears only as the literal
 string `https://prairie-log-api.netlify.app`, so migration is one command.
 
+### Update 2026-07-02: domain chosen — prairie-log-api.com
+
+The user provided the new frontend domain `prairie-log-api.com`. The sed swap
+(step 2 below) has been applied on branch `domain-cutover`, along with package
+homepage URLs and the backend's default ALLOWED_ORIGINS (new domain + www,
+netlify kept during transition). The domain did not resolve yet at the time of
+the change — deploy the swapped frontend only after connecting the domain in
+Netlify (step 1). Remaining manual steps: 1 (Netlify), 4 (Firebase authorized
+domains), 5 (Search Console). Step 3 is covered by the application.yml default
+unless ALLOWED_ORIGINS is set explicitly on Render — then add the new origins
+there too.
+
 ### Domain migration runbook (when the new domain is live)
 
 1. Add the custom domain in Netlify (Site settings → Domain management);

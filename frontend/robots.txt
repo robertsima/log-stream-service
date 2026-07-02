@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://prairie-log-api.netlify.app/sitemap.xml
+Sitemap: https://prairie-log-api.com/sitemap.xml

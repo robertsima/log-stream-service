@@ -11,7 +11,7 @@
 
   <name>PrairieLog Logback Appender</name>
   <description>Logback appender for PrairieLog ingestion.</description>
-  <url>https://prairielog.dev</url>
+  <url>https://prairie-log-api.com</url>
 
   <licenses>
     <license>
@@ -23,7 +23,7 @@
   <developers>
     <developer>
       <name>PrairieLog</name>
-      <url>https://prairielog.dev</url>
+      <url>https://prairie-log-api.com</url>
     </developer>
   </developers>
 

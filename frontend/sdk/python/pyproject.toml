@@ -21,8 +21,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://prairielog.dev"
-Documentation = "https://prairielog.dev/docs.html"
+Homepage = "https://prairie-log-api.com"
+Documentation = "https://prairie-log-api.com/docs.html"
 Repository = "https://github.com/robertsima/log-stream-service"
 Issues = "https://github.com/robertsima/log-stream-service/issues"
 

@@ -15,14 +15,20 @@ Verified as of 2026-07-02:
 
 ## Decisions to make first
 
-1. **Maven Central namespace.** `com.prairielog` requires verifying ownership
-   of `prairielog.dev` (DNS TXT record) in the Central Portal. If you don't
-   own that domain yet, either buy it first, or publish under
-   `io.github.robertsima` (verified with a GitHub gist/repo token) and change
-   the pom `groupId` + the appender package docs accordingly.
-2. **Homepage URLs.** Package metadata points at `https://prairielog.dev`.
-   If the final domain will differ, update `package.json` (homepage),
-   `pyproject.toml` ([project.urls]), and `pom.xml` (<url>) before publishing.
+1. **Maven Central namespace (only remaining decision).** The frontend domain
+   is `prairie-log-api.com`, but the pom groupId is `com.prairielog`, which
+   Central will only grant by DNS-verifying `prairielog.dev` — a domain you
+   don't own. Options:
+   - `io.github.robertsima` (recommended): verified automatically via your
+     GitHub account in the Central Portal, no DNS. Change the pom `groupId`
+     and the dependency snippets in READMEs/docs; the Java package
+     `com.prairielog.logback` can stay as-is (groupId and package name don't
+     have to match).
+   - `com.prairie-log-api`: matches the domain you own (DNS TXT proof), but
+     hyphenated groupIds are unusual and clash with Java package naming.
+   - Buy `prairielog.dev` and keep `com.prairielog` unchanged.
+2. ~~Homepage URLs~~ — resolved: package metadata now points at
+   `https://prairie-log-api.com` (npm/PyPI/Maven all updated).
 
 ## npm — @prairielog/client
 
