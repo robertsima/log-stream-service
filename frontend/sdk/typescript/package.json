@@ -24,7 +24,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build"
   },
   "keywords": [
     "prairielog",
@@ -33,6 +34,16 @@
     "observability"
   ],
   "license": "MIT",
+  "author": "PrairieLog",
+  "homepage": "https://prairielog.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robertsima/log-stream-service.git",
+    "directory": "frontend/sdk/typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/robertsima/log-stream-service/issues"
+  },
   "devDependencies": {
     "@types/node": "^26.1.0",
     "typescript": "^5.5.0"
