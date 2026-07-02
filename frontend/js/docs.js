@@ -138,13 +138,22 @@
     return null;
   }
 
+  function operationUsesBearer(operation) {
+    return Array.isArray(operation.security) && operation.security.some(function (entry) {
+      return entry && Object.prototype.hasOwnProperty.call(entry, "BearerAuth");
+    });
+  }
+
   function getRequestExample(operation, schemas) {
     const parts = [];
+    const headerParams = [];
+    const queryParams = [];
+
+    if (operationUsesBearer(operation)) {
+      headerParams.push("Authorization: Bearer YOUR_ID_TOKEN");
+    }
 
     if (operation.parameters && operation.parameters.length) {
-      const headerParams = [];
-      const queryParams = [];
-
       operation.parameters.forEach(function (param) {
         const resolved = param.$ref
           ? cachedContract.components.parameters[param.$ref.split("/").pop()]
@@ -155,21 +164,24 @@
         }
 
         if (resolved.in === "header") {
-          headerParams.push(resolved.name + ": <" + resolved.name + ">");
+          const placeholder = resolved.name === "X-Ingestion-Token"
+            ? "YOUR_INGESTION_TOKEN"
+            : "<" + resolved.name + ">";
+          headerParams.push(resolved.name + ": " + placeholder);
         }
 
         if (resolved.in === "query") {
           queryParams.push(resolved.name + "=...");
         }
       });
+    }
 
-      if (headerParams.length) {
-        parts.push("Headers:\n" + headerParams.join("\n"));
-      }
+    if (headerParams.length) {
+      parts.push("Headers:\n" + headerParams.join("\n"));
+    }
 
-      if (queryParams.length) {
-        parts.push("Query:\n" + queryParams.join("\n"));
-      }
+    if (queryParams.length) {
+      parts.push("Query:\n" + queryParams.join("\n"));
     }
 
     const requestBody = operation.requestBody;
@@ -262,55 +274,58 @@
     );
   }
 
+  function extractHeaderLines(requestExample) {
+    if (requestExample.indexOf("Headers:\n") < 0) {
+      return [];
+    }
+    return requestExample
+      .split("\n\n")[0]
+      .replace("Headers:\n", "")
+      .split("\n")
+      .map(function (header) {
+        return header.trim();
+      })
+      .filter(Boolean);
+  }
+
   function getCurlExample(method, path, requestExample) {
     const base = window.PrairieLogUI.getApiBaseUrl();
-    const url = base + path;
+    let url = base + path;
+    const headers = extractHeaderLines(requestExample);
 
-    if (method === "GET") {
-      if (requestExample.indexOf("Query:\n") >= 0) {
-        const queryLine = requestExample.split("Query:\n")[1].split("\n")[0].trim();
-        const separator = url.indexOf("?") >= 0 ? "&" : "?";
-        return 'curl "' + url + separator + queryLine + '"';
-      }
-      return 'curl "' + url + '"';
-    }
-
-    if (method === "DELETE" || method === "PATCH") {
-      return "curl -X " + method + ' "' + url + '"';
-    }
-
-    const lines = [];
-    lines.push('curl -X ' + method + ' "' + url + '" \\');
-
-    if (requestExample.indexOf("Headers:\n") >= 0) {
-      const headerSection = requestExample.split("\n\n")[0];
-      headerSection
-        .replace("Headers:\n", "")
-        .split("\n")
-        .forEach(function (header) {
-          if (header.trim()) {
-            lines.push('  -H "' + header.trim() + '" \\');
-          }
-        });
-    } else if (path.indexOf("log-events") >= 0) {
-      lines.push('  -H "Content-Type: application/json" \\');
-      lines.push('  -H "X-Ingestion-Token: YOUR_INGESTION_TOKEN" \\');
-    } else {
-      lines.push('  -H "Content-Type: application/json" \\');
+    if (method === "GET" && requestExample.indexOf("Query:\n") >= 0) {
+      const queryLine = requestExample.split("Query:\n")[1].split("\n")[0].trim();
+      const separator = url.indexOf("?") >= 0 ? "&" : "?";
+      url += separator + queryLine;
     }
 
     const bodyPart = requestExample.includes("\n\n")
       ? requestExample.split("\n\n").pop()
       : requestExample;
+    const hasBody =
+      method !== "GET" &&
+      bodyPart &&
+      bodyPart !== "No request body" &&
+      !bodyPart.startsWith("Query:") &&
+      !bodyPart.startsWith("Headers:");
 
-    if (bodyPart && bodyPart !== "No request body" && !bodyPart.startsWith("Query:")) {
-      const compactBody = bodyPart.replace(/\n/g, "").replace(/"/g, '\\"');
-      lines.push("  -d \"" + compactBody + "\"");
-    } else {
-      lines[lines.length - 1] = lines[lines.length - 1].replace(/ \\$/, "");
+    if (hasBody) {
+      headers.push("Content-Type: application/json");
     }
 
-    return lines.join("\n");
+    const lines = [];
+    lines.push("curl " + (method === "GET" ? "" : "-X " + method + " ") + '"' + url + '"');
+
+    headers.forEach(function (header) {
+      lines.push('  -H "' + header + '"');
+    });
+
+    if (hasBody) {
+      const compactBody = bodyPart.replace(/\n/g, "").replace(/"/g, '\\"');
+      lines.push('  -d "' + compactBody + '"');
+    }
+
+    return lines.join(" \\\n");
   }
 
   async function renderEndpointCard(path, method, operation, schemas) {
@@ -350,6 +365,9 @@
         ? '<span class="endpoint-status">' +
           window.PrairieLogUI.escapeHtml(response.statusCode) +
           "</span>"
+        : "") +
+      (operation.deprecated
+        ? '<span class="endpoint-status">Deprecated</span>'
         : "") +
       "</div>" +
       '<p class="endpoint-summary">' +

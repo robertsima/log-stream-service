@@ -184,7 +184,9 @@ logging.exception("Payment failed")</code></pre>
         <section id="runtime-config" class="page-section card-section">
           <h2 class="heading-with-icon"><i data-lucide="settings-2" class="icon" aria-hidden="true"></i><span>Runtime config</span></h2>
       <p>
-        Keep server tokens in environment variables. Browser apps should use a scoped browser token only for client-side telemetry.
+        Keep server tokens in environment variables. A token embedded in browser code is visible to anyone who opens
+        the page source, so if you log from the browser, create a separate ingestion token for it — you can revoke
+        it from the dashboard without rotating your server tokens.
       </p>
       <ul class="credential-list">
         <li><code>apiUrl</code> is the PrairieLog API base URL, currently <code>__API_BASE_URL__</code>.</li>
@@ -222,11 +224,26 @@ logging.exception("Payment failed")</code></pre>
       <p>
         Use these curl steps for credentials and one-off tests. Application logging should use an SDK.
       </p>
+      <div class="callout callout-warning">
+        <p>
+          <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
+          <strong>Auth note:</strong> in production the management endpoints below (users, apps, tokens, alert
+          destinations) require a signed-in session — add
+          <code>-H "Authorization: Bearer YOUR_ID_TOKEN"</code> or simply use the
+          <a href="dashboard.html">dashboard</a>, which handles this for you. The unauthenticated curl flow shown
+          here works against a local backend started with <code>AUTH_ENABLED=false</code>. Sending log events
+          always uses only the <code>X-Ingestion-Token</code> header, in every environment.
+        </p>
+      </div>
         </section>
 
         <section id="create-user" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="user-plus" class="icon" aria-hidden="true"></i><span>Create a user</span></h2>
-      <p>Bootstrap a user record. Full login is not implemented yet — this step registers an owner for your apps.</p>
+      <p>
+        <strong>Local bootstrap only (deprecated):</strong> this endpoint registers an owner for your apps when the
+        backend runs with <code>AUTH_ENABLED=false</code>. In production, skip this step — sign in on the
+        <a href="dashboard.html">dashboard</a> and your user record is created automatically from your sign-in.
+      </p>
       <div class="code-block">
         <div class="code-block-header">
           <span class="code-block-label">curl</span>
@@ -258,10 +275,15 @@ logging.exception("Payment failed")</code></pre>
         <pre id="gs-step2"><code>curl -X POST __API_BASE_URL__/api/v1/apps \
   -H "Content-Type: application/json" \
   -d '{
+    "ownerEmail": "dev@example.com",
     "name": "payment-service",
     "description": "Sends live logs from the payment API."
   }'</code></pre>
       </div>
+      <p class="muted">
+        <code>ownerEmail</code> links the app to your bootstrap user in the local flow. When you call this endpoint
+        with a signed-in bearer token, the owner comes from your session and <code>ownerEmail</code> is ignored.
+      </p>
         </section>
 
         <section id="generate-token" class="page-section card-section">
