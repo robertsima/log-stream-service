@@ -2,8 +2,8 @@
 
 Status: ready for next agent
 Created: 2026-07-02
-Current recommended phase: Phase 6 - Publish preparation (needs npm/PyPI accounts; do not publish without explicit user approval)
-Completed: Phase 1 (`.agent/SDK_RELEASE_AUDIT.md`), Phase 2 (`.agent/DOCS_ACCURACY_PASS.md`), Phase 3 (`.agent/SECURITY_REVIEW.md`), Phase 4 first pass (`.agent/UX_CLEANUP.md`), Phase 5 (`.agent/SEO_GEO_PASS.md`; domain-migration runbook inside)
+Current status: all six phases prepared. Publishing is gated on the user running the checklists in `RELEASING.md` (root) — never publish for them. Open decisions: Maven Central namespace (com.prairielog needs prairielog.dev DNS proof) and final homepage domain.
+Completed: Phase 1 (`.agent/SDK_RELEASE_AUDIT.md`), Phase 2 (`.agent/DOCS_ACCURACY_PASS.md`), Phase 3 (`.agent/SECURITY_REVIEW.md`), Phase 4 first pass (`.agent/UX_CLEANUP.md`), Phase 5 (`.agent/SEO_GEO_PASS.md`; domain-migration runbook inside), Phase 6 prep (`RELEASING.md`)
 
 This packet defines the next staged project scope after agent/context optimization. It is not a cross-surface implementation contract. Create a contract only if a later phase requires API shape, schema, backend behavior, and frontend behavior to change together.
 
