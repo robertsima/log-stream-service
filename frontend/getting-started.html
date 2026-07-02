@@ -227,12 +227,12 @@ logging.exception("Payment failed")</code></pre>
       <div class="callout callout-warning">
         <p>
           <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
-          <strong>Auth note:</strong> in production the management endpoints below (users, apps, tokens, alert
+          <span><strong>Auth note:</strong> in production the management endpoints below (users, apps, tokens, alert
           destinations) require a signed-in session — add
           <code>-H "Authorization: Bearer YOUR_ID_TOKEN"</code> or simply use the
           <a href="dashboard.html">dashboard</a>, which handles this for you. The unauthenticated curl flow shown
           here works against a local backend started with <code>AUTH_ENABLED=false</code>. Sending log events
-          always uses only the <code>X-Ingestion-Token</code> header, in every environment.
+          always uses only the <code>X-Ingestion-Token</code> header, in every environment.</span>
         </p>
       </div>
         </section>
@@ -295,7 +295,7 @@ logging.exception("Payment failed")</code></pre>
       <div class="callout callout-warning">
         <p>
           <i data-lucide="triangle-alert" class="icon icon-inline" aria-hidden="true"></i>
-          <strong>Dashboard note:</strong> when you generate a token in the dashboard, it stays in this browser tab only until you refresh. Copy it before leaving the page.
+          <span><strong>Dashboard note:</strong> when you generate a token in the dashboard, it stays in this browser tab only until you refresh. Copy it before leaving the page.</span>
         </p>
       </div>
       <div class="code-block">

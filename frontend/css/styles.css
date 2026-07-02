@@ -2398,14 +2398,14 @@ pre {
 
   .hero-signal-strip {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 1rem;
-    overflow-x: auto;
     padding-bottom: 0.15rem;
   }
 
   .hero-signal-strip span {
-    flex: 0 0 13rem;
+    flex: 1 1 10rem;
     min-height: 0;
     padding: 0.55rem 0.7rem;
   }
