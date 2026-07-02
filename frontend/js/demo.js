@@ -283,30 +283,19 @@
   function buildLogIngestSnippet() {
     const apiBase = window.PrairieLogUI.getApiBaseUrl();
     return (
-      "// Server-side only — keep PRAIRIELOG_TOKEN in env, not in frontend code\n" +
-      "const PRAIRIELOG_TOKEN = process.env.PRAIRIELOG_TOKEN;\n\n" +
-      "async function reportError(message, logger = 'my-app') {\n" +
-      "  await fetch('" +
+      "import { PrairieLogClient } from '@prairielog/client';\n\n" +
+      "const prairieLog = new PrairieLogClient({\n" +
+      "  apiUrl: '" +
       apiBase +
-      "/api/v1/log-events', {\n" +
-      "    method: 'POST',\n" +
-      "    headers: {\n" +
-      "      'Content-Type': 'application/json',\n" +
-      "      'X-Ingestion-Token': PRAIRIELOG_TOKEN\n" +
-      "    },\n" +
-      "    body: JSON.stringify({\n" +
-      "      id: crypto.randomUUID(),\n" +
-      "      level: 'ERROR',\n" +
-      "      message,\n" +
-      "      occurredAt: new Date().toISOString(),\n" +
-      "      logger\n" +
-      "    })\n" +
-      "  });\n" +
-      "}\n\n" +
-      "// await reportError('Payment failed for user 123');"
+      "',\n" +
+      "  ingestionToken: process.env.PRAIRIELOG_INGESTION_TOKEN,\n" +
+      "  defaultLogger: 'my-app',\n" +
+      "  batchSize: 50\n" +
+      "});\n\n" +
+      "prairieLog.installNodeHandlers();\n\n" +
+      "// await prairieLog.captureException(new Error('Payment failed for user 123'));"
     );
   }
-
   function updateIntegratePanel() {
     const panel = document.getElementById("integrate-panel");
     const host = document.getElementById("integrate-snippet-host");

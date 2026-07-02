@@ -8,10 +8,10 @@ import com.logstream.generated.model.AlertAnalysisPreviewResponse;
 import com.logstream.generated.model.AlertAnalysisResponse;
 import com.logstream.generated.model.AlertBucketAnalysisRequest;
 import com.logstream.generated.model.TokenUsage;
-import com.logstream.service.langchain4j.AlertAnalysisService;
-import com.logstream.service.langchain4j.AlertAnalysisOutcome;
-import com.logstream.service.langchain4j.PromptPreview;
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.analysis.AlertAnalysisService;
+import com.logstream.service.analysis.AlertAnalysisOutcome;
+import com.logstream.service.analysis.PromptPreview;
+import com.logstream.service.alerting.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
 
 import java.util.stream.Collectors;

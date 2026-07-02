@@ -1,0 +1,5 @@
+<appender name="PRAIRIELOG" class="com.prairielog.logback.PrairieLogAppender">
+  <apiUrl>__API_BASE_URL__</apiUrl>
+  <ingestionToken>${PRAIRIELOG_INGESTION_TOKEN}</ingestionToken>
+  <batchSize>50</batchSize>
+</appender>

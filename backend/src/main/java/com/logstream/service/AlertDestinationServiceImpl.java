@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.logstream.domain.entity.AlertDestination;
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.alerting.AlertBucket;
 import com.logstream.domain.repository.AlertDestinationRepository;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AlertDestinationResponse;
@@ -113,6 +113,9 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
                 .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
 
         AlertBucket bucket = new AlertBucket(appId, fingerprint);
+        if (appService != null) {
+            bucket.setAppName(appService.getAppById(appId).getName());
+        }
         if (events != null) {
             bucket.getEvents().addAll(events);
         }
@@ -124,6 +127,11 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
         AlertDestinationResponse response = new AlertDestinationResponse();
         response.setId(destination.getId());
         response.setAppId(destination.getAppId());
+        response.setType(destination.getDestinationType());
+        response.setName(destination.getName());
+        response.setEnabled(destination.getEnabled());
+        response.setCreatedAt(destination.getCreatedAt());
+        response.setUpdatedAt(destination.getUpdatedAt());
         return response;
     }
 

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.logstream.domain.entity.AlertDestination;
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.alerting.AlertBucket;
 import com.logstream.webhooks.AlertNotificationFormatter;
 import com.logstream.webhooks.AlertSummary;
 
@@ -55,7 +55,7 @@ public class DiscordWebhookSender {
 
         Map<String, Object> payload = Map.of(
                 "embeds", List.of(Map.of(
-                        "title", "Error Alert",
+                        "title", AlertNotificationFormatter.buildDiscordTitle(summary),
                         "description", AlertNotificationFormatter.buildDiscordDescription(summary),
                         "fields", AlertNotificationFormatter.buildDiscordFields(summary)
                 ))
@@ -95,7 +95,7 @@ public class DiscordWebhookSender {
 
         Map<String, Object> payload = Map.of(
                 "embeds", List.of(Map.of(
-                        "title", "Error Alert",
+                        "title", AlertNotificationFormatter.buildDiscordTitle(summary),
                         "description", AlertNotificationFormatter.buildDiscordDescription(summary),
                         "fields", AlertNotificationFormatter.buildDiscordFields(summary)
                 ))

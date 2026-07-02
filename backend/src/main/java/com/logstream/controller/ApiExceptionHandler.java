@@ -1,13 +1,21 @@
 package com.logstream.controller;
 
 import java.time.OffsetDateTime;
+import java.util.stream.Collectors;
 
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import com.logstream.exception.ForbiddenException;
+import com.logstream.exception.InvalidLogEventException;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.exception.RateLimitExceededException;
 import com.logstream.exception.UnauthorizedException;
@@ -17,6 +25,8 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    private static final String INGESTION_TOKEN_HEADER = "X-Ingestion-Token";
 
     @ExceptionHandler(QuotaExceededException.class)
     public ResponseEntity<ErrorResponse> handleQuota(QuotaExceededException ex, HttpServletRequest request) {
@@ -36,6 +46,59 @@ public class ApiExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
         return error(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidLogEventException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidLogEvent(InvalidLogEventException ex, HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_LOG_EVENT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "MALFORMED_JSON",
+                "Request body is not valid JSON or does not match the expected structure.", request);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
+        String details = ex.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        if (details.isBlank()) {
+            details = "Request validation failed.";
+        }
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", details, request);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleHandlerMethodValidation(HandlerMethodValidationException ex,
+            HttpServletRequest request) {
+        String details = ex.getAllErrors().stream()
+                .map(ApiExceptionHandler::describe)
+                .collect(Collectors.joining("; "));
+        if (details.isBlank()) {
+            details = "Request validation failed.";
+        }
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", details, request);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingHeader(MissingRequestHeaderException ex,
+            HttpServletRequest request) {
+        if (INGESTION_TOKEN_HEADER.equalsIgnoreCase(ex.getHeaderName())) {
+            return error(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Missing ingestion token", request);
+        }
+        return error(HttpStatus.BAD_REQUEST, "MISSING_HEADER",
+                "Required header " + ex.getHeaderName() + " is missing.", request);
+    }
+
+    private static String describe(MessageSourceResolvable resolvable) {
+        if (resolvable instanceof FieldError fieldError) {
+            return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+        }
+        String message = resolvable.getDefaultMessage();
+        return message == null ? "invalid value" : message;
     }
 
     public static ResponseEntity<ErrorResponse> error(HttpStatus status, String code, String message, HttpServletRequest request) {

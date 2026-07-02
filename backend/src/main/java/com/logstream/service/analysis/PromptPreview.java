@@ -1,4 +1,4 @@
-package com.logstream.service.langchain4j;
+package com.logstream.service.analysis;
 
 public record PromptPreview(
         String prompt,

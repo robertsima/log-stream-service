@@ -36,7 +36,7 @@ public class ManagementRateLimitFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         return requestsPerMinute <= 0
                 || !path.startsWith("/api/v1/")
-                || path.equals("/api/v1/log-events")
+                || path.startsWith("/api/v1/log-events")
                 || path.startsWith("/api/v1/ingestion-tokens/")
                 || "OPTIONS".equalsIgnoreCase(request.getMethod());
     }

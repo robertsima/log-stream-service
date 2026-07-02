@@ -1,17 +1,13 @@
-package com.logstream.domain.model;
+package com.logstream.service.alerting;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 import com.logstream.generated.model.LogEventRequest;
 
 public class BucketFingerprint {
-
-    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
-    private static final Pattern NUMBER = Pattern.compile("\\b\\d+\\b");
 
     private final String value;
 
@@ -38,14 +34,7 @@ public class BucketFingerprint {
     }
 
     private static String normalize(String input) {
-        if (input == null || input.isBlank()) {
-            return "";
-        }
-
-        String normalized = input.toLowerCase(Locale.ROOT);
-        normalized = NUMBER.matcher(normalized).replaceAll("{number}");
-        normalized = WHITESPACE.matcher(normalized).replaceAll(" ");
-        return normalized.trim();
+        return MessageNormalizer.normalize(input);
     }
 
     private static String sha256(String input) {

@@ -7,7 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.alerting.AlertBucket;
+import com.logstream.service.alerting.MessageNormalizer;
 import com.logstream.generated.model.LogEventRequest;
 
 @Service
@@ -16,7 +17,7 @@ public class AlertAggregationServiceImpl implements AlertAggregationService {
     private final Map<String, AlertBucket> buckets = new ConcurrentHashMap<>();
 
     @Override
-    public void accept(UUID appId, LogEventRequest event) {
+    public void accept(UUID appId, String appName, LogEventRequest event) {
         if (event.getLevel() == null || !"ERROR".equalsIgnoreCase(event.getLevel().getValue())) {
             return;
         }
@@ -24,7 +25,11 @@ public class AlertAggregationServiceImpl implements AlertAggregationService {
         String fingerprint = fingerprint(appId, event);
 
         buckets.compute(fingerprint, (key, bucket) -> {
-            AlertBucket next = bucket == null ? new AlertBucket(appId, fingerprint) : bucket;
+            AlertBucket next = bucket;
+            if (next == null) {
+                next = new AlertBucket(appId, fingerprint);
+                next.setAppName(appName);
+            }
             next.add(event);
             return next;
         });
@@ -46,14 +51,6 @@ public class AlertAggregationServiceImpl implements AlertAggregationService {
 
     @Override
     public String normalize(String message) {
-        if (message == null) {
-            return "";
-        }
-
-        return message
-                .toLowerCase()
-                .replaceAll("\\b\\d+\\b", "{number}")
-                .replaceAll("\\s+", " ")
-                .trim();
+        return MessageNormalizer.normalize(message);
     }
 }

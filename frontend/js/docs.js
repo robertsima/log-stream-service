@@ -3,14 +3,19 @@
 
   const INTEGRATION_SNIPPETS = [
     {
-      id: "docs-angular-service",
-      title: "Angular service",
-      path: "./resources/snippets/angular/prairie-log.service.ts.txt"
+      id: "docs-browser-sdk",
+      title: "Browser / React SDK",
+      path: "./resources/snippets/sdk/browser.ts.txt"
     },
     {
-      id: "docs-react-client",
-      title: "React client",
-      path: "./resources/snippets/react/prairieLogClient.ts.txt"
+      id: "docs-angular-sdk",
+      title: "Angular SDK provider",
+      path: "./resources/snippets/sdk/angular-provider.ts.txt"
+    },
+    {
+      id: "docs-node-sdk",
+      title: "Node SDK",
+      path: "./resources/snippets/sdk/node.ts.txt"
     }
   ];
 
@@ -309,7 +314,7 @@
     const pathId = "docs-path-" + opId;
     let integrationHtml = "";
 
-    if (operation.operationId === "ingestLogEvent") {
+    if (operation.operationId === "ingestLogEvent" || operation.operationId === "ingestLogEventBatch") {
       integrationHtml = await buildIntegrationExamplesHtml();
     }
 

@@ -1,4 +1,4 @@
-package com.logstream.domain.model;
+package com.logstream.service.alerting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,7 @@ public class AlertBucket {
     private final UUID appId;
     private final String fingerprint;
     private final List<LogEventRequest> events = new ArrayList<>();
+    private String appName;
 
     public AlertBucket(UUID appId, String fingerprint) {
         this.appId = appId;
@@ -19,6 +20,14 @@ public class AlertBucket {
 
     public UUID getAppId() {
         return appId;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
     }
 
     public String getFingerprint() {

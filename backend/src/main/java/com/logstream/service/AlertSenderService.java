@@ -1,7 +1,7 @@
 package com.logstream.service;
 
 import com.logstream.domain.entity.AlertDestination;
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.alerting.AlertBucket;
 
 public interface AlertSenderService {
     public void sendTest(AlertDestination destination);

@@ -450,6 +450,13 @@ paths:
       description: >
         Accepts short-lived log events from registered apps. Events are authenticated
         using an app ingestion token and are not stored long-term.
+
+        The payload is normalized tolerantly so JSON emitted by common logging stacks
+        (Logback/Logstash, python-json-logger, Winston, Pino, Android, Flutter) is accepted
+        without client-side mapping. See RawLogEvent for accepted field aliases. Canonical
+        LogEventRequest payloads are always accepted unchanged.
+
+        Request bodies larger than 1 MiB (1048576 bytes) are rejected with 413.
       parameters:
         - $ref: '#/components/parameters/IngestionToken'
       requestBody:
@@ -457,7 +464,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LogEventRequest'
+              $ref: '#/components/schemas/RawLogEvent'
       responses:
         '202':
           description: Log accepted for live relay
@@ -480,6 +487,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/log-events/batch:
+    post:
+      tags:
+        - Log Events
+      operationId: ingestLogEventBatch
+      summary: Ingest a batch of log events from an external app
+      description: >
+        Accepts up to 100 log events in one request. Each event is normalized with the
+        same tolerant rules as the single-event endpoint. Events that cannot be normalized
+        are reported per index in the response instead of failing the whole batch.
+        Each event in the batch counts against the ingestion rate limit.
+
+        Request bodies larger than 1 MiB (1048576 bytes) are rejected with 413.
+      parameters:
+        - $ref: '#/components/parameters/IngestionToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 100
+              items:
+                $ref: '#/components/schemas/RawLogEvent'
+      responses:
+        '202':
+          description: Batch accepted; per-event results in body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogEventBatchResponse'
+        '400':
+          description: Invalid batch payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid ingestion token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: Batch payload too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Ingestion rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/alert-analysis/preview:
     post:
       tags:
@@ -487,6 +551,8 @@ paths:
       operationId: previewAlertPrompt
       summary: Preview the OpenAI prompt for an alert bucket
       description: Returns the generated prompt text without calling the model.
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -506,6 +572,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/v1/alert-analysis/analyze:
     post:
@@ -514,6 +586,8 @@ paths:
       operationId: analyzeAlertBucket
       summary: Analyze an alert bucket using the OpenAI model
       description: Returns a concise analysis for the provided alert bucket.
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -529,6 +603,12 @@ paths:
                 $ref: '#/components/schemas/AlertAnalysisResponse'
         '400':
           description: Invalid alert bucket payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
           content:
             application/json:
               schema:
@@ -839,6 +919,20 @@ components:
         appId:
           type: string
           format: uuid
+        type:
+          $ref: '#/components/schemas/AlertDestinationType'
+        name:
+          type: string
+        enabled:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
 
     AlertBucketAnalysisRequest:
       type: object
@@ -929,6 +1023,58 @@ components:
       enum:
         - DISCORD
         - SLACK
+
+    RawLogEvent:
+      type: object
+      additionalProperties: true
+      description: >
+        Free-form log event JSON, normalized server-side into the canonical LogEventRequest.
+        Accepted field aliases —
+        message: message, msg, text, log, body (required; the only mandatory field);
+        level: level, severity, levelname, level_name, loglevel, log_level, priority
+        (strings such as warning, critical, fatal, verbose, or numeric Pino/Android levels;
+        defaults to INFO);
+        timestamp: occurredAt, occurred_at, timestamp, @timestamp, time, ts, datetime, date
+        (ISO-8601 or epoch seconds/millis; defaults to server receive time);
+        id: id, eventId, event_id, uuid, messageId (generated when missing);
+        logger: logger, loggerName, logger_name, tag, source, name;
+        trace: traceId, trace_id; span: spanId, span_id.
+        Unrecognized fields are preserved under metadata.
+      example:
+        levelname: WARNING
+        msg: Payment retry scheduled
+        '@timestamp': 2026-06-08T18:30:00Z
+        taskName: payments-worker
+
+    LogEventBatchResponse:
+      type: object
+      required:
+        - accepted
+        - rejected
+      properties:
+        accepted:
+          type: integer
+          description: Number of events accepted for relay.
+          example: 98
+        rejected:
+          type: array
+          description: Events that could not be normalized or exceeded the rate limit.
+          items:
+            $ref: '#/components/schemas/LogEventBatchRejection'
+
+    LogEventBatchRejection:
+      type: object
+      required:
+        - index
+        - reason
+      properties:
+        index:
+          type: integer
+          description: Zero-based index of the rejected event in the request array.
+          example: 3
+        reason:
+          type: string
+          example: Log event must include a message field.
 
     LogEventRequest:
       type: object

@@ -1,10 +1,10 @@
-package unit.com.logstream.service.langchain4j;
+package unit.com.logstream.service.analysis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.logstream.service.langchain4j.AlertAnalysisFormatter;
+import com.logstream.service.analysis.AlertAnalysisFormatter;
 
 class AlertAnalysisFormatterTest {
 

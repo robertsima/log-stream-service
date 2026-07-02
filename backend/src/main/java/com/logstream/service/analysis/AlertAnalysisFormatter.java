@@ -1,4 +1,4 @@
-package com.logstream.service.langchain4j;
+package com.logstream.service.analysis;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

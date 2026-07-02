@@ -1,0 +1,14 @@
+import { PrairieLogClient } from "@prairielog/client";
+
+export const prairieLog = new PrairieLogClient({
+  apiUrl: "__API_BASE_URL__",
+  ingestionToken: "YOUR_INGESTION_TOKEN",
+  defaultLogger: "browser-client",
+  storageKey: "prairielog-buffer"
+});
+
+prairieLog.installGlobalHandlers();
+
+void prairieLog.info("Browser client started", {
+  userAgent: navigator.userAgent
+});

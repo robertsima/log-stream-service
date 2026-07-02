@@ -19,7 +19,7 @@ spring:
 logging:
   level:
     root: INFO
-    com.logstream.service.langchain4j: DEBUG
+    com.logstream.service.analysis: DEBUG
     com.logstream.service: DEBUG
     dev.langchain4j: DEBUG
     org.springframework.web.client: DEBUG
@@ -55,6 +55,8 @@ app:
   rate-limit:
     management-requests-per-minute: ${APP_RATE_LIMIT_MANAGEMENT_RPM:60}
     ingestion-requests-per-minute: ${APP_RATE_LIMIT_INGESTION_RPM:120}
+  ingestion:
+    max-payload-bytes: ${APP_INGESTION_MAX_PAYLOAD_BYTES:1048576}
 
 alerts:
   enabled: ${ALERTS_ENABLED:true}

@@ -1,7 +1,7 @@
 // React imports for boundary UI + error reporting
 import React from 'react';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
-import { PrairieLogClient } from './prairieLogClient';
+import type { PrairieLogClient } from '@prairielog/client';
 
 interface PrairieLogErrorBoundaryProps {
   children: React.ReactNode;
@@ -27,7 +27,7 @@ export function PrairieLogErrorBoundary({
     <ErrorBoundary
       FallbackComponent={DefaultFallback}
       onError={(error, info) => {
-        client.error(error, {
+        void client.captureException(error, {
           source: 'React ErrorBoundary',
           componentStack: info.componentStack
         });

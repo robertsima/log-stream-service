@@ -3,5 +3,6 @@
     "java.compile.nullAnalysis.mode": "automatic",
     "chat.tools.terminal.autoApprove": {
         ".\\mvnw.cmd": true
-    }
+    },
+    "claudeCodeChat.permissions.yoloMode": false
 }

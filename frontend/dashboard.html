@@ -17,13 +17,13 @@
   <script src="js/env.js" defer></script>
   <script src="js/env.local.js" defer></script>
   <script src="js/state.js" defer></script>
-  <script src="js/rest-service.js" defer></script>
+  <script src="js/rest-service.js?v=20260702-batch" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js" defer></script>
   <script src="js/auth.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="js/app.js" defer></script>
-  <script src="js/dashboard.js" defer></script>
+  <script src="js/dashboard.js?v=20260702-analysis-normalization" defer></script>
 </head>
 <body>
   <nav class="navbar">
@@ -224,8 +224,8 @@
           </h2>
         </div>
         <p class="muted compact-hint">
-          Paste an <code>events</code> array in the same shape as <code>AlertBucketAnalysisRequest</code> / ingested
-          <code>LogEventRequest</code> payloads. Production buckets contain ERROR events only; fingerprint is derived from the first error like aggregation does.
+          Paste an <code>events</code> array using canonical log fields or common aliases like <code>msg</code>,
+          <code>levelname</code>, and <code>@timestamp</code>. Production buckets contain ERROR events only; fingerprint is derived from the first error like aggregation does.
           Click an alert destination above to also deliver analysis to that webhook when you run analysis.
         </p>
 

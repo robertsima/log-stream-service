@@ -78,7 +78,7 @@
         <span class="flow-list-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
           <h3>Send ERROR logs</h3>
-          <p>POST JSON formatted logs to <code>/api/v1/log-events</code> with the <code>X-Ingestion-Token</code> header.</p>
+          <p>Install <code>@prairielog/client</code> or POST JSON logs to the batch ingestion endpoint with the <code>X-Ingestion-Token</code> header.</p>
         </div>
       </li>
       <li class="flow-list-item">
@@ -99,8 +99,8 @@
     </p>
     <ol class="integrate-steps">
       <li>Paste your <strong>alert webhook</strong> in the <a href="demo.html">live demo</a> to verify Slack/Discord delivery</li>
-      <li>Copy your <strong>ingestion token</strong> and starter code from the demo</li>
-      <li>Call it from your backend when an <strong>ERROR</strong> occurs</li>
+      <li>Copy your <strong>ingestion token</strong> and SDK starter code from the demo</li>
+      <li>Call it from your app or backend when an <strong>ERROR</strong> occurs</li>
     </ol>
     <div class="code-block">
       <div class="code-block-header">
@@ -110,27 +110,18 @@
           <span class="btn-label">Copy</span>
         </button>
       </div>
-      <pre id="home-integrate-snippet"><code>// Keep PRAIRIELOG_TOKEN in env — never in frontend bundles
-const PRAIRIELOG_TOKEN = process.env.PRAIRIELOG_TOKEN;
+      <pre id="home-integrate-snippet"><code>import { PrairieLogClient } from "@prairielog/client";
 
-async function reportError(message, logger = "my-app") {
-  await fetch("__API_BASE_URL__/api/v1/log-events", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Ingestion-Token": PRAIRIELOG_TOKEN
-    },
-    body: JSON.stringify({
-      id: crypto.randomUUID(),
-      level: "ERROR",
-      message,
-      occurredAt: new Date().toISOString(),
-      logger
-    })
-  });
-}
+const prairieLog = new PrairieLogClient({
+  apiUrl: "__API_BASE_URL__",
+  ingestionToken: process.env.PRAIRIELOG_INGESTION_TOKEN,
+  defaultLogger: "my-app",
+  batchSize: 50
+});
 
-// await reportError("Payment failed for user 123");</code></pre>
+prairieLog.installNodeHandlers();
+
+// await prairieLog.captureException(new Error("Payment failed for user 123"));</code></pre>
     </div>
     <p class="muted">Fastest path: run the <a href="demo.html">live demo</a> — no sign-in needed — to test your alert webhook. Set up a real project later from the <a href="dashboard.html">dashboard</a>.</p>
   </section>

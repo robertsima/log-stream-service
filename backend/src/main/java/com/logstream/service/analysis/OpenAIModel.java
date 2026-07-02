@@ -1,4 +1,4 @@
-package com.logstream.service.langchain4j;
+package com.logstream.service.analysis;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +13,9 @@ import dev.langchain4j.model.output.TokenUsage;
 @Component
 public class OpenAIModel {
     private static final Logger log = LoggerFactory.getLogger(OpenAIModel.class);
-    private static final int MAX_OUTPUT_TOKENS = 350;
+    private static final int MAX_COMPLETION_TOKENS = 800;
 
     private final String apiKey;
-    private final OpenAiChatModel model;
     private final OpenAiChatModel analysisModel;
 
     public OpenAIModel() {
@@ -25,19 +24,13 @@ public class OpenAIModel {
 
     public OpenAIModel(String apiKey) {
         this.apiKey = apiKey;
-        this.model = OpenAiChatModel.builder()
-                .apiKey(this.apiKey)
-                .modelName("gpt-4o-mini")
-                .maxTokens(MAX_OUTPUT_TOKENS)
-                .temperature(0.2)
-                .responseFormat("text")
-                .build();
         this.analysisModel = OpenAiChatModel.builder()
                 .apiKey(this.apiKey)
-                .modelName("gpt-4o-mini")
-                .maxTokens(MAX_OUTPUT_TOKENS)
-                .temperature(0.2)
+                .modelName("gpt-5-nano")
+                .maxCompletionTokens(MAX_COMPLETION_TOKENS)
+                .temperature(1.0)
                 .responseFormat("json_object")
+                .reasoningEffort("minimal")
                 .build();
     }
 
@@ -60,27 +53,13 @@ public class OpenAIModel {
         return toChatResult(response);
     }
 
-    public OpenAIChatResult chat(String systemPrompt, String userPrompt) {
-        if (apiKey == null || apiKey.isBlank()) {
-            log.debug("OpenAI API key is not configured.");
-            return new OpenAIChatResult("OpenAI API key is not configured.", null, null, null);
-        }
-
-        log.debug(
-                "OpenAI chat request (system={} chars, user={} chars)",
-                systemPrompt == null ? 0 : systemPrompt.length(),
-                userPrompt == null ? 0 : userPrompt.length());
-        log.debug("OpenAI system prompt:\n{}", systemPrompt);
-        log.debug("OpenAI user prompt:\n{}", userPrompt);
-
-        ChatResponse response = model.chat(
-                SystemMessage.from(systemPrompt),
-                UserMessage.from(userPrompt));
-        return toChatResult(response);
-    }
-
     private OpenAIChatResult toChatResult(ChatResponse response) {
         String text = response.aiMessage().text();
+        if (text == null || text.isBlank()) {
+            log.warn("OpenAI response had no content (finishReason={}); the completion token budget may be too "
+                    + "low for this model's reasoning overhead.", response.finishReason());
+            text = "Analysis unavailable: the model returned no content.";
+        }
         TokenUsage usage = response.tokenUsage();
 
         Integer promptTokens = usage == null ? null : usage.inputTokenCount();

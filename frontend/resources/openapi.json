@@ -39,6 +39,10 @@
     {
       "name": "Alert Destinations",
       "description": "Slack and Discord webhook destinations for aggregated error alerts"
+    },
+    {
+      "name": "Alert Analysis",
+      "description": "Preview and analyze alert event payloads using the OpenAI prompt model"
     }
   ],
   "paths": {
@@ -629,6 +633,53 @@
         }
       }
     },
+    "/api/v1/apps/{appId}/alert-destinations/{destinationId}/send-analyzed-alert": {
+      "post": {
+        "tags": [
+          "Alert Destinations"
+        ],
+        "operationId": "sendAnalyzedAlert",
+        "summary": "Deliver an analyzed alert bucket to a Slack or Discord destination",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppId"
+          },
+          {
+            "$ref": "#/components/parameters/DestinationId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendAnalyzedAlertRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Analyzed alert accepted for delivery"
+          },
+          "404": {
+            "description": "Alert destination not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ingestion-tokens/session": {
       "get": {
         "tags": [
@@ -673,7 +724,7 @@
         ],
         "operationId": "ingestLogEvent",
         "summary": "Ingest a log event from an external app",
-        "description": "Accepts short-lived log events from registered apps. Events are authenticated using an app ingestion token and are not stored long-term.\n",
+        "description": "Accepts short-lived log events from registered apps. Events are authenticated using an app ingestion token and are not stored long-term.\nThe payload is normalized tolerantly so JSON emitted by common logging stacks (Logback/Logstash, python-json-logger, Winston, Pino, Android, Flutter) is accepted without client-side mapping. See RawLogEvent for accepted field aliases. Canonical LogEventRequest payloads are always accepted unchanged.\nRequest bodies larger than 1 MiB (1048576 bytes) are rejected with 413.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/IngestionToken"
@@ -684,7 +735,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LogEventRequest"
+                "$ref": "#/components/schemas/RawLogEvent"
               }
             }
           }
@@ -715,6 +766,202 @@
           },
           "413": {
             "description": "Log payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/log-events/batch": {
+      "post": {
+        "tags": [
+          "Log Events"
+        ],
+        "operationId": "ingestLogEventBatch",
+        "summary": "Ingest a batch of log events from an external app",
+        "description": "Accepts up to 100 log events in one request. Each event is normalized with the same tolerant rules as the single-event endpoint. Events that cannot be normalized are reported per index in the response instead of failing the whole batch. Each event in the batch counts against the ingestion rate limit.\nRequest bodies larger than 1 MiB (1048576 bytes) are rejected with 413.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IngestionToken"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 100,
+                "items": {
+                  "$ref": "#/components/schemas/RawLogEvent"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Batch accepted; per-event results in body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogEventBatchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid batch payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid ingestion token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Batch payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Ingestion rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alert-analysis/preview": {
+      "post": {
+        "tags": [
+          "Alert Analysis"
+        ],
+        "operationId": "previewAlertPrompt",
+        "summary": "Preview the OpenAI prompt for an alert bucket",
+        "description": "Returns the generated prompt text without calling the model.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertBucketAnalysisRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prompt preview generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertAnalysisPreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid alert bucket payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alert-analysis/analyze": {
+      "post": {
+        "tags": [
+          "Alert Analysis"
+        ],
+        "operationId": "analyzeAlertBucket",
+        "summary": "Analyze an alert bucket using the OpenAI model",
+        "description": "Returns a concise analysis for the provided alert bucket.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertBucketAnalysisRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alert bucket analyzed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertAnalysisResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid alert bucket payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
             "content": {
               "application/json": {
                 "schema": {
@@ -945,7 +1192,7 @@
             "type": "string",
             "format": "date-time",
             "nullable": true,
-            "example": "2026-12-31 23:59:59+00:00"
+            "example": "2026-12-31T23:59:59+00:00"
           }
         }
       },
@@ -1129,12 +1376,173 @@
           }
         }
       },
+      "AlertBucketAnalysisRequest": {
+        "type": "object",
+        "required": [
+          "appId",
+          "fingerprint",
+          "events"
+        ],
+        "properties": {
+          "appId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fingerprint": {
+            "type": "string",
+            "example": "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEventRequest"
+            }
+          }
+        }
+      },
+      "SendAnalyzedAlertRequest": {
+        "type": "object",
+        "required": [
+          "fingerprint",
+          "events",
+          "analysis"
+        ],
+        "properties": {
+          "fingerprint": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEventRequest"
+            }
+          },
+          "analysis": {
+            "type": "string",
+            "description": "Formatted analysis text to include in the webhook payload."
+          }
+        }
+      },
+      "AlertAnalysisPreviewResponse": {
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "example": "You are a concise incident-response assistant..."
+          },
+          "promptCharCount": {
+            "type": "integer",
+            "description": "Character length of the full prompt text sent to the model.",
+            "example": 842
+          },
+          "estimatedPromptTokens": {
+            "type": "integer",
+            "description": "Rough input token estimate (chars / 4). Preview only; analyze returns exact usage from OpenAI.",
+            "example": 211
+          }
+        }
+      },
+      "TokenUsage": {
+        "type": "object",
+        "properties": {
+          "promptTokens": {
+            "type": "integer",
+            "example": 186
+          },
+          "completionTokens": {
+            "type": "integer",
+            "example": 94
+          },
+          "totalTokens": {
+            "type": "integer",
+            "example": 280
+          }
+        }
+      },
+      "AlertAnalysisResponse": {
+        "type": "object",
+        "required": [
+          "analysis"
+        ],
+        "properties": {
+          "analysis": {
+            "type": "string",
+            "description": "Human-readable analysis formatted for Slack, Discord, and the dashboard."
+          },
+          "analysisJson": {
+            "type": "string",
+            "description": "Raw JSON object returned by the model before display formatting."
+          },
+          "cached": {
+            "type": "boolean",
+            "description": "True when the analysis was served from the in-memory cache (no OpenAI call).",
+            "example": false
+          },
+          "tokenUsage": {
+            "$ref": "#/components/schemas/TokenUsage",
+            "nullable": true
+          }
+        }
+      },
       "AlertDestinationType": {
         "type": "string",
         "enum": [
           "DISCORD",
           "SLACK"
         ]
+      },
+      "RawLogEvent": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Free-form log event JSON, normalized server-side into the canonical LogEventRequest. Accepted field aliases — message: message, msg, text, log, body (required; the only mandatory field); level: level, severity, levelname, level_name, loglevel, log_level, priority (strings such as warning, critical, fatal, verbose, or numeric Pino/Android levels; defaults to INFO); timestamp: occurredAt, occurred_at, timestamp, @timestamp, time, ts, datetime, date (ISO-8601 or epoch seconds/millis; defaults to server receive time); id: id, eventId, event_id, uuid, messageId (generated when missing); logger: logger, loggerName, logger_name, tag, source, name; trace: traceId, trace_id; span: spanId, span_id. Unrecognized fields are preserved under metadata.\n",
+        "example": {
+          "levelname": "WARNING",
+          "msg": "Payment retry scheduled",
+          "@timestamp": "2026-06-08T18:30:00+00:00",
+          "taskName": "payments-worker"
+        }
+      },
+      "LogEventBatchResponse": {
+        "type": "object",
+        "required": [
+          "accepted",
+          "rejected"
+        ],
+        "properties": {
+          "accepted": {
+            "type": "integer",
+            "description": "Number of events accepted for relay.",
+            "example": 98
+          },
+          "rejected": {
+            "type": "array",
+            "description": "Events that could not be normalized or exceeded the rate limit.",
+            "items": {
+              "$ref": "#/components/schemas/LogEventBatchRejection"
+            }
+          }
+        }
+      },
+      "LogEventBatchRejection": {
+        "type": "object",
+        "required": [
+          "index",
+          "reason"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Zero-based index of the rejected event in the request array.",
+            "example": 3
+          },
+          "reason": {
+            "type": "string",
+            "example": "Log event must include a message field."
+          }
+        }
       },
       "LogEventRequest": {
         "type": "object",
@@ -1164,7 +1572,7 @@
           "occurredAt": {
             "type": "string",
             "format": "date-time",
-            "example": "2026-06-08 18:30:00+00:00"
+            "example": "2026-06-08T18:30:00+00:00"
           },
           "logger": {
             "type": "string",

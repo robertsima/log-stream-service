@@ -7,7 +7,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.alerting.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.generated.model.LogLevel;
 import com.logstream.service.AlertAggregationServiceImpl;
@@ -27,7 +27,7 @@ class AlertAggregationServiceTest {
                 .occurredAt(OffsetDateTime.now())
                 .logger("com.example.AuthService");
 
-        alertAggregationService.accept(appId, event);
+        alertAggregationService.accept(appId, "Test App", event);
 
         Map<String, AlertBucket> buckets = alertAggregationService.drainBuckets();
 
@@ -46,7 +46,7 @@ class AlertAggregationServiceTest {
                 .logger("com.example.PaymentService")
                 .traceId("trace-1");
 
-        alertAggregationService.accept(appId, event);
+        alertAggregationService.accept(appId, "Test App", event);
 
         Map<String, AlertBucket> buckets = alertAggregationService.drainBuckets();
 
@@ -55,6 +55,7 @@ class AlertAggregationServiceTest {
         AlertBucket bucket = buckets.values().iterator().next();
 
         assertThat(bucket.getAppId()).isEqualTo(appId);
+        assertThat(bucket.getAppName()).isEqualTo("Test App");
         assertThat(bucket.count()).isEqualTo(1);
         assertThat(bucket.getEvents().get(0).getMessage()).isEqualTo("Payment failed for user 123");
     }
@@ -77,8 +78,8 @@ class AlertAggregationServiceTest {
                 .occurredAt(OffsetDateTime.now())
                 .logger("com.example.PaymentService");
 
-        alertAggregationService.accept(appId, event1);
-        alertAggregationService.accept(appId, event2);
+        alertAggregationService.accept(appId, "Test App", event1);
+        alertAggregationService.accept(appId, "Test App", event2);
 
         Map<String, AlertBucket> buckets = alertAggregationService.drainBuckets();
 
@@ -97,7 +98,7 @@ class AlertAggregationServiceTest {
                 .occurredAt(OffsetDateTime.now())
                 .logger("com.example.TestService");
 
-        alertAggregationService.accept(appId, event);
+        alertAggregationService.accept(appId, "Test App", event);
 
         assertThat(alertAggregationService.drainBuckets()).hasSize(1);
         assertThat(alertAggregationService.drainBuckets()).isEmpty();

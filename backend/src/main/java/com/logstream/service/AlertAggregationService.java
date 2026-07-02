@@ -3,13 +3,13 @@ package com.logstream.service;
 import java.util.Map;
 import java.util.UUID;
 
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.alerting.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
 
 public interface AlertAggregationService {
 
 
-    public void accept(UUID appId, LogEventRequest event);
+    public void accept(UUID appId, String appName, LogEventRequest event);
 
     public Map<String, AlertBucket> drainBuckets();
 

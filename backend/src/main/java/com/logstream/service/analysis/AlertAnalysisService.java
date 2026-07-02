@@ -1,6 +1,6 @@
-package com.logstream.service.langchain4j;
+package com.logstream.service.analysis;
 
-import com.logstream.domain.model.AlertBucket;
+import com.logstream.service.alerting.AlertBucket;
 
 public interface AlertAnalysisService {
     AlertAnalysisOutcome analyzeAlertBucket(AlertBucket alertBucket);

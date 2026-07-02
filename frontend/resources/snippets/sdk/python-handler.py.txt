@@ -1,0 +1,10 @@
+import logging
+from prairielog_handler import PrairieLogHandler
+
+logging.getLogger().addHandler(PrairieLogHandler(
+    api_url="__API_BASE_URL__",
+    ingestion_token="YOUR_INGESTION_TOKEN",
+    logger_name="checkout-worker",
+))
+
+logging.exception("Payment failed")

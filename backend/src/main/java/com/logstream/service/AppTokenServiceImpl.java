@@ -23,6 +23,7 @@ import com.logstream.domain.mapper.AppTokenMapper;
 import com.logstream.domain.repository.AppRepository;
 import com.logstream.domain.repository.AppTokenRepository;
 import com.logstream.exception.QuotaExceededException;
+import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.AppTokenResponse;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
@@ -126,19 +127,19 @@ public class AppTokenServiceImpl implements AppTokenService {
     @Transactional
     public AppTokenDTO validateAndRefreshToken(String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
-            throw new IllegalArgumentException("Missing ingestion token");
+            throw new UnauthorizedException("Missing ingestion token");
         }
 
         String tokenHash = hash(rawToken);
         AppToken token = appTokenRepository.findByTokenHash(tokenHash)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid ingestion token"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid ingestion token"));
 
         if (token.getRevokedAt() != null) {
-            throw new IllegalArgumentException("Token revoked");
+            throw new UnauthorizedException("Token revoked");
         }
 
         if (token.getExpiresAt() != null && token.getExpiresAt().isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException("Token expired");
+            throw new UnauthorizedException("Token expired");
         }
 
         token.setLastUsedAt(OffsetDateTime.now());

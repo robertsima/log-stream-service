@@ -29,6 +29,7 @@ import com.logstream.domain.entity.AppToken;
 import com.logstream.domain.entity.Users;
 import com.logstream.domain.repository.AppRepository;
 import com.logstream.domain.repository.AppTokenRepository;
+import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
 import com.logstream.service.AppTokenServiceImpl;
@@ -194,7 +195,7 @@ public class AppTokenServiceTest {
     @Test
     void testValidateAndRefreshToken_NullToken() {
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnauthorizedException.class, () -> {
             appTokenService.validateAndRefreshToken(null);
         });
     }
@@ -202,7 +203,7 @@ public class AppTokenServiceTest {
     @Test
     void testValidateAndRefreshToken_EmptyToken() {
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnauthorizedException.class, () -> {
             appTokenService.validateAndRefreshToken("   ");
         });
     }
@@ -213,7 +214,7 @@ public class AppTokenServiceTest {
         when(appTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnauthorizedException.class, () -> {
             appTokenService.validateAndRefreshToken("invalid_token");
         });
     }
@@ -233,7 +234,7 @@ public class AppTokenServiceTest {
         when(appTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(revokedToken));
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnauthorizedException.class, () -> {
             appTokenService.validateAndRefreshToken(rawToken);
         });
     }
@@ -253,7 +254,7 @@ public class AppTokenServiceTest {
         when(appTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(expiredToken));
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnauthorizedException.class, () -> {
             appTokenService.validateAndRefreshToken(rawToken);
         });
     }

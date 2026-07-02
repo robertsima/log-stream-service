@@ -1,6 +1,5 @@
 package com.logstream.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,14 +18,8 @@ public class IngestionTokensController implements IngestionTokensApi {
 
     @Override
     public ResponseEntity<IngestionTokenSessionResponse> getIngestionTokenSession(String xIngestionToken) {
-        if (xIngestionToken == null || xIngestionToken.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        try {
-            return ResponseEntity.ok(appTokenService.resolveIngestionTokenSession(xIngestionToken.trim()));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        String token = xIngestionToken == null ? null : xIngestionToken.trim();
+        // Invalid/missing tokens raise UnauthorizedException -> 401 ErrorResponse.
+        return ResponseEntity.ok(appTokenService.resolveIngestionTokenSession(token));
     }
 }

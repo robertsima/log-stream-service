@@ -1,0 +1,1 @@
+- [SDK Branding: PrairieLog](sdk-branding.md) - Use PrairieLog branding and `@prairielog/client` naming for SDK work.

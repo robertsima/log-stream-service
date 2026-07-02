@@ -1,11 +1,13 @@
 package com.logstream.controller;
 
-import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.logstream.generated.api.LogEventsApi;
-import com.logstream.generated.model.LogEventRequest;
+import com.logstream.generated.model.LogEventBatchResponse;
 import com.logstream.service.LogEventService;
 
 @RestController
@@ -18,18 +20,24 @@ public class LogEventsController implements LogEventsApi {
     }
 
     @Override
-    public ResponseEntity<Void> ingestLogEvent(String xIngestionToken, LogEventRequest logEventRequest) {
-        String rawToken = xIngestionToken;
+    public ResponseEntity<Void> ingestLogEvent(String xIngestionToken, Map<String, Object> requestBody) {
+        logEventService.ingestLogEvent(requestBody, trimmed(xIngestionToken));
+        return ResponseEntity.accepted().build();
+    }
 
-        if (rawToken == null || rawToken.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    @Override
+    public ResponseEntity<LogEventBatchResponse> ingestLogEventBatch(String xIngestionToken,
+            List<Map<String, Object>> requestBody) {
+        LogEventBatchResponse response = logEventService.ingestLogEventBatch(requestBody, trimmed(xIngestionToken));
+        return ResponseEntity.accepted().body(response);
+    }
 
-        try {
-            logEventService.ingestLogEvent(logEventRequest, rawToken.trim());
-            return ResponseEntity.accepted().build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    /**
+     * Token validation (missing/blank/unknown/revoked/expired) throws
+     * {@link com.logstream.exception.UnauthorizedException}, which the
+     * {@link ApiExceptionHandler} maps to the documented 401 ErrorResponse.
+     */
+    private String trimmed(String token) {
+        return token == null ? null : token.trim();
     }
 }

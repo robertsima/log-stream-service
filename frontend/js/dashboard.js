@@ -670,6 +670,52 @@
     return appId + "|ERROR|" + logger + "|" + message;
   }
 
+  function firstPresent(source, keys) {
+    for (const key of keys) {
+      if (source[key] !== undefined && source[key] !== null && source[key] !== "") {
+        return source[key];
+      }
+    }
+    return null;
+  }
+
+  function normalizeAnalysisLevel(value) {
+    if (typeof value === "number") {
+      if (value <= 10) return "TRACE";
+      if (value <= 20) return "DEBUG";
+      if (value <= 30) return "INFO";
+      if (value <= 40) return "WARN";
+      return "ERROR";
+    }
+
+    const level = String(value || "INFO").trim().toUpperCase();
+    if (level === "WARNING") return "WARN";
+    if (level === "CRITICAL" || level === "FATAL" || level === "ASSERT") return "ERROR";
+    if (level === "VERBOSE") return "TRACE";
+    if (["TRACE", "DEBUG", "INFO", "WARN", "ERROR"].includes(level)) {
+      return level;
+    }
+    return "INFO";
+  }
+
+  function normalizeAnalysisTimestamp(value) {
+    if (value === null || value === undefined || value === "") {
+      return new Date().toISOString();
+    }
+    if (typeof value === "number") {
+      const millis = value < 10000000000 ? value * 1000 : value;
+      return new Date(millis).toISOString();
+    }
+    return String(value);
+  }
+
+  function analysisEventId(index) {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return "analysis-" + window.crypto.randomUUID();
+    }
+    return "analysis-" + Date.now() + "-" + index;
+  }
+
   function parseAnalysisEvents() {
     const raw = document.getElementById("analysis-events-input").value.trim();
     if (!raw) {
@@ -691,21 +737,38 @@
       if (!event || typeof event !== "object") {
         throw new Error("Event at index " + index + " must be an object.");
       }
-      if (!event.id || !event.level || !event.message || !event.occurredAt) {
-        throw new Error(
-          "Event at index " +
-            index +
-            " must include id, level, message, and occurredAt."
-        );
+      const message = firstPresent(event, ["message", "msg", "text", "log", "body"]);
+      if (message === null || String(message).trim() === "") {
+        throw new Error("Event at index " + index + " must include a message.");
       }
+      const occurredAt = firstPresent(event, [
+        "occurredAt",
+        "occurred_at",
+        "timestamp",
+        "@timestamp",
+        "time",
+        "ts",
+        "datetime",
+        "date"
+      ]);
+      const id = firstPresent(event, ["id", "eventId", "event_id", "uuid", "messageId"]);
+      const level = firstPresent(event, [
+        "level",
+        "severity",
+        "levelname",
+        "level_name",
+        "loglevel",
+        "log_level",
+        "priority"
+      ]);
       return {
-        id: String(event.id),
-        level: String(event.level).toUpperCase(),
-        message: String(event.message),
-        occurredAt: String(event.occurredAt),
-        logger: event.logger ? String(event.logger) : null,
-        traceId: event.traceId ? String(event.traceId) : null,
-        spanId: event.spanId ? String(event.spanId) : null,
+        id: id ? String(id) : analysisEventId(index),
+        level: normalizeAnalysisLevel(level),
+        message: String(message),
+        occurredAt: normalizeAnalysisTimestamp(occurredAt),
+        logger: firstPresent(event, ["logger", "loggerName", "logger_name", "tag", "source", "name"]),
+        traceId: firstPresent(event, ["traceId", "trace_id"]),
+        spanId: firstPresent(event, ["spanId", "span_id"]),
         metadata: event.metadata || null
       };
     });

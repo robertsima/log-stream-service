@@ -40,11 +40,77 @@
         Endpoint reference generated from the OpenAPI contract. Apps send logs with an <strong>ingestion token</strong>;
         alert destinations use a separate Slack or Discord <strong>alert webhook</strong>.
       </p>
+      <p>
+        For apps, prefer an SDK. TypeScript covers browser, React, Angular, Node, and vanilla JS; Python and Java
+        starters cover <code>logging.Handler</code> and Logback integrations.
+      </p>
       <button type="button" id="download-openapi-button" class="secondary">
         <i data-lucide="download" class="icon" aria-hidden="true"></i>
         <span class="btn-label">Download OpenAPI JSON</span>
       </button>
     </header>
+
+    <section class="page-section card-section card-section-compact">
+      <h2 class="heading-with-icon"><i data-lucide="package" class="icon" aria-hidden="true"></i><span>SDK Quick Start</span></h2>
+      <p class="muted">All SDKs send through the batch endpoint and keep ingestion tokens out of user-facing copy.</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">TypeScript</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-quickstart" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="docs-sdk-quickstart"><code>import { PrairieLogClient } from "@prairielog/client";
+
+const prairieLog = new PrairieLogClient({
+  apiUrl: "__API_BASE_URL__",
+  ingestionToken: "YOUR_INGESTION_TOKEN",
+  defaultLogger: "checkout-api",
+  batchSize: 50
+});
+
+prairieLog.installNodeHandlers();
+
+await prairieLog.captureException(error, {
+  endpoint: "/api/v1/checkout",
+  orderId: "ord_123"
+});</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">Python logging</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-python" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="docs-sdk-python"><code>import logging
+from prairielog_handler import PrairieLogHandler
+
+logging.getLogger().addHandler(PrairieLogHandler(
+    api_url="__API_BASE_URL__",
+    ingestion_token="YOUR_INGESTION_TOKEN",
+    logger_name="checkout-worker",
+))
+
+logging.exception("Payment failed")</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">Java Logback</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="docs-sdk-java" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="docs-sdk-java"><code>&lt;appender name="PRAIRIELOG" class="com.prairielog.logback.PrairieLogAppender"&gt;
+  &lt;apiUrl&gt;__API_BASE_URL__&lt;/apiUrl&gt;
+  &lt;ingestionToken&gt;${PRAIRIELOG_INGESTION_TOKEN}&lt;/ingestionToken&gt;
+  &lt;batchSize&gt;50&lt;/batchSize&gt;
+&lt;/appender&gt;</code></pre>
+      </div>
+    </section>
 
     <nav id="docs-tag-nav" class="docs-tag-nav" aria-label="Endpoint groups" hidden></nav>
 

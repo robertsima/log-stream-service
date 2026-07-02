@@ -1,7 +1,12 @@
 package com.logstream.service;
 
-import com.logstream.generated.model.LogEventRequest;
+import java.util.List;
+import java.util.Map;
+
+import com.logstream.generated.model.LogEventBatchResponse;
 
 public interface LogEventService {
-    void ingestLogEvent(LogEventRequest logEventRequest, String rawToken);
+    void ingestLogEvent(Map<String, Object> rawEvent, String rawToken);
+
+    LogEventBatchResponse ingestLogEventBatch(List<Map<String, Object>> rawEvents, String rawToken);
 }

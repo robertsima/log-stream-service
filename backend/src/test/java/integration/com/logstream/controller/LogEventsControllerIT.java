@@ -1,6 +1,7 @@
 package integration.com.logstream.controller;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -122,5 +123,81 @@ class LogEventsControllerIT extends PostgresBaseIT {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+
+        // Lenient payload (Pino-style) is normalized and accepted too.
+        HttpEntity<Map<String, Object>> lenientRequest = new HttpEntity<>(
+                Map.of(
+                        "level", 50,
+                        "time", System.currentTimeMillis(),
+                        "msg", "request failed",
+                        "hostname", "api-1"
+                ),
+                headers
+        );
+
+        ResponseEntity<Void> lenientResponse = restTemplate.postForEntity(
+                "/api/v1/log-events",
+                lenientRequest,
+                Void.class
+        );
+
+        assertThat(lenientResponse.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+
+        // Batch endpoint accepts valid events and reports invalid ones per index.
+        HttpEntity<List<Map<String, Object>>> batchRequest = new HttpEntity<>(
+                List.of(
+                        Map.of("message", "first", "level", "WARN"),
+                        Map.of("level", "INFO") // no message -> rejected per index
+                ),
+                headers
+        );
+
+        ResponseEntity<Map> batchResponse = restTemplate.postForEntity(
+                "/api/v1/log-events/batch",
+                batchRequest,
+                Map.class
+        );
+
+        assertThat(batchResponse.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        assertThat(batchResponse.getBody().get("accepted")).isEqualTo(1);
+        assertThat((List<?>) batchResponse.getBody().get("rejected")).hasSize(1);
+    }
+
+    @Test
+    void ingestLogEventBatch_shouldReturnUnauthorizedWhenTokenInvalid() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Ingestion-Token", "lss_live_invalid");
+
+        HttpEntity<List<Map<String, Object>>> request = new HttpEntity<>(
+                List.of(Map.of("message", "hello")),
+                headers
+        );
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                "/api/v1/log-events/batch",
+                request,
+                Map.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void ingestLogEvent_shouldReturnBadRequestWhenBodyMalformed() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Ingestion-Token", "lss_live_invalid");
+
+        HttpEntity<String> request = new HttpEntity<>("{not json", headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                "/api/v1/log-events",
+                request,
+                Map.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().get("code")).isEqualTo("MALFORMED_JSON");
     }
 }

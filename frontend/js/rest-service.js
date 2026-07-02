@@ -379,17 +379,21 @@ class RestService {
   // -------------------------
 
   async ingestLogEvent(ingestionToken, logEvent) {
+    return this.ingestLogEventsBatch(ingestionToken, [logEvent]);
+  }
+
+  async ingestLogEventsBatch(ingestionToken, logEvents) {
     if (!ingestionToken) {
       throw new Error("Missing ingestion token.");
     }
 
-    const response = await this.request("/api/v1/log-events", {
+    const response = await this.request("/api/v1/log-events/batch", {
       method: "POST",
       auth: false,
       headers: {
         "X-Ingestion-Token": ingestionToken
       },
-      body: logEvent
+      body: logEvents
     });
 
     return response.status;
