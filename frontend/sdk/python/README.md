@@ -2,7 +2,7 @@
 
 Small `logging.Handler` for Python services. It batches records through `POST /api/v1/log-events/batch`, maps Python log levels to PrairieLog levels, and flushes on demand.
 
-# After registry publishing:
+After registry publishing:
 
 ```bash
 pip install prairielog-handler

@@ -2,6 +2,9 @@
 .env
 .env.local
 
+# Agent worktrees
+.claude/worktrees/
+
 # Optional frontend override for local backend dev (production default is js/env.js)
 frontend/js/env.local.js
 
@@ -33,7 +36,10 @@ node_modules/
 # SDK package build output
 frontend/sdk/java-logback/target/
 frontend/sdk/python/build/
+frontend/sdk/python/dist/
 frontend/sdk/python/*.egg-info/
+frontend/sdk/typescript/dist/
+frontend/sdk/typescript/*.tgz
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*

@@ -22,6 +22,8 @@ classifiers = [
 [project.urls]
 Homepage = "https://prairielog.dev"
 Documentation = "https://prairielog.dev/docs.html"
+Repository = "https://github.com/robertsima/log-stream-service"
+Issues = "https://github.com/robertsima/log-stream-service/issues"
 
 [tool.setuptools]
 py-modules = ["prairielog_handler"]
