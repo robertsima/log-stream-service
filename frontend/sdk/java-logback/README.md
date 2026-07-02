@@ -6,7 +6,7 @@ After registry publishing:
 
 ```xml
 <dependency>
-  <groupId>com.prairielog</groupId>
+  <groupId>io.github.robertsima</groupId>
   <artifactId>prairielog-logback</artifactId>
   <version>0.1.0</version>
 </dependency>

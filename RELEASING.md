@@ -1,33 +1,25 @@
 # Releasing the PrairieLog SDKs (v0.1.0)
 
 Checklists for publishing `@prairielog/client` (npm), `prairielog-handler`
-(PyPI), and `com.prairielog:prairielog-logback` (Maven Central). Nothing in
+(PyPI), and `io.github.robertsima:prairielog-logback` (Maven Central). Nothing in
 this file publishes anything by itself — every publish step is explicit.
 
 Verified as of 2026-07-02:
 - npm: `@prairielog/client` is unpublished; the `prairielog` scope has no
   packages (create the org/scope at npmjs.com when publishing).
 - PyPI: `prairielog-handler` name is unclaimed.
-- Maven Central: `com.prairielog` group has no artifacts and is unregistered.
+- Maven Central: `io.github.robertsima` group has no artifacts published.
 - `twine check` passes; `mvn -Prelease package` builds main + sources +
   javadoc jars; `npm pack --dry-run` produces a clean 12-file tarball with
   LICENSE.
 
-## Decisions to make first
+## Decisions (all resolved)
 
-1. **Maven Central namespace (only remaining decision).** The frontend domain
-   is `prairie-log-api.com`, but the pom groupId is `com.prairielog`, which
-   Central will only grant by DNS-verifying `prairielog.dev` — a domain you
-   don't own. Options:
-   - `io.github.robertsima` (recommended): verified automatically via your
-     GitHub account in the Central Portal, no DNS. Change the pom `groupId`
-     and the dependency snippets in READMEs/docs; the Java package
-     `com.prairielog.logback` can stay as-is (groupId and package name don't
-     have to match).
-   - `com.prairie-log-api`: matches the domain you own (DNS TXT proof), but
-     hyphenated groupIds are unusual and clash with Java package naming.
-   - Buy `prairielog.dev` and keep `com.prairielog` unchanged.
-2. ~~Homepage URLs~~ — resolved: package metadata now points at
+1. ~~Maven Central namespace~~ — resolved 2026-07-02: groupId is
+   `io.github.robertsima`, verified via your GitHub account in the Central
+   Portal (no DNS). The Java package stays `com.prairielog.logback`, so the
+   logback.xml appender class name is unchanged for users.
+2. ~~Homepage URLs~~ — resolved: package metadata points at
    `https://prairie-log-api.com` (npm/PyPI/Maven all updated).
 
 ## npm — @prairielog/client
@@ -63,10 +55,12 @@ it as `TWINE_USERNAME=__token__`, `TWINE_PASSWORD=pypi-...` env vars or in
 - [ ] Smoke test: `pip install prairielog-handler` in a fresh venv, then
       `python -c "from prairielog_handler import PrairieLogHandler"`
 
-## Maven Central — com.prairielog:prairielog-logback
+## Maven Central — io.github.robertsima:prairielog-logback
 
 Prep (once):
-1. Register the namespace in https://central.sonatype.com (see decision #1).
+1. Sign in to https://central.sonatype.com with GitHub → your
+   `io.github.robertsima` namespace appears under Namespaces; verify it
+   (automatic for GitHub sign-in, or a one-time public-repo proof).
 2. Generate a user token there (Account → Generate User Token) and add to
    `~/.m2/settings.xml`:
    ```xml
@@ -119,7 +113,7 @@ First public release of the PrairieLog client SDKs (MIT licensed):
   backoff, offline queue, global error handlers.
 - prairielog-handler (PyPI) — Python logging.Handler that batches records to
   the PrairieLog ingestion API.
-- com.prairielog:prairielog-logback (Maven Central) — Logback appender for
+- io.github.robertsima:prairielog-logback (Maven Central) — Logback appender for
   JVM services (Java 11+).
 
 All three send events to POST /api/v1/log-events/batch authenticated with
