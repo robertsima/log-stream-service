@@ -796,6 +796,9 @@
   }
 
   function formatTokenUsageLine(result) {
+    if (!isAnalysisPromptPreviewEnabled()) {
+      return "";
+    }
     if (result.cached) {
       return "Token usage: cached response (no OpenAI call).";
     }
@@ -836,7 +839,7 @@
     if (usageLine) {
       meta.push(usageLine);
     }
-    if (result.analysisJson) {
+    if (isAnalysisPromptPreviewEnabled() && result.analysisJson) {
       try {
         meta.push(
           "Raw JSON:\n" + window.PrairieLogUI.formatJson(JSON.parse(result.analysisJson))
@@ -871,6 +874,20 @@
     } finally {
       window.PrairieLogUI.setButtonLoading(button, false);
     }
+  }
+
+  function isAnalysisPromptPreviewEnabled() {
+    return Boolean(window.CONFIG && window.CONFIG.ALERT_ANALYSIS_PROMPT_PREVIEW_ENABLED === true);
+  }
+
+  function configureAnalysisPreviewButton() {
+    const button = document.getElementById("analysis-preview-button");
+    if (!button || !isAnalysisPromptPreviewEnabled()) {
+      return;
+    }
+
+    button.hidden = false;
+    button.addEventListener("click", handleAnalysisPreview);
   }
 
   async function handleAnalysisRun() {
@@ -1118,9 +1135,7 @@
     document
       .getElementById("destinations-list")
       .addEventListener("click", handleDestinationsListClick);
-    document
-      .getElementById("analysis-preview-button")
-      .addEventListener("click", handleAnalysisPreview);
+    configureAnalysisPreviewButton();
     document
       .getElementById("analysis-run-button")
       .addEventListener("click", handleAnalysisRun);

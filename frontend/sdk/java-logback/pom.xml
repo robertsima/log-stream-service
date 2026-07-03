@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.prairielog</groupId>
+  <groupId>io.github.robertsima</groupId>
   <artifactId>prairielog-logback</artifactId>
   <version>0.1.0</version>
   <packaging>jar</packaging>
 
   <name>PrairieLog Logback Appender</name>
   <description>Logback appender for PrairieLog ingestion.</description>
-  <url>https://prairielog.dev</url>
+  <url>https://prairie-log-api.com</url>
 
   <licenses>
     <license>
@@ -23,7 +23,7 @@
   <developers>
     <developer>
       <name>PrairieLog</name>
-      <url>https://prairielog.dev</url>
+      <url>https://prairie-log-api.com</url>
     </developer>
   </developers>
 
@@ -46,4 +46,65 @@
       <optional>true</optional>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <!-- Maven Central requires sources + javadoc jars and GPG signatures.
+         Activate only when publishing: mvn -Prelease deploy -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.12.0</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.8</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.11.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

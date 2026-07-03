@@ -1,8 +1,10 @@
 package com.logstream.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.logstream.exception.ForbiddenException;
 import com.logstream.generated.api.AlertAnalysisApi;
 import com.logstream.generated.model.AlertAnalysisPreviewResponse;
 import com.logstream.generated.model.AlertAnalysisResponse;
@@ -20,9 +22,14 @@ import java.util.stream.Collectors;
 public class AlertAnalysisController implements AlertAnalysisApi {
 
     private final AlertAnalysisService alertAnalysisService;
+    private final boolean promptPreviewEnabled;
 
-    public AlertAnalysisController(AlertAnalysisService alertAnalysisService) {
+    public AlertAnalysisController(
+            AlertAnalysisService alertAnalysisService,
+            @Value("${alerts.analysis.prompt-preview-enabled:false}") boolean promptPreviewEnabled
+    ) {
         this.alertAnalysisService = alertAnalysisService;
+        this.promptPreviewEnabled = promptPreviewEnabled;
     }
 
     @Override
@@ -47,6 +54,10 @@ public class AlertAnalysisController implements AlertAnalysisApi {
 
     @Override
     public ResponseEntity<AlertAnalysisPreviewResponse> previewAlertPrompt(AlertBucketAnalysisRequest alertBucketAnalysisRequest) {
+        if (!promptPreviewEnabled) {
+            throw new ForbiddenException("Alert analysis prompt preview is disabled.");
+        }
+
         AlertBucket alertBucket = toAlertBucket(alertBucketAnalysisRequest);
         PromptPreview preview = alertAnalysisService.previewPrompt(alertBucket);
 

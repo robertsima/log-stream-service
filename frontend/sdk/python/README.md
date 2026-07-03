@@ -2,13 +2,11 @@
 
 Small `logging.Handler` for Python services. It batches records through `POST /api/v1/log-events/batch`, maps Python log levels to PrairieLog levels, and flushes on demand.
 
-After registry publishing:
-
 ```bash
 pip install prairielog-handler
 ```
 
-Until then, install from this repo with `pip install ./frontend/sdk/python`.
+For local development from this repository, use `pip install ./frontend/sdk/python`.
 
 ```python
 import logging

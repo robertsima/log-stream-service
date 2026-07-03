@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "Python logging handler for PrairieLog ingestion."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "PrairieLog" }
 ]
@@ -20,8 +21,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://prairielog.dev"
-Documentation = "https://prairielog.dev/docs.html"
+Homepage = "https://prairie-log-api.com"
+Documentation = "https://prairie-log-api.com/docs.html"
 Repository = "https://github.com/robertsima/log-stream-service"
 Issues = "https://github.com/robertsima/log-stream-service/issues"
 

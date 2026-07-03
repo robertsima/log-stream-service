@@ -12,26 +12,30 @@
 
     gtag('config', 'G-6MSYZQXVM2');
   </script>
-  <title>Dashboard — PrairieLog</title>
+  <title>Dashboard — Manage PrairieLog apps, tokens, and alert destinations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
   <link rel="stylesheet" href="css/styles.css" />
+  <meta name="theme-color" content="#f6f7f2" />
   <meta name="description" content="Sign in to manage PrairieLog apps, ingestion tokens, and Slack or Discord alert destinations." />
-  <link rel="canonical" href="https://prairie-log-api.netlify.app/dashboard.html" />
+  <link rel="canonical" href="https://prairie-log-api.com/dashboard.html" />
   <link rel="icon" type="image/png" href="resources/images/prairie-dog-silhouette.png" />
   <meta property="og:site_name" content="PrairieLog" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Dashboard — PrairieLog" />
+  <meta property="og:title" content="Dashboard — Manage PrairieLog apps, tokens, and alert destinations" />
   <meta property="og:description" content="Sign in to manage PrairieLog apps, ingestion tokens, and Slack or Discord alert destinations." />
-  <meta property="og:url" content="https://prairie-log-api.netlify.app/dashboard.html" />
-  <meta property="og:image" content="https://prairie-log-api.netlify.app/resources/images/prairie-dog-silhouette.png" />
+  <meta property="og:url" content="https://prairie-log-api.com/dashboard.html" />
+  <meta property="og:image" content="https://prairie-log-api.com/resources/images/prairie-dog-silhouette.png" />
   <meta name="twitter:card" content="summary" />
   <script src="js/env.js" defer></script>
   <script src="js/env.local.js" defer></script>
   <script src="js/state.js" defer></script>
   <script src="js/rest-service.js?v=20260702-batch" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" integrity="sha384-mLD+wdwynYnAhgHAkdPP5hroWJXJTNy5C2OhPKM55zuiV2vjzFD1LtBohaHq2Ex8" crossorigin="anonymous" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js" integrity="sha384-NiuRnBs5Z0OgJ12kYJLSeWxANeJN369zH3+Zn0TGVPaCH/TKmbPFqfOmmLtrj+wg" crossorigin="anonymous" defer></script>
   <script src="js/auth.js" defer></script>
-  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js" integrity="sha384-ouAVEJVCMsf8Svzn+BwqbaBhxBEA0xgeVBhHnxmWd+Wqyv18yhWCQwGegFD/OHLq" crossorigin="anonymous"></script>
   <script src="js/app.js" defer></script>
   <script src="js/dashboard.js?v=20260702-analysis-normalization" defer></script>
 </head>
@@ -98,12 +102,12 @@
 
     <!-- Signed-in dashboard -->
     <div id="dashboard-content" hidden>
-      <section class="page-section card-section account-bar" id="account-bar">
+      <section class="page-section account-bar dash-toolbar" id="account-bar">
         <div class="account-bar-info">
           <span class="account-bar-avatar"><i data-lucide="user-round" class="icon" aria-hidden="true"></i></span>
           <div>
             <p class="account-bar-email" id="account-email">—</p>
-            <p class="account-bar-meta muted" id="account-meta">Apps 0/10</p>
+            <p class="account-bar-meta" id="account-meta">Apps 0/10</p>
           </div>
         </div>
         <button type="button" id="sign-out-button" class="secondary btn-compact">
@@ -112,49 +116,60 @@
         </button>
       </section>
 
-      <section class="page-section card-section" aria-labelledby="apps-title">
-        <div class="section-head">
-          <h2 id="apps-title" class="heading-with-icon"><i data-lucide="boxes" class="icon" aria-hidden="true"></i><span>Your apps</span></h2>
-          <button type="button" id="refresh-apps-button" class="secondary btn-compact">
-            <i data-lucide="refresh-cw" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Refresh</span>
-          </button>
-        </div>
-        <p class="muted compact-hint">Select an app to manage its tokens and alert destinations.</p>
-        <div id="apps-list" class="apps-grid">
-          <p class="muted">Loading apps…</p>
-        </div>
-
-        <details class="advanced-inline-details" id="create-app-details">
-          <summary>Register a new app</summary>
-          <form id="create-app-form" class="compact-form">
-            <div class="form-row-inline">
-              <div class="form-group form-group-grow">
-                <label for="app-name-input">App name</label>
-                <input id="app-name-input" type="text" required placeholder="payment-service" />
-              </div>
+      <div class="dash-layout">
+        <aside class="dash-side">
+          <section class="page-section card-section" aria-labelledby="apps-title">
+            <div class="section-head">
+              <h2 id="apps-title" class="heading-with-icon"><i data-lucide="boxes" class="icon" aria-hidden="true"></i><span>Your apps</span></h2>
+              <button type="button" id="refresh-apps-button" class="secondary btn-compact">
+                <i data-lucide="refresh-cw" class="icon" aria-hidden="true"></i>
+                <span class="btn-label">Refresh</span>
+              </button>
             </div>
-            <div class="form-group">
-              <label for="app-description-input">Description</label>
-              <input id="app-description-input" type="text" placeholder="Optional" />
+            <p class="muted compact-hint">Select an app to manage its tokens and alert destinations.</p>
+            <div id="apps-list" class="apps-grid">
+              <p class="muted">Loading apps…</p>
             </div>
-            <button type="submit">
-              <i data-lucide="plus" class="icon" aria-hidden="true"></i>
-              <span class="btn-label">Register app</span>
-            </button>
-          </form>
-        </details>
-      </section>
 
-      <section class="page-section card-section" id="app-detail" hidden aria-labelledby="app-detail-title">
-        <h2 id="app-detail-title" class="heading-with-icon"><i data-lucide="box" class="icon" aria-hidden="true"></i><span id="app-detail-name">App</span></h2>
-        <p class="muted compact-hint" id="app-detail-desc"></p>
+            <details class="advanced-inline-details" id="create-app-details">
+              <summary>Register a new app</summary>
+              <form id="create-app-form" class="compact-form">
+                <div class="form-row-inline">
+                  <div class="form-group form-group-grow">
+                    <label for="app-name-input">App name</label>
+                    <input id="app-name-input" type="text" required placeholder="payment-service" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="app-description-input">Description</label>
+                  <input id="app-description-input" type="text" placeholder="Optional" />
+                </div>
+                <button type="submit">
+                  <i data-lucide="plus" class="icon" aria-hidden="true"></i>
+                  <span class="btn-label">Register app</span>
+                </button>
+              </form>
+            </details>
+          </section>
+        </aside>
+
+        <div class="dash-main">
+          <div class="dash-placeholder">
+            <span class="dash-placeholder-icon"><i data-lucide="mouse-pointer-click" class="icon" aria-hidden="true"></i></span>
+            <h2>Select an app</h2>
+            <p class="muted">Pick an app on the left to manage its ingestion tokens and alert destinations — or register a new one to get started.</p>
+          </div>
+
+          <section class="page-section card-section" id="app-detail" hidden aria-labelledby="app-detail-title">
+            <p class="dash-eyebrow">Active app</p>
+            <h2 id="app-detail-title" class="heading-with-icon"><i data-lucide="box" class="icon" aria-hidden="true"></i><span id="app-detail-name">App</span></h2>
+            <p class="muted compact-hint" id="app-detail-desc"></p>
 
         <div class="dashboard-grid">
           <!-- Tokens -->
           <div class="advanced-card card-section-compact" id="tokens-panel">
             <h3 class="advanced-card-title"><i data-lucide="key-round" class="icon" aria-hidden="true"></i><span>Ingestion tokens</span></h3>
-            <p class="muted compact-hint">Server-side keys your app sends with <code>X-Ingestion-Token</code>.</p>
+            <p class="muted compact-hint">Server-side keys used by the TypeScript, Python, and Java SDKs with <code>X-Ingestion-Token</code>.</p>
 
             <div id="token-warning-banner" class="callout callout-warning" hidden>
               <p>
@@ -184,6 +199,10 @@
                   <span class="btn-label">Generate</span>
                 </button>
               </form>
+              <p class="muted compact-hint">
+                After generating a token, install an SDK from
+                <a href="getting-started.html#sdk-install">Getting Started</a>.
+              </p>
             </details>
           </div>
 
@@ -242,7 +261,7 @@
         <form id="alert-analysis-form" class="compact-form">
           <div class="form-group">
             <label for="analysis-events-input">Events JSON</label>
-            <textarea id="analysis-events-input" class="analysis-events-input" rows="28" spellcheck="false">[
+            <textarea id="analysis-events-input" class="analysis-events-input" rows="16" spellcheck="false">[
   {
     "id": "evt_001",
     "level": "DEBUG",
@@ -364,7 +383,7 @@
           </div>
 
           <div class="button-row button-row-tight">
-            <button type="button" id="analysis-preview-button" class="secondary">
+            <button type="button" id="analysis-preview-button" class="secondary" hidden>
               <i data-lucide="eye" class="icon" aria-hidden="true"></i>
               <span class="btn-label">Preview prompt</span>
             </button>
@@ -376,17 +395,63 @@
         </form>
       </section>
 
-      <details class="advanced-subsection" id="dashboard-output-details">
-        <summary>API responses</summary>
-        <div class="advanced-subsection-body">
-          <div id="dashboard-output" class="output-panel">Responses and errors appear here.</div>
+          <details class="advanced-subsection" id="dashboard-output-details">
+            <summary>API responses</summary>
+            <div class="advanced-subsection-body">
+              <div id="dashboard-output" class="output-panel">Responses and errors appear here.</div>
+            </div>
+          </details>
         </div>
-      </details>
+      </div>
     </div>
   </main>
 
-  <footer class="footer">
-    <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+  <footer class="footer site-footer">
+    <div class="footer-inner">
+      <div class="footer-main">
+        <div class="footer-overview">
+          <a class="footer-brand" href="index.html">Prairie<span>Log API</span></a>
+          <p>Lightweight log alerting for small apps: SDK ingestion, short-lived aggregation, and Slack or Discord alerts.</p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div>
+            <p class="footer-heading">Product</p>
+            <div class="footer-links">
+              <a href="about.html">About</a>
+              <a href="demo.html">Live Demo</a>
+              <a href="dashboard.html">Dashboard</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Developers</p>
+            <div class="footer-links">
+              <a href="getting-started.html">Getting Started</a>
+              <a href="docs.html">API Docs</a>
+              <a href="https://github.com/robertsima/log-stream-service">GitHub</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Packages</p>
+            <div class="footer-links">
+              <a href="https://www.npmjs.com/package/@prairielog/client">npm</a>
+              <a href="https://pypi.org/project/prairielog-handler/">PyPI</a>
+              <a href="getting-started.html#sdk-install">Maven coordinate</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Contact</p>
+            <div class="footer-links">
+              <a href="https://github.com/robertsima">GitHub</a>
+              <a href="https://www.linkedin.com/in/robert-sima">LinkedIn</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved. <a href="privacy.html">Privacy</a></p>
+        <p>SDKs are MIT licensed. Keep ingestion tokens and webhook URLs out of browser storage and git.</p>
+      </div>
+    </div>
   </footer>
 </body>
 </html>
