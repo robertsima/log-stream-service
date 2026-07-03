@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6MSYZQXVM2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-6MSYZQXVM2');
+  </script>
+  <title>Privacy Policy — PrairieLog log alerting data handling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="theme-color" content="#f6f7f2" />
+  <meta name="description" content="PrairieLog API privacy policy: how log data is handled, what is not stored, and third-party service disclaimers." />
+  <link rel="canonical" href="https://prairie-log-api.com/privacy.html" />
+  <link rel="icon" type="image/png" href="resources/images/prairie-dog-silhouette.png" />
+  <meta property="og:site_name" content="PrairieLog" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Privacy Policy — PrairieLog log alerting data handling" />
+  <meta property="og:description" content="PrairieLog does not persistently store log events. Learn how data is handled and what third-party services may apply." />
+  <meta property="og:url" content="https://prairie-log-api.com/privacy.html" />
+  <meta property="og:image" content="https://prairie-log-api.com/resources/images/prairie-dog-silhouette.png" />
+  <meta name="twitter:card" content="summary" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "name": "Privacy Policy — PrairieLog",
+        "url": "https://prairie-log-api.com/privacy.html",
+        "description": "How PrairieLog handles log data: it does not persistently store or collect log events, plus disclaimers for Slack/Discord delivery and third-party AI model providers.",
+        "inLanguage": "en",
+        "dateModified": "2026-07-03",
+        "isPartOf": { "@type": "WebSite", "name": "PrairieLog", "url": "https://prairie-log-api.com/" },
+        "publisher": { "@type": "Organization", "name": "PrairieLog" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://prairie-log-api.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "https://prairie-log-api.com/privacy.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+  <script src="js/env.js" defer></script>
+  <script src="js/env.local.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/rest-service.js" defer></script>
+  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js" integrity="sha384-ouAVEJVCMsf8Svzn+BwqbaBhxBEA0xgeVBhHnxmWd+Wqyv18yhWCQwGegFD/OHLq" crossorigin="anonymous"></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-logo"></div>
+      <div class="nav-menu">
+        <ul class="nav-links nav-links-main"></ul>
+        <ul class="nav-links nav-links-docs"></ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-main about-page">
+    <header class="page-header">
+      <h1 class="heading-with-icon"><i data-lucide="shield" class="icon icon-page" aria-hidden="true"></i><span>Privacy Policy</span></h1>
+      <p>
+        This page explains how PrairieLog API handles data and what third-party services may apply when you use the service.
+      </p>
+      <p>Last updated: July 3, 2026.</p>
+    </header>
+
+    <section class="page-section card-section">
+      <h2>Log data</h2>
+      <p>
+        PrairieLog is a log alerting relay, not a log warehouse. At present, the service does <strong>not</strong>
+        persistently store your application log events. Your logging data will not be sold, rented, or otherwise used for commercial purposes.
+      </p>
+      <p>
+        Log events may be held in memory for approximately one minute to group logs related to an ERROR.
+        After that window, they are discarded. PrairieLog does not provide long-term log retention, search,
+        or archival. PrairieLog is not responsible for the data you choose to log.
+      </p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2>Alert delivery</h2>
+      <p>
+        When you configure Slack or Discord webhooks, summarized alert content is sent to those services using the
+        webhook URL you provide. How those platforms store or process that data is governed by their own policies.
+        Any misuse of webhook URLs is the responsibility of the user. Webhook URLs are sensitive credentials. 
+        Users are responsible for controlling access to any Slack or Discord webhook URLs they submit.
+      </p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2>Third-party AI models</h2>
+      <p>
+        If using AI analysis alerting, PrairieLog API may send selected alert content, log messages, metadata, 
+        and related context to third-party language model providers.
+      </p>
+      <p>
+        PrairieLog is <strong>not responsible</strong> for how those third-party providers collect, store, train on,
+        or otherwise use data submitted to them. Their handling of your data is subject to their own terms and
+        privacy policies. Use analysis features only if you accept that risk.
+      </p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2>Account and service data</h2>
+      <p>
+        To operate the service, PrairieLog stores account-related records such as user profiles, registered apps,
+        hashed ingestion tokens, and alert destination configuration (including webhook URLs). This is operational
+        metadata needed to authenticate ingestion and deliver alerts — not a copy of your full log stream.
+      </p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2>Website analytics</h2>
+      <p>
+        This developer portal may use third-party analytics (such as Google Analytics) to understand general site
+        usage. That data is separate from log ingestion and is governed by the analytics provider's policies.
+      </p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2>Sensitive data</h2>
+      <p>
+        Users should not send passwords, API keys, access tokens, secrets, payment data, health information,
+        or other sensitive personal information through PrairieLog API. Users are responsible for reviewing
+        and filtering the data their applications send to the service.
+      </p>
+    </section>
+
+    <section class="page-section card-section">
+      <h2>Changes</h2>
+      <p>
+        If PrairieLog's data practices change — for example, if persistent log storage is added — this page will be
+        updated. Material changes will be reflected here with a revised date.
+      </p>
+      <p>
+        Questions about this policy can be directed to Robert Sima on
+        <a href="https://github.com/robertsima">GitHub</a> or
+        <a href="https://www.linkedin.com/in/robert-sima">LinkedIn</a>.
+      </p>
+      <div class="button-row button-row-tight">
+        <a class="secondary" href="about.html">
+          <i data-lucide="info" class="icon" aria-hidden="true"></i>
+          <span>About PrairieLog</span>
+        </a>
+        <a class="secondary" href="index.html">
+          <i data-lucide="home" class="icon" aria-hidden="true"></i>
+          <span>Back to Home</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer site-footer">
+    <div class="footer-inner">
+      <div class="footer-main">
+        <div class="footer-overview">
+          <a class="footer-brand" href="index.html">Prairie<span>Log API</span></a>
+          <p>Lightweight log alerting for small apps: SDK ingestion, short-lived aggregation, and Slack or Discord alerts.</p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div>
+            <p class="footer-heading">Product</p>
+            <div class="footer-links">
+              <a href="about.html">About</a>
+              <a href="demo.html">Live Demo</a>
+              <a href="dashboard.html">Dashboard</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Developers</p>
+            <div class="footer-links">
+              <a href="getting-started.html">Getting Started</a>
+              <a href="docs.html">API Docs</a>
+              <a href="https://github.com/robertsima/log-stream-service">GitHub</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Packages</p>
+            <div class="footer-links">
+              <a href="https://www.npmjs.com/package/@prairielog/client">npm</a>
+              <a href="https://pypi.org/project/prairielog-handler/">PyPI</a>
+              <a href="getting-started.html#sdk-install">Maven coordinate</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Contact</p>
+            <div class="footer-links">
+              <a href="https://github.com/robertsima">GitHub</a>
+              <a href="https://www.linkedin.com/in/robert-sima">LinkedIn</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved. <a href="privacy.html">Privacy</a></p>
+        <p>SDKs are MIT licensed. Keep ingestion tokens and webhook URLs out of browser storage and git.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

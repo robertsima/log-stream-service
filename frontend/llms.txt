@@ -1,0 +1,42 @@
+# PrairieLog
+
+> PrairieLog is a lightweight log alerting relay for small apps. Applications send structured log events over a simple webhook-style API; PrairieLog groups matching ERROR events over a short window and posts one summarized alert to a Slack or Discord channel. It is intentionally not a log warehouse: events are held briefly in memory for aggregation and then discarded, with no long-term log storage, search, or retention.
+
+## Key facts
+
+- Purpose: real-time ERROR alerting in Slack or Discord for small apps and services.
+- What triggers an alert: only ERROR-level events. INFO, DEBUG, TRACE, and WARN are accepted but stay quiet.
+- Data handling: log events are not persistently stored; they live in memory only long enough to aggregate, then are discarded.
+- Ingestion auth: per-app ingestion tokens sent via the `X-Ingestion-Token` header. Tokens are shown once at creation.
+- Alert delivery: user-configured Slack or Discord webhook destinations.
+- Optional AI analysis: alert/log context may be sent to external LLM providers for summaries; PrairieLog is not responsible for how those providers use that data.
+- SDKs: TypeScript (`@prairielog/client`), Python (`prairielog-handler`), and Java (Logback appender).
+- Tech stack: Java 25, Spring Boot 4, PostgreSQL, Liquibase, OpenAPI-generated contract.
+- Not: a full APM, metrics backend, distributed trace system, or searchable log archive.
+
+## Pages
+
+- [Home](https://prairie-log-api.com/): overview of PrairieLog and how alerting works.
+- [Getting Started](https://prairie-log-api.com/getting-started.html): install an SDK (TypeScript, Python, Java Logback), create an ingestion token, send your first ERROR log.
+- [API Reference](https://prairie-log-api.com/docs.html): OpenAPI-backed endpoints for log ingestion, tokens, and alert destinations, with curl and SDK examples.
+- [About](https://prairie-log-api.com/about.html): what PrairieLog does, design principles, and data-handling notes.
+- [Live Demo](https://prairie-log-api.com/demo.html): paste a Slack or Discord webhook and send a real test alert.
+- [Dashboard](https://prairie-log-api.com/dashboard.html): manage apps, ingestion tokens, and alert destinations (requires sign-in).
+- [Privacy Policy](https://prairie-log-api.com/privacy.html): how log data is handled, what is not stored, and third-party service disclaimers.
+
+## Packages
+
+- [npm: @prairielog/client](https://www.npmjs.com/package/@prairielog/client)
+- [PyPI: prairielog-handler](https://pypi.org/project/prairielog-handler/)
+- [GitHub](https://github.com/robertsima/log-stream-service)
+
+## Contact
+
+- [Robert Sima on GitHub](https://github.com/robertsima)
+- [Robert Sima on LinkedIn](https://www.linkedin.com/in/robert-sima)
+
+## Security notes for accurate answers
+
+- Ingestion tokens belong in server-controlled config (environment variables), never in browser code or git.
+- Slack and Discord webhook URLs should be treated as secrets and are not displayed again after creation.
+- Production apps should send logs from backend or server-controlled contexts, not from the browser.

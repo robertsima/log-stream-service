@@ -50,8 +50,10 @@
     <header class="page-header">
       <h1 class="heading-with-icon"><i data-lucide="info" class="icon icon-page" aria-hidden="true"></i><span>About PrairieLog API</span></h1>
       <p>
-        PrairieLog is a lightweight relay for small applications that need to know when something breaks,
-        without adopting a full observability stack.
+        The idea for the name PrairieLog comes from the sound of a prairie dog's bark. 
+        Similar to this API, it's a small animal that can make a lot of noise when it's scared.
+        PrairieLog started out as an idea for a portfolio project sent structured ERROR logs to Slack or Discord, 
+        and has evolved into a more general purpose log alerting and AI analysis relay. 
       </p>
       <div class="button-row">
         <a class="button" href="getting-started.html">
@@ -68,12 +70,20 @@
     <section class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="radio-tower" class="icon" aria-hidden="true"></i><span>What it does</span></h2>
       <p>
-        PrairieLog accepts log events from your app, groups matching <strong>ERROR</strong> logs over a short window,
-        and posts a summarized alert to the Slack or Discord webhook you configure.
+        PrairieLog accepts log events from your app, then pools together related <strong>ERROR</strong> logs and INFO/DEBUG over a short window.
+        PrairieLog then spits out a summarized alert to a Slack or Discord webhook.
       </p>
       <p>
-        Logs are held in memory briefly for aggregation, then alerts go out to your channel. PrairieLog is intentionally
-        not a long-term log store.
+        Anaylsis features can be bypassed by using the API directly, but the SDKs will automatically use the analysis features.
+      </p>
+      <p>
+        <strong>Key Analysis features include:</strong>
+        <ul class = "about-note-list">
+          <li> <strong>Summarizing the alert</strong></li>
+          <li> <strong>Confidence scoring for the analysis</strong></li>
+          <li> <strong>Root cause analysis of the error</strong></li>
+          <li> <strong>Potential remediation steps</strong></li>
+        </ul>
       </p>
     </section>
 
@@ -123,6 +133,26 @@
         </a>
       </div>
     </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="mail" class="icon" aria-hidden="true"></i><span>Contact</span></h2>
+      <p>
+        PrairieLog is built and maintained by Robert Sima. For questions, feedback, or collaboration,
+        reach out on GitHub or LinkedIn.
+      </p>
+      <div class="contact-icons">
+        <a class="contact-icon" href="https://github.com/robertsima" aria-label="Robert Sima on GitHub" title="GitHub">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+          </svg>
+        </a>
+        <a class="contact-icon" href="https://www.linkedin.com/in/robert-sima" aria-label="Robert Sima on LinkedIn" title="LinkedIn">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/>
+          </svg>
+        </a>
+      </div>
+    </section>
   </main>
 
   <footer class="footer site-footer">
@@ -157,10 +187,17 @@
               <a href="getting-started.html#sdk-install">Maven coordinate</a>
             </div>
           </div>
+          <div>
+            <p class="footer-heading">Contact</p>
+            <div class="footer-links">
+              <a href="https://github.com/robertsima">GitHub</a>
+              <a href="https://www.linkedin.com/in/robert-sima">LinkedIn</a>
+            </div>
+          </div>
         </nav>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+        <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved. <a href="privacy.html">Privacy</a></p>
         <p>SDKs are MIT licensed. Keep ingestion tokens and webhook URLs out of browser storage and git.</p>
       </div>
     </div>
