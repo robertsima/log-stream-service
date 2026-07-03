@@ -13,6 +13,7 @@ window.CONFIG = {
 
   OPENAPI_PATH: "./resources/openapi.json",
   DEMO_BYPASS_EMAIL: "admin@email.com",
+  ALERT_ANALYSIS_PROMPT_PREVIEW_ENABLED: false,
   // Shared public demo ingestion token. It is intentionally served to the browser
   // so all Demo-page visitors reuse one token instead of minting per visitor.
   // It only grants ingestion to the throwaway demo app; revoke + replace if abused.

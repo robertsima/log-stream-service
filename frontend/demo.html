@@ -13,7 +13,11 @@
     gtag('config', 'G-6MSYZQXVM2');
   </script>
   <title>Live Demo — send a Slack or Discord test alert with PrairieLog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
   <link rel="stylesheet" href="css/styles.css" />
+  <meta name="theme-color" content="#f6f7f2" />
   <meta name="description" content="Paste a Slack or Discord webhook and PrairieLog sends a real test alert to your channel in seconds — no sign-up needed. Every API call shows in a live console." />
   <link rel="canonical" href="https://prairie-log-api.com/demo.html" />
   <link rel="icon" type="image/png" href="resources/images/prairie-dog-silhouette.png" />
@@ -28,10 +32,10 @@
   <script src="js/env.local.js" defer></script>
   <script src="js/state.js" defer></script>
   <script src="js/rest-service.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" integrity="sha384-mLD+wdwynYnAhgHAkdPP5hroWJXJTNy5C2OhPKM55zuiV2vjzFD1LtBohaHq2Ex8" crossorigin="anonymous" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js" integrity="sha384-NiuRnBs5Z0OgJ12kYJLSeWxANeJN369zH3+Zn0TGVPaCH/TKmbPFqfOmmLtrj+wg" crossorigin="anonymous" defer></script>
   <script src="js/auth.js" defer></script>
-  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js" integrity="sha384-ouAVEJVCMsf8Svzn+BwqbaBhxBEA0xgeVBhHnxmWd+Wqyv18yhWCQwGegFD/OHLq" crossorigin="anonymous"></script>
   <script src="js/app.js" defer></script>
   <script src="js/demo.js" defer></script>
 </head>
@@ -107,7 +111,7 @@
         <section class="page-section card-section" id="integrate-panel" aria-labelledby="integrate-title" hidden>
           <h2 id="integrate-title" class="heading-with-icon"><i data-lucide="code-2" class="icon" aria-hidden="true"></i><span>Send logs from your app</span></h2>
           <p class="muted integrate-lead">
-            Now the other direction: drop this <strong>ingestion token</strong> into your server-side code. PrairieLog forwards every ERROR log to the chat you just connected.
+            Now the other direction: install <code>@prairielog/client</code>, drop this <strong>ingestion token</strong> into your server-side code, and PrairieLog forwards every ERROR log to the chat you just connected.
           </p>
 <!-- 
           <div id="token-warning-banner" class="callout callout-warning" hidden>
@@ -129,7 +133,8 @@
           </div>
           <div id="integrate-snippet-host"></div>
           <p class="muted integrate-footer">
-            <a href="getting-started.html#framework-examples-section">React &amp; Angular examples</a>
+            <a href="getting-started.html#sdk-install">TypeScript, Python, and Java SDK installs</a>
+            · <a href="getting-started.html#framework-examples-section">React &amp; Angular examples</a>
             · token prefix <span id="integrate-token-prefix" class="mono-inline"></span>
           </p>
         </section>
@@ -162,8 +167,45 @@
     </div>
   </main>
 
-  <footer class="footer">
-    <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+  <footer class="footer site-footer">
+    <div class="footer-inner">
+      <div class="footer-main">
+        <div class="footer-overview">
+          <a class="footer-brand" href="index.html">Prairie<span>Log API</span></a>
+          <p>Lightweight log alerting for small apps: SDK ingestion, short-lived aggregation, and Slack or Discord alerts.</p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div>
+            <p class="footer-heading">Product</p>
+            <div class="footer-links">
+              <a href="about.html">About</a>
+              <a href="demo.html">Live Demo</a>
+              <a href="dashboard.html">Dashboard</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Developers</p>
+            <div class="footer-links">
+              <a href="getting-started.html">Getting Started</a>
+              <a href="docs.html">API Docs</a>
+              <a href="https://github.com/robertsima/log-stream-service">GitHub</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Packages</p>
+            <div class="footer-links">
+              <a href="https://www.npmjs.com/package/@prairielog/client">npm</a>
+              <a href="https://pypi.org/project/prairielog-handler/">PyPI</a>
+              <a href="getting-started.html#sdk-install">Maven coordinate</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+        <p>SDKs are MIT licensed. Keep ingestion tokens and webhook URLs out of browser storage and git.</p>
+      </div>
+    </div>
   </footer>
 </body>
 </html>

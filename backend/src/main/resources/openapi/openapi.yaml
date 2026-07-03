@@ -38,7 +38,7 @@ paths:
       operationId: createUser
       summary: Create a user
       deprecated: true
-      description: Local bootstrap endpoint for AUTH_ENABLED=false. Production clients should use GET /api/v1/users/me.
+      description: Deprecated local bootstrap endpoint. Production clients should use GET /api/v1/users/me.
       requestBody:
         required: true
         content:
@@ -93,7 +93,7 @@ paths:
         - Auth
       operationId: createDemoSession
       summary: Create a demo dashboard session
-      description: Returns a short-lived server-signed JWT only when demo bypass is enabled and the email matches DEMO_BYPASS_EMAIL.
+      description: Returns a short-lived server-signed JWT only when demo bypass is enabled and the submitted email matches the configured demo email.
       requestBody:
         required: true
         content:
@@ -136,7 +136,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppResponse'
         '404':
-          description: Owner user not found when AUTH_ENABLED=false
+          description: Owner user not found for the local bootstrap flow
           content:
             application/json:
               schema:
@@ -162,7 +162,7 @@ paths:
           schema:
             type: string
             format: email
-          description: Optional legacy filter. When AUTH_ENABLED=true it must match the signed-in email.
+          description: Optional legacy filter. For authenticated requests it must match the signed-in email.
       responses:
         '200':
           description: Apps found for owner
@@ -550,7 +550,7 @@ paths:
         - Alert Analysis
       operationId: previewAlertPrompt
       summary: Preview the OpenAI prompt for an alert bucket
-      description: Returns the generated prompt text without calling the model.
+      description: Trusted development diagnostic. Disabled by default because it returns generated system and user prompt text without calling the model.
       security:
         - BearerAuth: []
       requestBody:
@@ -574,6 +574,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Prompt preview is disabled
           content:
             application/json:
               schema:
@@ -706,7 +712,7 @@ components:
           type: string
           format: email
           deprecated: true
-          description: Legacy local bootstrap field. Ignored when AUTH_ENABLED=true; owner is derived from Bearer token.
+          description: Legacy local bootstrap field. Ignored for authenticated requests; owner is derived from the bearer token.
           example: name@example.com
         name:
           type: string

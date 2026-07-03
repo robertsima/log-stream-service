@@ -1,6 +1,7 @@
 (function () {
   const NAV_LINKS = [
     { href: "index.html", label: "Home", icon: "home" },
+    { href: "about.html", label: "About", icon: "info" },
     { href: "getting-started.html", label: "Getting Started", icon: "rocket" },
     { href: "demo.html", label: "Demo", icon: "zap" },
     { href: "dashboard.html", label: "Dashboard", icon: "layout-dashboard" },

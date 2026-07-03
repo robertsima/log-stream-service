@@ -13,7 +13,11 @@
     gtag('config', 'G-6MSYZQXVM2');
   </script>
   <title>API Reference — PrairieLog webhook log ingestion and alerting API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
   <link rel="stylesheet" href="css/styles.css" />
+  <meta name="theme-color" content="#f6f7f2" />
   <meta name="description" content="OpenAPI-backed reference for PrairieLog endpoints: webhook log ingestion, ingestion tokens, and Slack and Discord alert destinations, with curl and SDK examples." />
   <link rel="canonical" href="https://prairie-log-api.com/docs.html" />
   <link rel="icon" type="image/png" href="resources/images/prairie-dog-silhouette.png" />
@@ -28,7 +32,7 @@
   <script src="js/env.local.js" defer></script>
   <script src="js/state.js" defer></script>
   <script src="js/rest-service.js" defer></script>
-  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js" integrity="sha384-ouAVEJVCMsf8Svzn+BwqbaBhxBEA0xgeVBhHnxmWd+Wqyv18yhWCQwGegFD/OHLq" crossorigin="anonymous"></script>
   <script src="js/app.js" defer></script>
   <script src="js/docs.js" defer></script>
 </head>
@@ -91,22 +95,16 @@
                 <span class="btn-label">Copy</span>
               </button>
             </div>
-            <pre id="docs-sdk-install"><code># After registry publishing
-npm install @prairielog/client
+            <pre id="docs-sdk-install"><code>npm install @prairielog/client
 pip install prairielog-handler
 
 &lt;dependency&gt;
   &lt;groupId&gt;io.github.robertsima&lt;/groupId&gt;
   &lt;artifactId&gt;prairielog-logback&lt;/artifactId&gt;
   &lt;version&gt;0.1.0&lt;/version&gt;
-&lt;/dependency&gt;
-
-# Local workspace today
-npm install ./frontend/sdk/typescript
-pip install ./frontend/sdk/python
-mvn install -f frontend/sdk/java-logback/pom.xml</code></pre>
+&lt;/dependency&gt;</code></pre>
           </div>
-          <p class="muted">Packages are shaped for npm, PyPI, and Maven Central. Until publishing happens, use the local workspace install commands.</p>
+          <p class="muted">The SDKs are the default path for application logging; use raw curl calls below for endpoint-level testing and automation.</p>
           <div class="code-block">
             <div class="code-block-header">
               <span class="code-block-label">TypeScript / Node</span>
@@ -183,8 +181,45 @@ logging.exception("Payment failed")</code></pre>
     </div>
   </main>
 
-  <footer class="footer">
-    <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+  <footer class="footer site-footer">
+    <div class="footer-inner">
+      <div class="footer-main">
+        <div class="footer-overview">
+          <a class="footer-brand" href="index.html">Prairie<span>Log API</span></a>
+          <p>Lightweight log alerting for small apps: SDK ingestion, short-lived aggregation, and Slack or Discord alerts.</p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div>
+            <p class="footer-heading">Product</p>
+            <div class="footer-links">
+              <a href="about.html">About</a>
+              <a href="demo.html">Live Demo</a>
+              <a href="dashboard.html">Dashboard</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Developers</p>
+            <div class="footer-links">
+              <a href="getting-started.html">Getting Started</a>
+              <a href="docs.html">API Docs</a>
+              <a href="https://github.com/robertsima/log-stream-service">GitHub</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Packages</p>
+            <div class="footer-links">
+              <a href="https://www.npmjs.com/package/@prairielog/client">npm</a>
+              <a href="https://pypi.org/project/prairielog-handler/">PyPI</a>
+              <a href="getting-started.html#sdk-install">Maven coordinate</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+        <p>SDKs are MIT licensed. Keep ingestion tokens and webhook URLs out of browser storage and git.</p>
+      </div>
+    </div>
   </footer>
 </body>
 </html>

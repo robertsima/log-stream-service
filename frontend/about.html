@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6MSYZQXVM2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-6MSYZQXVM2');
+  </script>
+  <title>About PrairieLog API - lightweight log alerting relay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="theme-color" content="#f6f7f2" />
+  <meta name="description" content="Learn what PrairieLog API is: a lightweight log alerting relay for small apps, with SDKs for TypeScript, Python, and Java Logback." />
+  <link rel="canonical" href="https://prairie-log-api.com/about.html" />
+  <link rel="icon" type="image/png" href="resources/images/prairie-dog-silhouette.png" />
+  <meta property="og:site_name" content="PrairieLog" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="About PrairieLog API - lightweight log alerting relay" />
+  <meta property="og:description" content="PrairieLog API sends aggregated ERROR alerts to Slack or Discord without running a log warehouse." />
+  <meta property="og:url" content="https://prairie-log-api.com/about.html" />
+  <meta property="og:image" content="https://prairie-log-api.com/resources/images/prairie-dog-silhouette.png" />
+  <meta name="twitter:card" content="summary" />
+  <script src="js/env.js" defer></script>
+  <script src="js/env.local.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/rest-service.js" defer></script>
+  <script src="https://unpkg.com/lucide@1.23.0/dist/umd/lucide.min.js" integrity="sha384-ouAVEJVCMsf8Svzn+BwqbaBhxBEA0xgeVBhHnxmWd+Wqyv18yhWCQwGegFD/OHLq" crossorigin="anonymous"></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-logo"></div>
+      <div class="nav-menu">
+        <ul class="nav-links nav-links-main"></ul>
+        <ul class="nav-links nav-links-docs"></ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-main about-page">
+    <header class="page-header">
+      <h1 class="heading-with-icon"><i data-lucide="info" class="icon icon-page" aria-hidden="true"></i><span>About PrairieLog API</span></h1>
+      <p>
+        PrairieLog is a lightweight relay for small applications that need to know when something breaks,
+        without adopting a full observability stack.
+      </p>
+      <div class="button-row">
+        <a class="button" href="getting-started.html">
+          <i data-lucide="rocket" class="icon" aria-hidden="true"></i>
+          <span>Start with an SDK</span>
+        </a>
+        <a class="secondary" href="demo.html">
+          <i data-lucide="zap" class="icon" aria-hidden="true"></i>
+          <span>Try the Demo</span>
+        </a>
+      </div>
+    </header>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="radio-tower" class="icon" aria-hidden="true"></i><span>What it does</span></h2>
+      <p>
+        PrairieLog accepts log events from your app, groups matching <strong>ERROR</strong> logs over a short window,
+        and posts a summarized alert to the Slack or Discord webhook you configure.
+      </p>
+      <p>
+        Logs are held in memory briefly for aggregation, then alerts go out to your channel. PrairieLog is intentionally
+        not a long-term log store.
+      </p>
+    </section>
+
+    <section class="page-section">
+      <h2 class="heading-with-icon"><i data-lucide="check-circle-2" class="icon" aria-hidden="true"></i><span>Design principles</span></h2>
+      <div class="about-principles">
+        <article class="about-principle">
+          <h3>Alert-first</h3>
+          <p>Focus on the signal you actually need in chat: grouped ERROR alerts with useful context.</p>
+        </article>
+        <article class="about-principle">
+          <h3>SDK-first</h3>
+          <p>Use TypeScript, Python, or Java Logback SDKs for batching, level normalization, and required fields.</p>
+        </article>
+        <article class="about-principle">
+          <h3>Small by design</h3>
+          <p>No Kafka, Redis, Elasticsearch, or warehouse requirement for the core relay path.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="shield-check" class="icon" aria-hidden="true"></i><span>Secrets and data handling</span></h2>
+      <ul class="about-note-list">
+        <li>Ingestion tokens are shown once at creation. Save yours in a server environment variable, not in browser code or git.</li>
+        <li>Full alert webhook URLs should be treated as secrets and are not meant to be displayed after creation.</li>
+        <li>Production apps should send logs from backend or server-controlled contexts. Browser tokens are visible to users.</li>
+        <li>PrairieLog relays alerts; it does not provide long-term retention, search, or compliance archiving.</li>
+      </ul>
+    </section>
+
+    <section class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="users" class="icon" aria-hidden="true"></i><span>Who it is for</span></h2>
+      <p>
+        PrairieLog is for indie developers and small teams who want simple log monitoring and real-time error alerts
+        without running observability infrastructure. If a full APM platform is overkill, PrairieLog covers the
+        "tell me in Slack or Discord when something breaks" workflow.
+      </p>
+      <div class="button-row button-row-tight">
+        <a class="button" href="dashboard.html">
+          <i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i>
+          <span>Open Dashboard</span>
+        </a>
+        <a class="secondary" href="docs.html">
+          <i data-lucide="book-open-text" class="icon" aria-hidden="true"></i>
+          <span>API Reference</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer site-footer">
+    <div class="footer-inner">
+      <div class="footer-main">
+        <div class="footer-overview">
+          <a class="footer-brand" href="index.html">Prairie<span>Log API</span></a>
+          <p>Lightweight log alerting for small apps: SDK ingestion, short-lived aggregation, and Slack or Discord alerts.</p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div>
+            <p class="footer-heading">Product</p>
+            <div class="footer-links">
+              <a href="about.html">About</a>
+              <a href="demo.html">Live Demo</a>
+              <a href="dashboard.html">Dashboard</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Developers</p>
+            <div class="footer-links">
+              <a href="getting-started.html">Getting Started</a>
+              <a href="docs.html">API Docs</a>
+              <a href="https://github.com/robertsima/log-stream-service">GitHub</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-heading">Packages</p>
+            <div class="footer-links">
+              <a href="https://www.npmjs.com/package/@prairielog/client">npm</a>
+              <a href="https://pypi.org/project/prairielog-handler/">PyPI</a>
+              <a href="getting-started.html#sdk-install">Maven coordinate</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 PrairieLog API - Robert Sima. All rights reserved.</p>
+        <p>SDKs are MIT licensed. Keep ingestion tokens and webhook URLs out of browser storage and git.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

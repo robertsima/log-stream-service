@@ -2,8 +2,6 @@
 
 Minimal Logback appender for Java services. It batches events through `POST /api/v1/log-events/batch`.
 
-After registry publishing:
-
 ```xml
 <dependency>
   <groupId>io.github.robertsima</groupId>
@@ -12,7 +10,7 @@ After registry publishing:
 </dependency>
 ```
 
-Until then, install from this repo with `mvn install -f frontend/sdk/java-logback/pom.xml`.
+For local development from this repository, use `mvn install -f frontend/sdk/java-logback/pom.xml`.
 
 ```xml
 <appender name="PRAIRIELOG" class="com.prairielog.logback.PrairieLogAppender">

@@ -140,10 +140,12 @@ The service is configured through environment variables for deployment.
 | `DB_USER` | Yes (prod) | `appuser` | Database username |
 | `DB_PASSWORD` | Yes (prod) | `apppassword` | Database password |
 | `PORT` | No | `8080` | HTTP server port |
-| `ALLOWED_ORIGINS` | No (has deploy default) | includes `https://prairie-log-api.netlify.app` | Comma- or pipe-separated CORS origins for the static frontend |
+| `ALLOWED_ORIGINS` | No (has deploy default) | includes `https://prairie-log-api.netlify.app`, `http://prairie-log-api.com.app` | Comma- or pipe-separated CORS origins for the static frontend |
 | `ALERTS_ENABLED` | No | `true` | Enable alert aggregation and dispatch |
 | `ALERTS_AGGREGATION_WINDOW_MS` | No | `60000` | Error aggregation window (1 minute) |
 | `ALERTS_MAX_MESSAGES_PER_ALERT` | No | `5` | Max sample messages included per alert |
+| `OPENAI_API_KEY` | For analyzed alerts | none | Enables OpenAI analysis before Slack/Discord alert delivery |
+| `ALERT_ANALYSIS_PROMPT_PREVIEW_ENABLED` | Local/dev only | `false` | Enables the prompt preview diagnostic endpoint and dashboard button |
 | `JWT_ENABLED` | No | `false` | Enable JWT validation for `/secured/*` routes |
 | `JWT_ISSUER_URIS` | If JWT enabled | — | Comma-separated trusted JWT issuer URIs |
 | `AUTH_ENABLED` | Prod | `false` | Require bearer auth on management API routes under `/api/v1/**` |
@@ -203,6 +205,10 @@ Liquibase runs on startup and applies schema migrations to `DB_URL`.
 
 Production note: set `AUTH_ENABLED=true` for the dashboard and management API. `POST /api/v1/log-events` and `/api/v1/ingestion-tokens/session` continue to use `X-Ingestion-Token` only. Set `JWT_ENABLED=true` only when legacy `/secured/*` routes are needed.
 
+Alert note: when `OPENAI_API_KEY` is configured, scheduled alert flushes analyze each aggregated error bucket before sending Slack/Discord alerts. If analysis is unavailable or the key is missing, PrairieLog falls back to the regular aggregated alert so delivery still works.
+
+Prompt preview note: keep `ALERT_ANALYSIS_PROMPT_PREVIEW_ENABLED=false` in production and the public demo. The preview diagnostic returns generated system/user prompt text and should only be enabled for trusted local debugging.
+
 ### Firebase dashboard auth
 
 1. Create a Firebase project.
@@ -233,7 +239,7 @@ FIREBASE: {
 
 `FIREBASE_PROJECT_ID` on the backend must match `CONFIG.FIREBASE.projectId` on the frontend. The backend validates Firebase ID tokens against that project id as the token issuer and audience.
 
-For the public demo, set `DEMO_BYPASS_ENABLED=true`, `DEMO_BYPASS_EMAIL=admin@email.com`, and a strong server-only `DEMO_JWT_SECRET`.
+For the public demo, keep dashboard auth enabled and set `DEMO_BYPASS_ENABLED=true`, `DEMO_BYPASS_EMAIL=admin@email.com`, and a strong server-only `DEMO_JWT_SECRET`. The frontend demo flow reads the configured demo email and exchanges it for a short-lived server JWT; do not expose `DEMO_JWT_SECRET` to the static frontend.
 
 ### Frontend
 

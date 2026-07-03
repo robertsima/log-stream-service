@@ -62,3 +62,5 @@ alerts:
   enabled: ${ALERTS_ENABLED:true}
   aggregation-window-ms: ${ALERTS_AGGREGATION_WINDOW_MS:60000}
   max-messages-per-alert: ${ALERTS_MAX_MESSAGES_PER_ALERT:5}
+  analysis:
+    prompt-preview-enabled: ${ALERT_ANALYSIS_PROMPT_PREVIEW_ENABLED:false}
