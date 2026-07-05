@@ -12,7 +12,7 @@
 
     gtag('config', 'G-6MSYZQXVM2');
   </script>
-  <title>PrairieLog — Real-time error alerts for small apps in Slack or Discord</title>
+  <title>Home | PrairieLog API | Smart alerts for indie apps</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
@@ -50,11 +50,9 @@
     <div class="hero-inner">
       <div class="hero-copy">
         <p class="hero-kicker">PrairieLog API</p>
-        <h1>Real-time error alerts for small apps</h1>
+        <h1>Real-time error alerts for indie apps</h1>
         <p>
-          Send logs from your TypeScript, Python, or Java app over one small API.
-          PrairieLog groups matching errors and posts a single clear alert to Slack
-          or Discord — no log warehouse, no dashboards.
+          Receive smart alerts to Slack or Discord webhooks when your indie apps runs into issues. No log storage.
         </p>
         <div class="hero-actions">
           <a class="button" href="demo.html">
@@ -67,9 +65,9 @@
           </a>
         </div>
         <div class="hero-meta" aria-label="PrairieLog highlights">
-          <span><i data-lucide="package-check" class="icon" aria-hidden="true"></i>npm, PyPI &amp; Maven Central</span>
-          <span><i data-lucide="key-round" class="icon" aria-hidden="true"></i>Token-scoped ingestion</span>
-          <span><i data-lucide="feather" class="icon" aria-hidden="true"></i>Relay, not a warehouse</span>
+          <span><i data-lucide="package-check" class="icon" aria-hidden="true"></i>SDKs: npm, PyPI &amp; Maven Central</span>
+          <span><i data-lucide="key-round" class="icon" aria-hidden="true"></i>Token based log ingestion</span>
+          <span><i data-lucide="feather" class="icon" aria-hidden="true"></i>Log relay service</span>
         </div>
       </div>
       <div class="hero-demo" aria-hidden="true">
@@ -82,7 +80,7 @@
         </div>
         <div class="hero-flow-connector">
           <i data-lucide="corner-down-right" class="icon" aria-hidden="true"></i>
-          <span>PrairieLog groups &amp; forwards</span>
+          <span>PrairieLog reads error logs &amp; forwards alerts</span>
         </div>
         <div class="hero-alert">
           <span class="hero-alert-avatar"><img src="resources/images/prairie-dog-silhouette.png" alt="" /></span>
@@ -102,68 +100,87 @@
       <a class="link-card" href="about.html">
         <span class="link-card-icon"><i data-lucide="info" class="icon" aria-hidden="true"></i></span>
         <h3>About PrairieLog</h3>
-        <p>What it is, what it is not, and how the relay handles logs.</p>
+        <p>Get to know more about PrairieLog</p>
       </a>
       <a class="link-card" href="demo.html">
         <span class="link-card-icon"><i data-lucide="zap" class="icon" aria-hidden="true"></i></span>
         <h3>Live Demo</h3>
-        <p>Paste an alert webhook, get a test message, copy starter code.</p>
+        <p>Run a quick live demo with your own webhook to get a test alert</p>
       </a>
       <a class="link-card" href="dashboard.html">
         <span class="link-card-icon"><i data-lucide="layout-dashboard" class="icon" aria-hidden="true"></i></span>
         <h3>Dashboard</h3>
-        <p>Sign in to manage apps, ingestion tokens, and destinations.</p>
+        <p>Sign in to manage your apps, ingestion tokens, and destinations</p>
       </a>
       <a class="link-card" href="getting-started.html">
         <span class="link-card-icon"><i data-lucide="rocket" class="icon" aria-hidden="true"></i></span>
         <h3>Getting Started</h3>
-        <p>SDK installs, framework examples, and the raw API bootstrap flow.</p>
+        <p>SDK installs, framework examples, and the API usage flow</p>
       </a>
       <a class="link-card" href="docs.html">
         <span class="link-card-icon"><i data-lucide="book-open-text" class="icon" aria-hidden="true"></i></span>
         <h3>API Docs</h3>
-        <p>Browse endpoints from the embedded OpenAPI contract.</p>
+        <p>Browse endpoints from the embedded OpenAPI contract</p>
       </a>
     </div>
   </section>
 
   <section id="faq" class="page-section card-section">
     <h2 class="heading-with-icon"><i data-lucide="circle-help" class="icon" aria-hidden="true"></i><span>PrairieLog FAQ</span></h2>
-    <p class="muted section-lead">The practical bits people usually check before wiring PrairieLog into a real app.</p>
+    <p class="muted section-lead">Answers to common questions before wiring into your app</p>
 
     <div class="faq-list">
-      <details class="faq-item" open>
-        <summary><span class="faq-kicker">Alerting</span> What actually triggers a Slack or Discord message?</summary>
+      <details class="faq-item">
+        <summary><span class="faq-kicker">Alerting</span> How do I get PrairieLog to trigger a Slack or Discord message?</summary>
         <p>
-          Only <strong>ERROR</strong> events create alert notifications. INFO, DEBUG, TRACE, and WARN events can still be accepted by the ingestion API, but they stay quiet. Matching ERROR logs are grouped over a short window so one noisy failure becomes one summarized chat alert instead of a wall of messages.
+          After registering with an account, you can create an application object and personal token. You can then use 
+          your token and slack/discord webhook URLs to communicate with PrairieLog via endpoints. For PrairieLog API to send alerts, 
+          it must be sent <strong>ERROR</strong> logs. Once it recieves a log it gathers nearby related INFO, DEBUG, and TRACE logs to 
+          analyze and create alerts. Only ERROR events trigger this process and other log levels stay quiet in the meantime. 
+          PrairieLog uses a number of data techniques to group, condense, and summarize related logs, then uses a model for final smart alert creation 
+          to send to your configured application webhooks. 
         </p>
       </details>
 
       <details class="faq-item">
-        <summary><span class="faq-kicker">Setup</span> Do I need the raw API, or should I use an SDK?</summary>
+        <summary><span class="faq-kicker">Setup</span> What does the SDK do? Do I need it or can I use API docs instead? </summary>
         <p>
-          Use an SDK for application logging. The TypeScript client, Python handler, and Java Logback appender handle batching, level mapping, and the batch endpoint shape. Use the raw API docs for automation, debugging, or integrating a logger that already emits structured JSON.
+          SDKs are configured to provide the shortest path for devs to integrate PrairieLog into their application. 
+          Currently, they serve as a wrapper around the raw API calls, they do not substitute the API so you still 
+          need a valid web connection. SDKs use the batch endpoint to send grouped logs to an AI model for analysis, 
+          falling back to regular alerting if it fails. Optionally you can use the raw API docs to send logs directly
+           using /api/v1/log-events for single events OR /api/v1/log-events/batch for up to 100 logging events in a single 
+           request. You are free to use whatever makes sense for your use case as long you provide a webhook and access token. 
         </p>
       </details>
 
       <details class="faq-item">
         <summary><span class="faq-kicker">Secrets</span> Where should ingestion tokens and webhook URLs live?</summary>
         <p>
-          Put ingestion tokens in server-controlled configuration such as environment variables. Do not commit them to git. Treat Slack and Discord webhook URLs like passwords too: once configured, the dashboard should not need to show the full URL again. Browser logging is possible only with a token you are comfortable exposing and revoking.
+          Put ingestion tokens in server-controlled configuration such as environment variables. Do not commit them to git. 
+          Treat Slack and Discord webhook URLs like passwords too: once configured, the dashboard should not need to show the 
+          full URL again. Browser logging is possible only with a token you are comfortable exposing and revoking.
         </p>
       </details>
 
       <details class="faq-item">
-        <summary><span class="faq-kicker">Storage</span> Can I search old logs in PrairieLog?</summary>
+        <summary><span class="faq-kicker">Storage</span> Where does my data go and can I search old logs in PrairieLog?</summary>
         <p>
-          No. PrairieLog is intentionally a relay, not a log warehouse. It keeps enough in memory to group and deliver alerts, then discards events. If you need retention, search, dashboards, or compliance archives, pair PrairieLog with a storage-focused logging tool.
+          No. PrairieLog is intentionally a relay, not a log warehouse. It keeps enough in memory to group and deliver alerts,
+           then discards events. The only time your logs might be read by PrairieLog outside of sending alerts is for debugging
+           production issues - if they are still present. If you need retention, search, dashboards, or compliance archives, pair 
+           PrairieLog with a storage-focused logging tool.
         </p>
       </details>
 
       <details class="faq-item">
         <summary><span class="faq-kicker">Demo vs dashboard</span> What should I use first?</summary>
         <p>
-          Use the live demo to confirm your Slack or Discord webhook works and to see the request flow. Use the dashboard for real apps: create an app, generate an ingestion token, add alert destinations, then copy the SDK snippet into your service.
+          Use the live demo to confirm your Slack or Discord webhook works and to see the request flow. 
+          The dashboard serves as a more extensive demo where you can create an app, generate an ingestion token,
+           add alert destinations, then copy the SDK snippet into your service. It's best to use a token generated
+           from from a terminal to send logs from a production app, the frontend UI is a good way to test the flow and 
+           see how PrairieLog works.
         </p>
       </details>
 
