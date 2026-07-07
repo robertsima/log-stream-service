@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.logstream.domain.entity.Users;
 import com.logstream.domain.mapper.UserMapper;
 import com.logstream.domain.repository.UserRepository;
+import com.logstream.exception.ForbiddenException;
 import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.CreateUserRequest;
 import com.logstream.generated.model.UserResponse;
@@ -24,6 +25,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
+        // Signed-in callers may only bootstrap the account matching their own identity;
+        // anonymous access only exists when AUTH_ENABLED=false (local dev).
+        currentUserProvider.getPrincipal().ifPresent(principal -> {
+            if (!principal.email().equalsIgnoreCase(createUserRequest.getEmail())) {
+                throw new ForbiddenException("You can only register the email you signed in with.");
+            }
+        });
         return userRepository.findByEmail(createUserRequest.getEmail())
                 .map(UserMapper::toResponse)
                 .orElseGet(() -> createNewUser(createUserRequest));

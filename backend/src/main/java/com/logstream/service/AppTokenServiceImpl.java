@@ -41,21 +41,24 @@ public class AppTokenServiceImpl implements AppTokenService {
     private AppRepository appRepository;
     private AppService appService;
     private int maxActiveTokensPerApp = 5;
+    private int maxTotalTokensPerApp = 25;
 
     @Autowired
     public AppTokenServiceImpl(
             AppTokenRepository appTokenRepository,
             AppRepository appRepository,
             AppService appService,
-            @Value("${app.quotas.max-active-tokens-per-app:5}") int maxActiveTokensPerApp) {
+            @Value("${app.quotas.max-active-tokens-per-app:5}") int maxActiveTokensPerApp,
+            @Value("${app.quotas.max-total-tokens-per-app:25}") int maxTotalTokensPerApp) {
         this.appTokenRepository = appTokenRepository;
         this.appRepository = appRepository;
         this.appService = appService;
         this.maxActiveTokensPerApp = maxActiveTokensPerApp;
+        this.maxTotalTokensPerApp = maxTotalTokensPerApp;
     }
 
     public AppTokenServiceImpl(AppTokenRepository appTokenRepository, AppRepository appRepository) {
-        this(appTokenRepository, appRepository, null, 5);
+        this(appTokenRepository, appRepository, null, 5, 25);
     }
 
     public AppTokenServiceImpl() {
@@ -70,6 +73,14 @@ public class AppTokenServiceImpl implements AppTokenService {
         if (appTokenRepository.countByAppIdAndRevokedAtIsNull(appId) >= maxActiveTokensPerApp) {
             throw new QuotaExceededException(
                     "An app cannot have more than " + maxActiveTokensPerApp + " active ingestion tokens.");
+        }
+
+        // Lifetime cap including revoked tokens: revoking frees an active slot but must
+        // not allow unbounded row growth through create/revoke churn.
+        if (maxTotalTokensPerApp > 0 && appTokenRepository.countByAppId(appId) >= maxTotalTokensPerApp) {
+            throw new QuotaExceededException(
+                    "This app has reached its lifetime limit of " + maxTotalTokensPerApp
+                            + " ingestion tokens (including revoked ones).");
         }
 
         String rawToken = generateRawToken();

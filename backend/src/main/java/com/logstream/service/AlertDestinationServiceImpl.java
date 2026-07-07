@@ -22,21 +22,24 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
     private final AlertSenderService alertSenderService;
     private final AppService appService;
     private final int maxDestinationsPerApp;
+    private final int maxTotalDestinationsPerApp;
 
     @Autowired
     public AlertDestinationServiceImpl(
             AlertDestinationRepository repository,
             AlertSenderService alertSenderService,
             AppService appService,
-            @Value("${app.quotas.max-destinations-per-app:5}") int maxDestinationsPerApp) {
+            @Value("${app.quotas.max-destinations-per-app:5}") int maxDestinationsPerApp,
+            @Value("${app.quotas.max-total-destinations-per-app:25}") int maxTotalDestinationsPerApp) {
         this.repository = repository;
         this.alertSenderService = alertSenderService;
         this.appService = appService;
         this.maxDestinationsPerApp = maxDestinationsPerApp;
+        this.maxTotalDestinationsPerApp = maxTotalDestinationsPerApp;
     }
 
     public AlertDestinationServiceImpl(AlertDestinationRepository repository, AlertSenderService alertSenderService) {
-        this(repository, alertSenderService, null, 5);
+        this(repository, alertSenderService, null, 5, 25);
     }
 
     @Override
@@ -57,6 +60,15 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
                 && repository.countByAppIdAndDeletedAtIsNull(appId) >= maxDestinationsPerApp) {
             throw new QuotaExceededException(
                     "An app cannot have more than " + maxDestinationsPerApp + " active alert destinations.");
+        }
+
+        // Lifetime cap including soft-deleted destinations: deleting frees an active slot
+        // but must not allow unbounded row growth through create/delete churn.
+        if (maxTotalDestinationsPerApp > 0
+                && repository.countByAppId(appId) >= maxTotalDestinationsPerApp) {
+            throw new QuotaExceededException(
+                    "This app has reached its lifetime limit of " + maxTotalDestinationsPerApp
+                            + " alert destinations (including deleted ones).");
         }
 
         AlertDestination destination = new AlertDestination();

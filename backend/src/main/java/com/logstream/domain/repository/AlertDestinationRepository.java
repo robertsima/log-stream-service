@@ -20,4 +20,6 @@ public interface AlertDestinationRepository extends JpaRepository<AlertDestinati
 
     long countByAppIdAndDeletedAtIsNull(UUID appId);
 
+    long countByAppId(UUID appId);
+
 }

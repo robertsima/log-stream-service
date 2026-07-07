@@ -21,8 +21,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.logstream.domain.entity.Users;
 import com.logstream.domain.repository.UserRepository;
+import com.logstream.exception.ForbiddenException;
 import com.logstream.generated.model.CreateUserRequest;
 import com.logstream.generated.model.UserResponse;
+import com.logstream.security.CurrentUserProvider;
+import com.logstream.security.ManagementPrincipal;
 import com.logstream.service.UserServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +33,9 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private CurrentUserProvider currentUserProvider;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -41,6 +47,7 @@ public class UserServiceTest {
         createUserRequest = new CreateUserRequest();
         createUserRequest.setEmail("test@example.com");
         createUserRequest.setUsername("testuser");
+        when(currentUserProvider.getPrincipal()).thenReturn(Optional.empty());
     }
 
     @Test
@@ -90,6 +97,34 @@ public class UserServiceTest {
         });
 
         verify(userRepository, never()).save(any(Users.class));
+    }
+
+    @Test
+    void testCreateUser_RejectsEmailOfAnotherSignedInUser() {
+        when(currentUserProvider.getPrincipal()).thenReturn(Optional.of(
+                new ManagementPrincipal("someone-else@example.com", "sub-1", "Someone Else", "firebase")));
+
+        assertThrows(ForbiddenException.class, () -> userService.createUser(createUserRequest));
+
+        verify(userRepository, never()).save(any(Users.class));
+    }
+
+    @Test
+    void testCreateUser_AllowsOwnEmailWhenSignedIn() {
+        when(currentUserProvider.getPrincipal()).thenReturn(Optional.of(
+                new ManagementPrincipal("TEST@example.com", "sub-1", "Test User", "firebase")));
+        when(userRepository.findByEmail(createUserRequest.getEmail())).thenReturn(Optional.empty());
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+
+        Users savedUser = new Users();
+        savedUser.setEmail("test@example.com");
+        savedUser.setUsername("testuser");
+        when(userRepository.save(any(Users.class))).thenReturn(savedUser);
+
+        UserResponse response = userService.createUser(createUserRequest);
+
+        assertNotNull(response);
+        assertEquals("test@example.com", response.getEmail());
     }
 
     @Test

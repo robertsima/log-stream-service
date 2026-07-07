@@ -10,6 +10,12 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
+      # Neon free tier autosuspends compute after ~5 min idle and drops all open
+      # connections; never hold idle sockets past that or the first request after
+      # an idle period fails on a dead connection.
+      minimum-idle: 0
+      idle-timeout: 120000
+      max-lifetime: 240000
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog.xml
@@ -51,7 +57,9 @@ app:
   quotas:
     max-apps-per-user: ${APP_QUOTAS_MAX_APPS_PER_USER:10}
     max-active-tokens-per-app: ${APP_QUOTAS_MAX_ACTIVE_TOKENS_PER_APP:5}
+    max-total-tokens-per-app: ${APP_QUOTAS_MAX_TOTAL_TOKENS_PER_APP:25}
     max-destinations-per-app: ${APP_QUOTAS_MAX_DESTINATIONS_PER_APP:5}
+    max-total-destinations-per-app: ${APP_QUOTAS_MAX_TOTAL_DESTINATIONS_PER_APP:25}
   rate-limit:
     management-requests-per-minute: ${APP_RATE_LIMIT_MANAGEMENT_RPM:60}
     ingestion-requests-per-minute: ${APP_RATE_LIMIT_INGESTION_RPM:120}

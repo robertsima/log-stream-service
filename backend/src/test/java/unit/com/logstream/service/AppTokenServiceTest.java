@@ -29,6 +29,7 @@ import com.logstream.domain.entity.AppToken;
 import com.logstream.domain.entity.Users;
 import com.logstream.domain.repository.AppRepository;
 import com.logstream.domain.repository.AppTokenRepository;
+import com.logstream.exception.QuotaExceededException;
 import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.CreateAppTokenRequest;
 import com.logstream.generated.model.CreateAppTokenResponse;
@@ -96,6 +97,23 @@ public class AppTokenServiceTest {
         assertNotNull(response.getTokenPrefix());
         assertTrue(response.getToken().startsWith("lss_live_"));
         verify(appTokenRepository, times(1)).save(any(AppToken.class));
+    }
+
+    @Test
+    void testCreateAppToken_LifetimeQuotaCountsRevokedTokens() {
+        // Arrange: active quota has room, but lifetime total (incl. revoked) is at the cap
+        AppTokenServiceImpl cappedService =
+                new AppTokenServiceImpl(appTokenRepository, appRepository, null, 5, 25);
+        when(appRepository.findById(appId)).thenReturn(Optional.of(app));
+        when(appTokenRepository.countByAppIdAndRevokedAtIsNull(appId)).thenReturn(1L);
+        when(appTokenRepository.countByAppId(appId)).thenReturn(25L);
+
+        // Act & Assert
+        assertThrows(QuotaExceededException.class, () -> {
+            cappedService.createAppToken(appId, createAppTokenRequest);
+        });
+
+        verify(appTokenRepository, never()).save(any(AppToken.class));
     }
 
     @Test

@@ -60,7 +60,7 @@ public class AlertDestinationServiceTest {
     @BeforeEach
     void setUp() {
         alertDestinationService =
-                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 5);
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 5, 25);
 
         appId = UUID.randomUUID();
         destinationId = UUID.randomUUID();
@@ -104,7 +104,7 @@ public class AlertDestinationServiceTest {
     void testCreate_QuotaExceeded() {
         // Arrange: limit of 2, already at 2 active destinations
         AlertDestinationServiceImpl limitedService =
-                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 2);
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 2, 25);
         when(alertDestinationRepository.countByAppIdAndDeletedAtIsNull(appId)).thenReturn(2L);
 
         // Act & Assert
@@ -116,10 +116,26 @@ public class AlertDestinationServiceTest {
     }
 
     @Test
+    void testCreate_LifetimeQuotaCountsDeletedDestinations() {
+        // Arrange: only 1 active destination, but lifetime total (incl. soft-deleted) is at the cap
+        AlertDestinationServiceImpl cappedService =
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 5, 3);
+        when(alertDestinationRepository.countByAppIdAndDeletedAtIsNull(appId)).thenReturn(1L);
+        when(alertDestinationRepository.countByAppId(appId)).thenReturn(3L);
+
+        // Act & Assert
+        assertThrows(QuotaExceededException.class, () -> {
+            cappedService.create(appId, createAlertDestinationRequest);
+        });
+
+        verify(alertDestinationRepository, never()).save(any(AlertDestination.class));
+    }
+
+    @Test
     void testCreate_ReusesExistingWebhookBeforeQuotaCheck() {
         // Arrange: limit is reached, but this webhook is already an active destination.
         AlertDestinationServiceImpl limitedService =
-                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 2);
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, null, 2, 25);
         when(alertDestinationRepository.findFirstByAppIdAndWebhookUrlAndEnabledTrueAndDeletedAtIsNullOrderByCreatedAtDesc(
                 appId,
                 createAlertDestinationRequest.getWebhookUrl()))
@@ -302,7 +318,7 @@ public class AlertDestinationServiceTest {
     void testSendAnalyzedAlert_PopulatesAppNameOnBucket() {
         // Arrange
         AlertDestinationServiceImpl serviceWithApp =
-                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, appService, 5);
+                new AlertDestinationServiceImpl(alertDestinationRepository, alertSenderService, appService, 5, 25);
 
         when(alertDestinationRepository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId))
                 .thenReturn(Optional.of(alertDestination));

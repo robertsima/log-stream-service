@@ -18,5 +18,6 @@ public interface AppTokenRepository extends JpaRepository<AppToken, UUID> {
 
     List<AppToken> findByAppIdAndRevokedAtIsNull(UUID appId);
     long countByAppIdAndRevokedAtIsNull(UUID appId);
+    long countByAppId(UUID appId);
     Optional<AppToken> findByIdAndAppId(UUID tokenId, UUID appId);
 }

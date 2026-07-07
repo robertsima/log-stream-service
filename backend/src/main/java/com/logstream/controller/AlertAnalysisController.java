@@ -10,6 +10,7 @@ import com.logstream.generated.model.AlertAnalysisPreviewResponse;
 import com.logstream.generated.model.AlertAnalysisResponse;
 import com.logstream.generated.model.AlertBucketAnalysisRequest;
 import com.logstream.generated.model.TokenUsage;
+import com.logstream.service.AppService;
 import com.logstream.service.analysis.AlertAnalysisService;
 import com.logstream.service.analysis.AlertAnalysisOutcome;
 import com.logstream.service.analysis.PromptPreview;
@@ -22,18 +23,22 @@ import java.util.stream.Collectors;
 public class AlertAnalysisController implements AlertAnalysisApi {
 
     private final AlertAnalysisService alertAnalysisService;
+    private final AppService appService;
     private final boolean promptPreviewEnabled;
 
     public AlertAnalysisController(
             AlertAnalysisService alertAnalysisService,
+            AppService appService,
             @Value("${alerts.analysis.prompt-preview-enabled:false}") boolean promptPreviewEnabled
     ) {
         this.alertAnalysisService = alertAnalysisService;
+        this.appService = appService;
         this.promptPreviewEnabled = promptPreviewEnabled;
     }
 
     @Override
     public ResponseEntity<AlertAnalysisResponse> analyzeAlertBucket(AlertBucketAnalysisRequest alertBucketAnalysisRequest) {
+        appService.requireOwner(alertBucketAnalysisRequest.getAppId());
         AlertBucket alertBucket = toAlertBucket(alertBucketAnalysisRequest);
         AlertAnalysisOutcome outcome = alertAnalysisService.analyzeAlertBucket(alertBucket);
 
@@ -58,6 +63,7 @@ public class AlertAnalysisController implements AlertAnalysisApi {
             throw new ForbiddenException("Alert analysis prompt preview is disabled.");
         }
 
+        appService.requireOwner(alertBucketAnalysisRequest.getAppId());
         AlertBucket alertBucket = toAlertBucket(alertBucketAnalysisRequest);
         PromptPreview preview = alertAnalysisService.previewPrompt(alertBucket);
 

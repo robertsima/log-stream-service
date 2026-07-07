@@ -62,10 +62,17 @@ public class ManagementRateLimitFilter extends OncePerRequestFilter {
     }
 
     private String buildKey(HttpServletRequest request) {
+        // Use the rightmost X-Forwarded-For entry: it is appended by the trusted edge
+        // proxy, while leftmost entries are client-supplied and spoofable.
         String forwardedFor = request.getHeader("X-Forwarded-For");
-        String ip = forwardedFor == null || forwardedFor.isBlank()
-                ? request.getRemoteAddr()
-                : forwardedFor.split(",")[0].trim();
+        String ip = request.getRemoteAddr();
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            String[] hops = forwardedFor.split(",");
+            String closestHop = hops[hops.length - 1].trim();
+            if (!closestHop.isEmpty()) {
+                ip = closestHop;
+            }
+        }
         String user = "";
         if (org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() != null) {
             Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
