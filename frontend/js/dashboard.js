@@ -690,7 +690,7 @@
 
     const level = String(value || "INFO").trim().toUpperCase();
     if (level === "WARNING") return "WARN";
-    if (level === "CRITICAL" || level === "FATAL" || level === "ASSERT") return "ERROR";
+    if (level === "CRITICAL" || level === "FATAL" || level === "ASSERT" || level === "SEVERE") return "ERROR";
     if (level === "VERBOSE") return "TRACE";
     if (["TRACE", "DEBUG", "INFO", "WARN", "ERROR"].includes(level)) {
       return level;
@@ -716,21 +716,95 @@
     return "analysis-" + Date.now() + "-" + index;
   }
 
+  function normalizePlainLogTimestamp(value) {
+    const isoCandidate = value.trim().replace(",", ".").replace(" ", "T");
+    const date = new Date(isoCandidate);
+    return isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  function parsePlainTextLogLines(raw) {
+    const timestampPattern =
+      /^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d{1,9})?(?:Z|[+-]\d{2}:?\d{2})?)\s*/;
+    const levelPattern = /\b(TRACE|DEBUG|INFO|WARN(?:ING)?|ERROR|SEVERE|FATAL|CRITICAL)\b/;
+    const events = [];
+
+    raw.split(/\r?\n/).forEach(function (line) {
+      if (!line.trim()) {
+        return;
+      }
+
+      // Stack-trace and wrapped lines belong to the previous event's message:
+      // indented lines, "at ..."/"Caused by:" frames, and leading exception-class lines.
+      const timestampMatch = line.match(timestampPattern);
+      const continuation =
+        !timestampMatch
+        && (/^\s/.test(line)
+          || /^(at |Caused by:|\.\.\. \d+ more)/.test(line.trim())
+          || /^(?:[\w$]+\.)+[\w$]+(?:Exception|Error|Throwable)\b/.test(line.trim()));
+      if (continuation && events.length) {
+        events[events.length - 1].message += "\n" + line.replace(/\s+$/, "");
+        return;
+      }
+
+      let rest = line.trim();
+      let occurredAt = null;
+      if (timestampMatch) {
+        occurredAt = normalizePlainLogTimestamp(timestampMatch[1]);
+        rest = line.slice(timestampMatch[0].length).trim();
+      }
+
+      let level = null;
+      const levelMatch = rest.slice(0, 40).match(levelPattern);
+      if (levelMatch) {
+        level = levelMatch[1];
+        rest = (rest.slice(0, levelMatch.index) + rest.slice(levelMatch.index + levelMatch[0].length)).trim();
+      }
+
+      let logger = null;
+      const loggerMatch = rest.match(/^\[([^\]]+)\]\s*/);
+      if (loggerMatch) {
+        logger = loggerMatch[1];
+        rest = rest.slice(loggerMatch[0].length);
+      }
+
+      events.push({
+        message: rest || line.trim(),
+        level: level,
+        occurredAt: occurredAt,
+        logger: logger
+      });
+    });
+
+    return events;
+  }
+
   function parseAnalysisEvents() {
     const raw = document.getElementById("analysis-events-input").value.trim();
     if (!raw) {
-      throw new Error("Paste an events JSON array.");
+      throw new Error("Paste an events JSON array or raw log lines.");
     }
 
     let parsed;
     try {
       parsed = JSON.parse(raw);
     } catch (error) {
-      throw new Error("Events JSON is invalid: " + error.message);
+      if (raw.startsWith("[") || raw.startsWith("{")) {
+        throw new Error("Events JSON is invalid: " + error.message);
+      }
+      parsed = parsePlainTextLogLines(raw);
+      if (!parsed.length) {
+        throw new Error(
+          "Could not read those events. Paste a JSON array of events or plain log lines (one event per line)."
+        );
+      }
+    }
+
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      parsed = [parsed];
     }
 
     if (!Array.isArray(parsed) || !parsed.length) {
-      throw new Error("Events must be a non-empty JSON array.");
+      throw new Error("Events must be a non-empty JSON array or plain log lines.");
     }
 
     return parsed.map(function (event, index) {

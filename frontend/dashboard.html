@@ -254,13 +254,15 @@
         </div>
         <p class="muted compact-hint">
           Paste an <code>events</code> array using canonical log fields or common aliases like <code>msg</code>,
-          <code>levelname</code>, and <code>@timestamp</code>. Production buckets contain ERROR events only; fingerprint is derived from the first error like aggregation does.
+          <code>levelname</code>, and <code>@timestamp</code> — or paste raw log lines straight from a console;
+          timestamps, levels, and loggers are detected per line and stack traces attach to the line above.
+          Production buckets contain ERROR events only; fingerprint is derived from the first error like aggregation does.
           Click an alert destination above to also deliver analysis to that webhook when you run analysis.
         </p>
 
         <form id="alert-analysis-form" class="compact-form">
           <div class="form-group">
-            <label for="analysis-events-input">Events JSON</label>
+            <label for="analysis-events-input">Events (JSON or raw log lines)</label>
             <textarea id="analysis-events-input" class="analysis-events-input" rows="16" spellcheck="false">[
   {
     "id": "evt_001",

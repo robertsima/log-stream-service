@@ -8,8 +8,7 @@ import org.springframework.web.client.RestClient;
 
 import com.logstream.domain.entity.AlertDestination;
 import com.logstream.service.alerting.AlertBucket;
-import com.logstream.webhooks.AlertNotificationFormatter;
-import com.logstream.webhooks.AlertSummary;
+
 
 @Service
 public class SlackWebhookSender {
