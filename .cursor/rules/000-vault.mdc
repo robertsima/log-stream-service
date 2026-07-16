@@ -1,0 +1,21 @@
+---
+description: PrairieLog entry stub — hard constraints inline; all detailed rules, roles, and workflow live in the vault.
+alwaysApply: true
+---
+# PrairieLog — read the vault first
+
+All agent context lives in `D:\Development\AI Workspace\projects\log-stream-service\`:
+
+- `index.md` — start here every session: workflow, contract gate, verification tiers, first-reads by task type.
+- `rules.md` — coding rules; read the section matching what you're editing: § Backend (Spring/OpenAPI/security/tests), § Frontend (vanilla/state/docs security), § Release deploy docs (env/CORS/SDK/README), § Meta (maintaining these files).
+- `roles.md` — capability roles (router, planner, core-data, infra, backend/frontend feature, integration, reviewer).
+- `contracts/`, `CONTINUITY.md`, `NEXT_SCOPE.md`, `audits/`, `daily/`.
+
+Do not add new rule files here — rule content changes go in the vault's `rules.md`. This stub exists only because Cursor auto-loads rules from this exact path.
+
+Hard constraints (binding even before reading the vault):
+- Frontend stays framework-free: HTML, CSS, vanilla JS, Fetch. No React/npm/bundlers/state libs.
+- Contract-first API changes: OpenAPI before Java; keep backend `openapi.yaml` and frontend `openapi.json` in sync.
+- Never log or persist secrets, raw ingestion tokens, full webhook URLs, or credentials.
+- No Kafka, RabbitMQ, Redis, Elasticsearch, or persistent log storage (MVP).
+- Smallest safe diff; no publish, deploy, database, production, destructive git, or real webhook commands without explicit user approval.
