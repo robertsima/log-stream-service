@@ -5,9 +5,9 @@ alwaysApply: true
 # Workflow and Continuity
 
 Before editing:
-- Read [AGENTS.md](../../AGENTS.md) for routing; use `.agent/manifests/` to pick role (router is default session).
-- Read `.agent/CONTINUITY.md` before multi-step work.
-- **Contract gate:** if the task touches more than one surface (e.g. API + UI, schema + service, deploy + app code), ensure `.agent/contracts/<slug>.md` exists and is **agreed** before implementers edit code. Route to planner manifest first. Skip for single-surface trivial fixes.
+- Read [AGENTS.md](../../AGENTS.md) for routing; it points to the vault (`D:\Development\AI Workspace\projects\log-stream-service\index.md`) which has `manifests/` to pick role (router is default session).
+- Read the vault's `CONTINUITY.md` before multi-step work.
+- **Contract gate:** if the task touches more than one surface (e.g. API + UI, schema + service, deploy + app code), ensure the vault's `contracts/<slug>.md` exists and is **agreed** before implementers edit code. Route to planner manifest first. Skip for single-surface trivial fixes.
 
 While editing:
 - Implementers follow the contract section tagged for their manifest (`[backend]`, `[frontend]`, etc.).
@@ -22,4 +22,4 @@ After editing:
 - Use `030-verification-cost-control` to choose the minimum useful check.
 - If a check is skipped or cannot run, state why and list the command that would be appropriate later.
 - Cross-surface tasks: route to reviewer manifest against the contract before calling done.
-- Update `.agent/CONTINUITY.md` only for meaningful plan, decision, progress, discovery, or outcome changes; not for tiny edits.
+- Update the vault's `CONTINUITY.md` only for meaningful plan, decision, progress, discovery, or outcome changes; not for tiny edits. Same-session raw notes can go in the vault's `daily/<date>.md` and get filed later via `/daily-update`.

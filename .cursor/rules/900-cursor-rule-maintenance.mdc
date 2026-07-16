@@ -1,10 +1,10 @@
 ---
-description: Use when creating or editing Cursor rules, agent manifests, contracts, or AGENTS files.
+description: Use when creating or editing Cursor rules, Claude agent/command files, or AGENTS.md.
 globs:
   - ".cursor/rules/**/*.mdc"
-  - ".agent/**/*.md"
+  - ".claude/agents/**/*.md"
+  - ".claude/commands/**/*.md"
   - "AGENTS.md"
-  - "**/AGENTS.md"
 alwaysApply: false
 ---
 # Cursor Rule Maintenance
@@ -24,16 +24,23 @@ Guidelines:
 
 # Agent Artifact Maintenance
 
-Manifests (`.agent/manifests/*.md`):
+Manifests, contracts, summaries, and continuity now live in the vault
+(`D:\Development\AI Workspace\projects\log-stream-service\`), not in this repo.
+This repo only keeps `AGENTS.md` (the entry pointer), `.cursor/rules/*.mdc`
+(this folder), and `.claude/agents/*.md` + `.claude/commands/*.md` — all three
+kept local because their tools only auto-discover files at these exact repo
+paths.
+
+Manifests (vault `manifests/*.md`):
 - State **stability** (slow/fast), **inputs**, **outputs**, and **I do not** boundaries.
 - Reference `.cursor/rules` by id; do not duplicate coding standards.
 - Keep each manifest under ~40 lines; one role per file.
 
-Contracts (`.agent/contracts/*.md`):
+Contracts (vault `contracts/*.md`):
 - Copy from `_template.md` for new cross-surface work.
 - Use tagged sections: `[core-data]`, `[backend]`, `[frontend]`, `[integration]`, `[infra]`.
 - Status lifecycle: draft -> agreed -> implementing -> review -> done.
 
-Do not use `CONTINUITY.md` as the only plan for cross-surface work; use a contract file.
+Do not use the vault's `CONTINUITY.md` as the only plan for cross-surface work; use a contract file.
 
 Router logic lives in root `AGENTS.md`, not in a bloated orchestrator manifest.

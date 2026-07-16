@@ -98,7 +98,7 @@ Prep (once):
       - SDK READMEs: same ("Until then, install from this repo…" lines).
       - `frontend/index.html` FAQ ("registry packages are not published yet")
         and matching JSON-LD answer.
-      - `.agent/NEXT_SCOPE.md` / audit docs: mark published.
+      - Vault `NEXT_SCOPE.md` / `audits/` docs (`D:\Development\AI Workspace\projects\log-stream-service\`): mark published.
 - [ ] Create a GitHub release with the notes below.
 
 ## Release notes template (v0.1.0)
