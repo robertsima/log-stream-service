@@ -25,7 +25,7 @@ import com.logstream.generated.model.LogLevel;
 import com.logstream.service.AppService;
 import com.logstream.service.alerting.AlertBucket;
 import com.logstream.service.analysis.AlertAnalysisService;
-import com.logstream.service.analysis.PromptPreview;
+import com.logstream.domain.model.PromptPreview;
 
 class AlertAnalysisControllerTest {
 

@@ -17,12 +17,11 @@ import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.method.MethodValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
-import com.logstream.controller.ApiExceptionHandler;
+import com.logstream.exception.ApiExceptionHandler;
 import com.logstream.exception.InvalidLogEventException;
 import com.logstream.generated.model.ErrorResponse;
 

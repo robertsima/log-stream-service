@@ -1,11 +1,15 @@
 package com.logstream.service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.logstream.domain.model.LogEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.logstream.controller.dto.AppTokenDTO;
@@ -15,6 +19,7 @@ import com.logstream.generated.model.LogEventBatchRejection;
 import com.logstream.generated.model.LogEventBatchResponse;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.security.IngestionRateLimiter;
+import com.fasterxml.jackson.databind.JsonNode;
 
 @Service
 public class LogEventServiceImpl implements LogEventService {
@@ -36,6 +41,9 @@ public class LogEventServiceImpl implements LogEventService {
         this.logEventNormalizer = logEventNormalizer;
     }
 
+//    @Autowired
+//    private KafkaTemplate kafkaTemplate;
+
     @Override
     public void ingestLogEvent(Map<String, Object> rawEvent, String rawToken) {
         AppTokenDTO appToken = appTokenService.validateAndRefreshToken(rawToken);
@@ -48,6 +56,14 @@ public class LogEventServiceImpl implements LogEventService {
 
         alertAggregationService.accept(appToken.getAppId(), appToken.getAppName(), event);
     }
+
+//    @Override
+//    public void ingestLogEvent(JsonNode json, String rawToken) {
+//        AppTokenDTO appToken = appTokenService.validateAndRefreshToken(rawToken);
+//        Instant currentTime = Instant.now();
+//        LogEvent record = new LogEvent(appToken.getAppId(), Instant.now(),json);
+//        kafkaTemplate.send("central-log-events", record);
+//    }
 
     @Override
     public LogEventBatchResponse ingestLogEventBatch(List<Map<String, Object>> rawEvents, String rawToken) {

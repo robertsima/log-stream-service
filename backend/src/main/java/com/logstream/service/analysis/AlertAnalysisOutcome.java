@@ -1,5 +1,7 @@
 package com.logstream.service.analysis;
 
+import com.logstream.domain.model.OpenAIChatResult;
+
 public record AlertAnalysisOutcome(
         String analysis,
         String analysisJson,

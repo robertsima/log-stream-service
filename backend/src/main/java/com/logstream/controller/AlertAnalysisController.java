@@ -13,7 +13,7 @@ import com.logstream.generated.model.TokenUsage;
 import com.logstream.service.AppService;
 import com.logstream.service.analysis.AlertAnalysisService;
 import com.logstream.service.analysis.AlertAnalysisOutcome;
-import com.logstream.service.analysis.PromptPreview;
+import com.logstream.domain.model.PromptPreview;
 import com.logstream.service.alerting.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
 

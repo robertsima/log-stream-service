@@ -122,6 +122,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Kafka -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
+        </dependency>
+
         <!-- Testcontainers -->
 
         <dependency>
@@ -196,6 +202,9 @@
                             <apiPackage>com.logstream.generated.api</apiPackage>
                             <modelPackage>com.logstream.generated.model</modelPackage>
 
+                            <!-- Kafka ingestion bodies are queued untouched, so they stay raw JsonNode -->
+                            <schemaMappings>KafkaLogEventPayload=tools.jackson.databind.JsonNode</schemaMappings>
+
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>
                                 <useSpringBoot4>true</useSpringBoot4>
@@ -229,7 +238,15 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <!-- Kafka -->
+<!--            <plugin>-->
+<!--                <groupId>org.springframework.boot</groupId>-->
+<!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--                <version>4.1.0</version>-->
+<!--                <configuration>-->
+<!--                    <mainClass>com.baeldung.spring.kafka.KafkaApplication</mainClass>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

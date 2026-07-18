@@ -1,5 +1,6 @@
-package com.logstream.service.analysis;
+package com.logstream.config;
 
+import com.logstream.domain.model.OpenAIChatResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -11,18 +12,18 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 
 @Component
-public class OpenAIModel {
-    private static final Logger log = LoggerFactory.getLogger(OpenAIModel.class);
+public class OpenAIModelConfig {
+    private static final Logger log = LoggerFactory.getLogger(OpenAIModelConfig.class);
     private static final int MAX_COMPLETION_TOKENS = 800;
 
     private final String apiKey;
     private final OpenAiChatModel analysisModel;
 
-    public OpenAIModel() {
+    public OpenAIModelConfig() {
         this(System.getenv("OPENAI_API_KEY"));
     }
 
-    public OpenAIModel(String apiKey) {
+    public OpenAIModelConfig(String apiKey) {
         this.apiKey = apiKey;
         this.analysisModel = OpenAiChatModel.builder()
                 .apiKey(this.apiKey)

@@ -53,6 +53,7 @@ public class ManagementAuthFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         return !path.startsWith("/api/v1/")
                 || path.startsWith("/api/v1/log-events")
+                || path.startsWith("/api/v1/kafka")
                 || path.startsWith("/api/v1/ingestion-tokens/")
                 || path.equals("/api/v1/auth/demo-session");
     }

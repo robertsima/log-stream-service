@@ -1,4 +1,4 @@
-package com.logstream.controller;
+package com.logstream.exception;
 
 import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
@@ -14,11 +14,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
-import com.logstream.exception.ForbiddenException;
-import com.logstream.exception.InvalidLogEventException;
-import com.logstream.exception.QuotaExceededException;
-import com.logstream.exception.RateLimitExceededException;
-import com.logstream.exception.UnauthorizedException;
 import com.logstream.generated.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +41,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
         return error(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(KafkaUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleKafkaUnavailable(KafkaUnavailableException ex, HttpServletRequest request) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, "KAFKA_UNAVAILABLE", ex.getMessage(), request);
     }
 
     @ExceptionHandler(InvalidLogEventException.class)

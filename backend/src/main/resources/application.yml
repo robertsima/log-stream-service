@@ -22,6 +22,23 @@ spring:
   jpa:
     open-in-view: false
 
+  # Kafka
+  kafka:
+    toggle:
+      enabled: "${KAFKA_INTEGRATION_TOGGLE:false}"
+    bootstrap-servers: localhost:9092
+    # Consumer configs
+    consumer:
+      group-id: default-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    # Producer configs
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+
 logging:
   level:
     root: INFO
@@ -29,9 +46,11 @@ logging:
     com.logstream.service: DEBUG
     dev.langchain4j: DEBUG
     org.springframework.web.client: DEBUG
+    org.springframework.kafka.listener: DEBUG
+    org.apache.kafka.clients.consumer: INFO
 
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8083}
   servlet:
     session:
       persistent: false

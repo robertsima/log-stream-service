@@ -8,7 +8,7 @@ const isLocalFrontend =
 
 window.CONFIG = {
   API_BASE_URL: isLocalFrontend
-    ? "http://localhost:8080"
+    ? "http://localhost:8083"
     : "https://log-stream-service.onrender.com",
 
   OPENAPI_PATH: "./resources/openapi.json",

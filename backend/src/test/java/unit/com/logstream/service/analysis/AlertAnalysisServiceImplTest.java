@@ -11,14 +11,14 @@ import com.logstream.service.alerting.AlertBucket;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.generated.model.LogLevel;
 import com.logstream.service.analysis.AlertAnalysisServiceImpl;
-import com.logstream.service.analysis.OpenAIChatResult;
-import com.logstream.service.analysis.OpenAIModel;
+import com.logstream.domain.model.OpenAIChatResult;
+import com.logstream.config.OpenAIModelConfig;
 
 class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldIncludeBoundedContextAroundErrors() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         AlertBucket bucket = new AlertBucket(UUID.randomUUID(), "bucket-1");
@@ -65,7 +65,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldCondenseLongErrorMessages() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         AlertBucket bucket = new AlertBucket(UUID.randomUUID(), "bucket-2");
@@ -89,7 +89,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldKeepContextMessagesUpToTheNewCharLimit() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         String longContext = "c".repeat(250);
@@ -104,7 +104,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldKeepErrorMessagesUpToTheNewCharLimit() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         String longSummary = "e".repeat(650);
@@ -118,7 +118,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldDedupeRepeatedErrors() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         AlertBucket bucket = new AlertBucket(UUID.randomUUID(), "bucket-3");
@@ -137,7 +137,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldFallBackToMetadataStackWhenMessageHasNoFrames() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         AlertBucket bucket = new AlertBucket(UUID.randomUUID(), "bucket-4");
@@ -166,7 +166,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldIncludeSpanWhenErrorsOccurOverTime() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         OffsetDateTime start = OffsetDateTime.now().minusMinutes(5);
@@ -191,7 +191,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldIncludeCompactBucketAndMetadataHints() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         AlertBucket bucket = new AlertBucket(UUID.randomUUID(), "bucket-context-rich");
@@ -237,7 +237,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void analyzeAlertBucket_shouldIncludeUsefulDebugContextWithoutIncludingAllDebugNoise() {
-        RecordingOpenAIModel openAIModel = new RecordingOpenAIModel();
+        RecordingOpenAIModelConfig openAIModel = new RecordingOpenAIModelConfig();
         AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(openAIModel);
 
         AlertBucket bucket = new AlertBucket(UUID.randomUUID(), "bucket-debug");
@@ -254,7 +254,7 @@ class AlertAnalysisServiceImplTest {
 
     @Test
     void previewPrompt_shouldRenderThePromptWithoutCallingTheModel() {
-        AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(new RecordingOpenAIModel());
+        AlertAnalysisServiceImpl service = new AlertAnalysisServiceImpl(new RecordingOpenAIModelConfig());
 
         AlertBucket bucket = new AlertBucket(UUID.randomUUID(), "bucket-preview");
         bucket.add(event("boom", LogLevel.ERROR));
@@ -276,11 +276,11 @@ class AlertAnalysisServiceImplTest {
                 .occurredAt(OffsetDateTime.now());
     }
 
-    private static class RecordingOpenAIModel extends OpenAIModel {
+    private static class RecordingOpenAIModelConfig extends OpenAIModelConfig {
         private String lastSystemPrompt;
         private String lastUserPrompt;
 
-        private RecordingOpenAIModel() {
+        private RecordingOpenAIModelConfig() {
             super("test-key");
         }
 

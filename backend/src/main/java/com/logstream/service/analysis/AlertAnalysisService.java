@@ -1,5 +1,6 @@
 package com.logstream.service.analysis;
 
+import com.logstream.domain.model.PromptPreview;
 import com.logstream.service.alerting.AlertBucket;
 
 public interface AlertAnalysisService {

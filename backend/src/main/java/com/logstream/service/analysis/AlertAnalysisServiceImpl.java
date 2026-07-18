@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.logstream.config.OpenAIModelConfig;
+import com.logstream.domain.model.OpenAIChatResult;
+import com.logstream.domain.model.PromptPreview;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,7 +39,7 @@ public class AlertAnalysisServiceImpl implements AlertAnalysisService {
     private static final Pattern STACK_FRAME_GENERIC =
             Pattern.compile("\\s*at\\s+(?:(.+?)\\s*\\()?([^()\\s]+?):(\\d+)(?::\\d+)?\\)?\\s*$");
 
-    private final OpenAIModel openAIModel;
+    private final OpenAIModelConfig openAIModelConfig;
     private final Map<String, CachedAnalysis> recentAnalyses = new ConcurrentHashMap<>();
 
     private String systemPrompt =
@@ -53,8 +56,8 @@ public class AlertAnalysisServiceImpl implements AlertAnalysisService {
             + "No markdown, preamble, or extra keys. No generic advice.";
     private String userPrompt = "";
 
-    public AlertAnalysisServiceImpl(OpenAIModel openAIModel) {
-        this.openAIModel = openAIModel;
+    public AlertAnalysisServiceImpl(OpenAIModelConfig openAIModelConfig) {
+        this.openAIModelConfig = openAIModelConfig;
     }
 
     @Override
@@ -73,9 +76,9 @@ public class AlertAnalysisServiceImpl implements AlertAnalysisService {
     @Override
     public PromptPreview previewPrompt(AlertBucket alertBucket) {
         String userContent = buildUserPrompt(alertBucket);
-        String prompt = openAIModel.formatPreview(systemPrompt, userContent);
+        String prompt = openAIModelConfig.formatPreview(systemPrompt, userContent);
         int charCount = prompt.length();
-        return new PromptPreview(prompt, charCount, OpenAIModel.estimateTokens(prompt));
+        return new PromptPreview(prompt, charCount, OpenAIModelConfig.estimateTokens(prompt));
     }
 
     @Override
@@ -91,7 +94,7 @@ public class AlertAnalysisServiceImpl implements AlertAnalysisService {
     private AlertAnalysisOutcome callModel(AlertBucket alertBucket) {
         String userContent = buildUserPrompt(alertBucket);
         log.debug("Built AlertAnalysis user prompt for fingerprint {}:\n{}", fingerprint(alertBucket), userContent);
-        OpenAIChatResult response = openAIModel.chatForAnalysis(systemPrompt, userContent);
+        OpenAIChatResult response = openAIModelConfig.chatForAnalysis(systemPrompt, userContent);
         log.debug("AlertAnalysis service received response:\n{}", response.text());
         return AlertAnalysisOutcome.fromChat(response);
     }

@@ -1,4 +1,4 @@
-package com.logstream.service.analysis;
+package com.logstream.domain.model;
 
 public record OpenAIChatResult(
         String text,

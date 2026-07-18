@@ -12,7 +12,7 @@ Hard constraints (binding even before reading the vault):
 - Vanilla static frontend only (no React/npm/bundlers).
 - Contract-first API changes (OpenAPI before Java).
 - Never log or persist secrets, raw ingestion tokens, or full webhook URLs.
-- No Kafka/Redis/Elasticsearch/persistent log store (MVP); smallest safe diff.
+- No Redis/Elasticsearch/persistent log store (MVP); smallest safe diff. (Kafka is allowed as of 2026-07-16 — see vault index.md.)
 - No publish/deploy/production/destructive commands without explicit user approval.
 
 Daily notes: raw `[TAG] fact` lines go in the vault's `daily/<date>.md`; run `/daily-update` manually to file them into `CONTINUITY.md`.

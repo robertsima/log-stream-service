@@ -2,7 +2,7 @@ openapi: 3.0.3
 
 info:
   title: Log Stream Service API
-  version: 1.1.0
+  version: 1.2.0
   description: >
     Lightweight real-time log relay service. Applications register as log sources,
     generate ingestion tokens, send short-lived log events, and configure Slack
@@ -29,6 +29,12 @@ tags:
     description: Slack and Discord webhook destinations for aggregated error alerts
   - name: Alert Analysis
     description: Preview and analyze alert event payloads using the OpenAI prompt model
+  - name: Kafka
+    description: >
+      Kafka-backed ingestion pipeline intended to replace the synchronous Log Events
+      path. Events are queued on the central-log-events topic; normalization, alert
+      aggregation, analysis, and delivery happen asynchronously in consumers, with
+      alert/analysis communication flowing over Kafka topics between services.
 
 paths:
   /api/v1/users:
@@ -441,6 +447,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+
   /api/v1/log-events:
     post:
       tags:
@@ -613,6 +620,154 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/kafka/log-events:
+    post:
+      tags:
+        - Kafka
+      operationId: ingestLogEventViaKafka
+      summary: Ingest a log event through the Kafka pipeline
+      description: >
+        Kafka-backed counterpart of POST /api/v1/log-events, intended to replace it
+        once the migration completes. Authenticates the ingestion token, then queues
+        the raw event on the central-log-events topic. Normalization, alert
+        aggregation, analysis, and delivery happen asynchronously in consumers, so
+        only authentication and payload-size limits are enforced synchronously;
+        events that fail normalization downstream are dropped and logged rather
+        than reported in the HTTP response.
+
+        Accepts the same tolerant RawLogEvent payloads as the synchronous endpoint.
+        Request bodies larger than 1 MiB (1048576 bytes) are rejected with 413.
+        Available only when the Kafka integration toggle is enabled.
+      parameters:
+        - $ref: '#/components/parameters/IngestionToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KafkaLogEventPayload'
+      responses:
+        '202':
+          description: Event queued on the central-log-events topic
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KafkaPublishResponse'
+        '400':
+          description: Malformed JSON body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid ingestion token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: Log payload too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Kafka integration is disabled or the broker is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/kafka/log-events/batch:
+    post:
+      tags:
+        - Kafka
+      operationId: ingestLogEventBatchViaKafka
+      summary: Ingest a batch of log events through the Kafka pipeline
+      description: >
+        Kafka-backed counterpart of POST /api/v1/log-events/batch. Authenticates the
+        ingestion token, then queues up to 100 raw events on the central-log-events
+        topic in request order. Per-event validation happens asynchronously in
+        consumers, so the response reports how many events were queued, not how many
+        were valid. Each queued event counts against the ingestion rate limit.
+
+        Request bodies larger than 1 MiB (1048576 bytes) are rejected with 413.
+        Available only when the Kafka integration toggle is enabled.
+      parameters:
+        - $ref: '#/components/parameters/IngestionToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 100
+              items:
+                $ref: '#/components/schemas/KafkaLogEventPayload'
+      responses:
+        '202':
+          description: Batch queued on the central-log-events topic
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KafkaBatchPublishResponse'
+        '400':
+          description: Invalid batch payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid ingestion token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: Batch payload too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Ingestion rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Kafka integration is disabled or the broker is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/kafka/status:
+    get:
+      tags:
+        - Kafka
+      operationId: getKafkaStatus
+      summary: Report Kafka integration status
+      description: >
+        Returns whether the Kafka integration toggle is enabled and which topics
+        the service publishes to. Never exposes broker addresses or credentials.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Kafka integration status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KafkaStatusResponse'
         '401':
           description: Missing or invalid bearer token
           content:
@@ -1023,6 +1178,77 @@ components:
         tokenUsage:
           $ref: '#/components/schemas/TokenUsage'
           nullable: true
+
+    KafkaPublishResponse:
+      type: object
+      required:
+        - topic
+        - messageId
+        - publishedAt
+      properties:
+        topic:
+          type: string
+          description: Kafka topic the event was queued on.
+          example: central-log-events
+        messageId:
+          type: string
+          format: uuid
+          description: Server-generated message key for tracing the record through the pipeline.
+        publishedAt:
+          type: string
+          format: date-time
+
+    KafkaLogEventPayload:
+      type: object
+      additionalProperties: true
+      description: >
+        Raw log event JSON queued as-is on the central-log-events topic. Accepts the
+        same tolerant shapes as RawLogEvent; normalization happens asynchronously in
+        consumers. Mapped to a Jackson JsonNode in generated server code.
+      example:
+        levelname: WARNING
+        msg: Payment retry scheduled
+        '@timestamp': 2026-06-08T18:30:00Z
+
+    KafkaBatchPublishResponse:
+      type: object
+      required:
+        - topic
+        - queued
+      properties:
+        topic:
+          type: string
+          description: Kafka topic the events were queued on.
+          example: central-log-events
+        queued:
+          type: integer
+          description: Number of events queued, in request order. Per-event validation happens asynchronously.
+          example: 100
+        messageIds:
+          type: array
+          description: Server-generated message keys, index-aligned with the request array.
+          items:
+            type: string
+            format: uuid
+
+    KafkaStatusResponse:
+      type: object
+      required:
+        - enabled
+        - topics
+      properties:
+        enabled:
+          type: boolean
+          description: True when the Kafka integration toggle is on.
+          example: false
+        topics:
+          type: array
+          description: Topics this service publishes to. Broker addresses are never exposed.
+          items:
+            type: string
+          example:
+            - central-log-events
+            - alert-messages
 
     AlertDestinationType:
       type: string
