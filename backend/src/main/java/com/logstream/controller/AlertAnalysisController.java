@@ -1,100 +1,93 @@
-package com.logstream.controller;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.logstream.exception.ForbiddenException;
-import com.logstream.generated.api.AlertAnalysisApi;
-import com.logstream.generated.model.AlertAnalysisPreviewResponse;
-import com.logstream.generated.model.AlertAnalysisResponse;
-import com.logstream.generated.model.AlertBucketAnalysisRequest;
-import com.logstream.generated.model.TokenUsage;
-import com.logstream.service.AppService;
-import com.logstream.service.analysis.AlertAnalysisService;
-import com.logstream.service.analysis.AlertAnalysisOutcome;
-import com.logstream.domain.model.PromptPreview;
-import com.logstream.service.alerting.AlertBucket;
-import com.logstream.generated.model.LogEventRequest;
-
-import java.util.stream.Collectors;
-
-@RestController
-public class AlertAnalysisController implements AlertAnalysisApi {
-
-    private final AlertAnalysisService alertAnalysisService;
-    private final AppService appService;
-    private final boolean promptPreviewEnabled;
-
-    public AlertAnalysisController(
-            AlertAnalysisService alertAnalysisService,
-            AppService appService,
-            @Value("${alerts.analysis.prompt-preview-enabled:false}") boolean promptPreviewEnabled
-    ) {
-        this.alertAnalysisService = alertAnalysisService;
-        this.appService = appService;
-        this.promptPreviewEnabled = promptPreviewEnabled;
-    }
-
-    @Override
-    public ResponseEntity<AlertAnalysisResponse> analyzeAlertBucket(AlertBucketAnalysisRequest alertBucketAnalysisRequest) {
-        appService.requireOwner(alertBucketAnalysisRequest.getAppId());
-        AlertBucket alertBucket = toAlertBucket(alertBucketAnalysisRequest);
-        AlertAnalysisOutcome outcome = alertAnalysisService.analyzeAlertBucket(alertBucket);
-
-        AlertAnalysisResponse response = new AlertAnalysisResponse()
-                .analysis(outcome.analysis())
-                .analysisJson(outcome.analysisJson())
-                .cached(outcome.cached());
-
-        if (!outcome.cached() && outcome.totalTokens() != null) {
-            response.tokenUsage(new TokenUsage()
-                    .promptTokens(outcome.promptTokens())
-                    .completionTokens(outcome.completionTokens())
-                    .totalTokens(outcome.totalTokens()));
-        }
-
-        return ResponseEntity.ok(response);
-    }
-
-    @Override
-    public ResponseEntity<AlertAnalysisPreviewResponse> previewAlertPrompt(AlertBucketAnalysisRequest alertBucketAnalysisRequest) {
-        if (!promptPreviewEnabled) {
-            throw new ForbiddenException("Alert analysis prompt preview is disabled.");
-        }
-
-        appService.requireOwner(alertBucketAnalysisRequest.getAppId());
-        AlertBucket alertBucket = toAlertBucket(alertBucketAnalysisRequest);
-        PromptPreview preview = alertAnalysisService.previewPrompt(alertBucket);
-
-        AlertAnalysisPreviewResponse response = new AlertAnalysisPreviewResponse()
-                .prompt(preview.prompt())
-                .promptCharCount(preview.promptCharCount())
-                .estimatedPromptTokens(preview.estimatedPromptTokens());
-
-        return ResponseEntity.ok(response);
-    }
-
-    private AlertBucket toAlertBucket(AlertBucketAnalysisRequest request) {
-        AlertBucket bucket = new AlertBucket(request.getAppId(), request.getFingerprint());
-        if (request.getEvents() != null) {
-            bucket.getEvents().addAll(request.getEvents().stream()
-                    .map(this::copyLogEventRequest)
-                    .collect(Collectors.toList()));
-        }
-        return bucket;
-    }
-
-    private LogEventRequest copyLogEventRequest(LogEventRequest source) {
-        LogEventRequest copy = new LogEventRequest();
-        copy.setId(source.getId());
-        copy.setLevel(source.getLevel());
-        copy.setLogger(source.getLogger());
-        copy.setMessage(source.getMessage());
-        copy.setOccurredAt(source.getOccurredAt());
-        copy.setTraceId(source.getTraceId());
-        copy.setSpanId(source.getSpanId());
-        copy.setMetadata(source.getMetadata());
-        return copy;
-    }
-}
+//package com.logstream.controller;
+//
+//import com.logstream.domain.model.AlertTrigger;
+//import com.logstream.generated.model.*;
+//import org.springframework.beans.factory.annotation.Value;
+//import org.springframework.http.ResponseEntity;
+//import org.springframework.web.bind.annotation.RestController;
+//
+//import com.logstream.exception.ForbiddenException;
+//import com.logstream.service.AppService;
+//import com.logstream.service.analysis.AlertAnalysisService;
+//import com.logstream.service.analysis.AlertAnalysisOutcome;
+//import com.logstream.domain.model.PromptPreview;
+//
+//import java.util.stream.Collectors;
+//
+//@RestController
+//public class AlertAnalysisController{
+//
+//    private final AlertAnalysisService alertAnalysisService;
+//    private final AppService appService;
+//    private final boolean promptPreviewEnabled;
+//
+//    public AlertAnalysisController(
+//            AlertAnalysisService alertAnalysisService,
+//            AppService appService,
+//            @Value("${alerts.analysis.prompt-preview-enabled:false}") boolean promptPreviewEnabled
+//    ) {
+//        this.alertAnalysisService = alertAnalysisService;
+//        this.appService = appService;
+//        this.promptPreviewEnabled = promptPreviewEnabled;
+//    }
+//
+//    public ResponseEntity<AlertAnalysisResponse> analyzeAlertTrigger(AlertBucketAnalysisRequest alertAnalysisRequest) {
+//        appService.requireOwner(alertAnalysisRequest.getAppId());
+//        AlertTrigger alert = toAlertTrigger(alertAnalysisRequest);
+//        AlertAnalysisOutcome outcome = alertAnalysisService.analyzeAlertTrigger(alert);
+//
+//        AlertAnalysisResponse response = new AlertAnalysisResponse()
+//                .analysis(outcome.analysis())
+//                .analysisJson(outcome.analysisJson())
+//                .cached(outcome.cached());
+//
+//        if (!outcome.cached() && outcome.totalTokens() != null) {
+//            response.tokenUsage(new TokenUsage()
+//                    .promptTokens(outcome.promptTokens())
+//                    .completionTokens(outcome.completionTokens())
+//                    .totalTokens(outcome.totalTokens()));
+//        }
+//
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    public ResponseEntity<AlertAnalysisPreviewResponse> previewAlertPrompt(AlertBucketAnalysisRequest alertAnalysisRequest) {
+//        if (!promptPreviewEnabled) {
+//            throw new ForbiddenException("Alert analysis prompt preview is disabled.");
+//        }
+//
+//        appService.requireOwner(alertAnalysisRequest.getAppId());
+//        AlertTrigger alert = toAlertTrigger(alertAnalysisRequest);
+//        PromptPreview preview = alertAnalysisService.previewPrompt(alert);
+//
+//        AlertAnalysisPreviewResponse response = new AlertAnalysisPreviewResponse()
+//                .prompt(preview.prompt())
+//                .promptCharCount(preview.promptCharCount())
+//                .estimatedPromptTokens(preview.estimatedPromptTokens());
+//
+//        return ResponseEntity.ok(response);
+//    }
+//
+////    private AlertTrigger toAlertTrigger(AlertBucketAnalysisRequest request) {
+////        AlertTrigger alert = new AlertTrigger(request.getAppId(), request.getEvents().t);
+////        if (request.getEvents() != null) {
+////            alert.context().addAll(request.getEvents().stream()
+////                    .map(this::copyLogEventRequest)
+////                    .collect(Collectors.toList()));
+////        }
+////        return alert;
+////    }
+//
+//    private LogEventRequest copyLogEventRequest(LogEventRequest source) {
+//        LogEventRequest copy = new LogEventRequest();
+//        copy.setId(source.getId());
+//        copy.setLevel(source.getLevel());
+//        copy.setLogger(source.getLogger());
+//        copy.setMessage(source.getMessage());
+//        copy.setOccurredAt(source.getOccurredAt());
+//        copy.setTraceId(source.getTraceId());
+//        copy.setSpanId(source.getSpanId());
+//        copy.setMetadata(source.getMetadata());
+//        return copy;
+//    }
+//}

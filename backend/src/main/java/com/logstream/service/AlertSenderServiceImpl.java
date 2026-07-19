@@ -1,10 +1,10 @@
 package com.logstream.service;
 
+import com.logstream.generated.model.AlertAnalysisResponse;
 import org.springframework.stereotype.Service;
 
 import com.logstream.domain.entity.AlertDestination;
 import com.logstream.generated.model.AlertDestinationType;
-import com.logstream.service.alerting.AlertBucket;
 import com.logstream.webhooks.DiscordWebhookSender;
 import com.logstream.webhooks.SlackWebhookSender;
 
@@ -22,7 +22,7 @@ public class AlertSenderServiceImpl implements AlertSenderService {
         this.slackWebhookSender = slackWebhookSender;
     }
 
-    @Override
+//    @Override
     public void sendTest(AlertDestination destination) {
         if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
             discordWebhookSender.sendTest(destination);
@@ -34,27 +34,29 @@ public class AlertSenderServiceImpl implements AlertSenderService {
         }
     }
 
+
+//    @Override
+//    public void sendAggregatedAlert(AlertDestination destination, AlertTrigger alert) {
+//        if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
+//            discordWebhookSender.sendAggregatedAlert(destination, alert);
+//            return;
+//        }
+//
+//        if (destination.getDestinationType() == AlertDestinationType.SLACK) {
+//            slackWebhookSender.sendAggregatedAlert(destination, alert);
+//        }
+//    }
+
+
     @Override
-    public void sendAggregatedAlert(AlertDestination destination, AlertBucket bucket) {
+    public void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis) {
         if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
-            discordWebhookSender.sendAggregatedAlert(destination, bucket);
+            discordWebhookSender.sendAnalyzedAlert(destination, analysis);
             return;
         }
 
         if (destination.getDestinationType() == AlertDestinationType.SLACK) {
-            slackWebhookSender.sendAggregatedAlert(destination, bucket);
-        }
-    }
-
-    @Override
-    public void sendAnalyzedAlert(AlertDestination destination, AlertBucket bucket, String analysis) {
-        if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
-            discordWebhookSender.sendAnalyzedAlert(destination, bucket, analysis);
-            return;
-        }
-
-        if (destination.getDestinationType() == AlertDestinationType.SLACK) {
-            slackWebhookSender.sendAnalyzedAlert(destination, bucket, analysis);
+            slackWebhookSender.sendAnalyzedAlert(destination, analysis);
         }
     }
 }

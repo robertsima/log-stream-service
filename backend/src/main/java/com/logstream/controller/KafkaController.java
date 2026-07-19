@@ -37,12 +37,6 @@ public class KafkaController implements KafkaApi {
     }
 
     @Override
-    public ResponseEntity<KafkaBatchPublishResponse> ingestLogEventBatchViaKafka(String xIngestionToken, List<JsonNode> requestBody) {
-        //at present no batch kafka
-        return KafkaApi.super.ingestLogEventBatchViaKafka(xIngestionToken, requestBody);
-    }
-
-    @Override
     public ResponseEntity<KafkaPublishResponse> ingestLogEventViaKafka(String xIngestionToken, JsonNode requestBody) {
         KafkaProducerService producer = kafkaProducerService.getIfAvailable();
         if (producer == null) {

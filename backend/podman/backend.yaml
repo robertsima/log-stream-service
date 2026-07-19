@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spring-app-pod
+spec:
+  containers:
+    - name: spring-app
+      image: spring-boot-starter-template:latest
+      ports:
+        - containerPort: 8080
+          hostPort: 8080
+      env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres-pod:5432/appdb
+        - name: SPRING_DATASOURCE_USERNAME
+          value: appuser
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: apppassword
+        - name: SPRINGDOC_ENABLE_DATA_REST
+          value: "false"

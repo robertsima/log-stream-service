@@ -1,12 +1,12 @@
 package com.logstream.service.analysis;
 
+import com.logstream.domain.model.AlertTrigger;
 import com.logstream.domain.model.PromptPreview;
-import com.logstream.service.alerting.AlertBucket;
 
 public interface AlertAnalysisService {
-    AlertAnalysisOutcome analyzeAlertBucket(AlertBucket alertBucket);
+    AlertAnalysisOutcome analyzeAlertTrigger(AlertTrigger alert);
 
-    PromptPreview previewPrompt(AlertBucket alertBucket);
+    PromptPreview previewPrompt(AlertTrigger alert);
 
     void setSystemPrompt(String systemPrompt);
 

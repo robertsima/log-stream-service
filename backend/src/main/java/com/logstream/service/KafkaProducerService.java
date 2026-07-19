@@ -32,7 +32,7 @@ public class KafkaProducerService {
         AppTokenDTO appToken = appTokenService.validateAndRefreshToken(rawToken); // auth stays
         UUID messageId = UUID.randomUUID();
 
-        LogEvent record = new LogEvent(appToken.getAppId(), Instant.now(), json);
+        LogEvent record = new LogEvent(appToken.getAppId(), appToken.getAppName(), Instant.now(), json);
         kafkaTemplate.send(CENTRAL_LOG_TOPIC, messageId.toString(), record);
         return messageId;
     }

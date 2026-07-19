@@ -3,17 +3,17 @@ package com.logstream.service;
 import java.util.List;
 import java.util.UUID;
 
+import com.logstream.domain.model.AlertTrigger;
+import com.logstream.generated.model.LogEventRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.logstream.domain.entity.AlertDestination;
-import com.logstream.service.alerting.AlertBucket;
 import com.logstream.domain.repository.AlertDestinationRepository;
 import com.logstream.exception.QuotaExceededException;
 import com.logstream.generated.model.AlertDestinationResponse;
 import com.logstream.generated.model.CreateAlertDestinationRequest;
-import com.logstream.generated.model.LogEventRequest;
 
 @Service
 public class AlertDestinationServiceImpl implements AlertDestinationService {
@@ -83,7 +83,7 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
         return toResponse(saved);
     }
 
-    @Override
+//    @Override
     public List<AlertDestinationResponse> findByApp(UUID appId) {
         requireOwner(appId);
         return repository.findByAppIdAndEnabledTrueAndDeletedAtIsNull(appId)
@@ -92,7 +92,7 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
                 .toList();
     }
 
-    @Override
+//    @Override
     public void delete(UUID appId, UUID destinationId) {
         requireOwner(appId);
         AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
@@ -104,36 +104,47 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
 
     @Override
     public void test(UUID appId, UUID destinationId) {
-        requireOwner(appId);
-        AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
-                .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
 
-        System.out.println("Testing alert destination: " + destination.getId());
-
-        alertSenderService.sendTest(destination);
     }
 
     @Override
-    public void sendAnalyzedAlert(
-            UUID appId,
-            UUID destinationId,
-            String fingerprint,
-            List<LogEventRequest> events,
-            String analysis) {
-        requireOwner(appId);
-        AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
-                .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
+    public void sendAnalyzedAlert(UUID appId, UUID destinationId, String fingerprint, List<LogEventRequest> events, String analysis) {
 
-        AlertBucket bucket = new AlertBucket(appId, fingerprint);
-        if (appService != null) {
-            bucket.setAppName(appService.getAppById(appId).getName());
-        }
-        if (events != null) {
-            bucket.getEvents().addAll(events);
-        }
-
-        alertSenderService.sendAnalyzedAlert(destination, bucket, analysis);
     }
+
+    @Override
+    public void sendAnalyzedAlert(UUID appId, UUID destinationId, AlertTrigger alertTrigger, String analysis) {
+
+    }
+
+//    @Override
+//    public void test(UUID appId, UUID destinationId) {
+//        requireOwner(appId);
+//        AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
+//                .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
+//
+//        System.out.println("Testing alert destination: " + destination.getId());
+//
+//        alertSenderService.sendTest(destination);
+//    }
+//
+//    @Override
+//    public void sendAnalyzedAlert(UUID appId, UUID destinationId, String fingerprint, List<LogEventRequest> events, String analysis) {
+//
+//    }
+//
+//    @Override
+//    public void sendAnalyzedAlert(
+//            UUID appId,
+//            UUID destinationId,
+//            AlertTrigger alertTrigger,
+//            String analysis) {
+//        requireOwner(appId);
+//        AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
+//                .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
+//
+//        alertSenderService.sendAnalyzedAlert(destination, alertTrigger, analysis);
+//    }
 
     private AlertDestinationResponse toResponse(AlertDestination destination) {
         AlertDestinationResponse response = new AlertDestinationResponse();
