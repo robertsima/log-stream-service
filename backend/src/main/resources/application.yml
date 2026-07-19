@@ -22,11 +22,12 @@ spring:
   jpa:
     open-in-view: false
 
-  # Kafka
+  # Kafka — bootstrap resolved from KAFKA_SERVICE_URI or KAFKA_HOST:KAFKA_PORT
+  # (see KafkaConnectionEnvironmentPostProcessor). Empty USER/PASS/CACERT = PLAINTEXT.
   kafka:
     toggle:
       enabled: "${KAFKA_INTEGRATION_TOGGLE:false}"
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVICE_URI:localhost:9092}
 
     # Consumer configs
     consumer:
@@ -43,9 +44,13 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       acks: all
 
-    # Streams configs
+    # Streams configs — RF 1 for single-broker / free-tier clusters
     streams:
       application-id: log-stream-service-streams   # required, becomes the consumer group id
+      replication-factor: 1
+      properties:
+        default.replication.factor: 1
+        num.standby.replicas: 0
 
 logging:
   level:

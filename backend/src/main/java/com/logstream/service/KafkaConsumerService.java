@@ -8,21 +8,18 @@ import com.logstream.generated.model.AlertAnalysisResponse;
 import com.logstream.generated.model.TokenUsage;
 import com.logstream.service.analysis.AlertAnalysisOutcome;
 import com.logstream.service.analysis.AlertAnalysisService;
-import com.logstream.service.analysis.AlertAnalysisServiceImpl;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 @Service
+@ConditionalOnProperty(name = "spring.kafka.toggle.enabled", havingValue = "true")
 public class KafkaConsumerService {
 
     //listeners for both topics, mainly worried about central log listener for now
@@ -57,16 +54,23 @@ public class KafkaConsumerService {
     //listener for alert messages sent from kafka stream, used to send an alert to model for analysis
     @KafkaListener(
             id = "alert-message-listener",
-            topics = "alert-messages"
+            topics = "alert-messages",
+            properties = {
+                    "spring.json.value.default.type:com.logstream.domain.model.AlertTrigger"
+            }
     )
     public void alertMessageListener(AlertTrigger alert) {
-        System.out.println("Sending alert analysis request: " + alert.triggeringEvent().appName());
+        log.info("Sending alert analysis request: app={} label={} count={}",
+                alert.triggeringEvent().appName(), alert.signatureLabel(), alert.occurrenceCount());
         kafkaTemplate.send("analyzed-events", alert.appId().toString(), alertAnalysisService.analyzeAlertTrigger(alert));
     }
 
     @KafkaListener(
             id = "analyzed-events-listener",
-            topics = "analyzed-events"
+            topics = "analyzed-events",
+            properties = {
+                    "spring.json.value.default.type:com.logstream.service.analysis.AlertAnalysisOutcome"
+            }
     )
     public void analyzedEventsListener(AlertAnalysisOutcome outcome) {
         // deterministic bad record: retrying would never succeed, so warn and drop

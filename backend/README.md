@@ -7,6 +7,22 @@ This subfolder contains file perinent to the backend service
 - Using a toggle "KAFKA_INTEGRATION_TOGGLE = false" while changes are being made
 - Marking files for deletion by using "FLAG - DELETE" after integration
 
+## Local Kafka connection (Podman)
+
+`backend/podman/kafka.yaml` exposes PLAINTEXT on `localhost:9092` with no auth. Put these in `.env.local` (IDE `envFile`) or the process environment:
+
+```
+KAFKA_INTEGRATION_TOGGLE=true
+KAFKA_HOST=localhost
+KAFKA_PORT=9092
+KAFKA_SERVICE_URI=localhost:9092
+KAFKA_USER=
+KAFKA_PASS=
+KAFKA_CACERT=
+```
+
+Previously hardcoded: `spring.kafka.bootstrap-servers: localhost:9092` (no SASL). Managed brokers: set `KAFKA_SERVICE_URI` (or HOST+PORT), `KAFKA_USER`/`KAFKA_PASS`, and `KAFKA_CACERT` (provider CA PEM) — the app enables SASL_SSL + SCRAM-SHA-256 and a PEM trust store when those are set.
+
 # Local test token 
 lss_live_vsQ086T2bWiVB7ohCNDWysGRLT3mlFgZ
 

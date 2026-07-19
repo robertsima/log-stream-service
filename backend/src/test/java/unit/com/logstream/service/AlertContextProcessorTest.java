@@ -201,6 +201,38 @@ class AlertContextProcessorTest {
         assertThat(capturedAlerts()).isEmpty();
     }
 
+    @Test
+    void usesEventAppId_notKafkaKey_soSimilarErrorsStillCoalesce() throws Exception {
+        UUID appId = UUID.randomUUID();
+
+        clock.set(0);
+        processor.process(new Record<>(UUID.randomUUID().toString(),
+                new LogEvent(appId, APP_NAME, Instant.now(), errorPayload(
+                        "worker crashed while settling invoice 88421", null)), 0));
+        clock.set(500);
+        processor.process(new Record<>(UUID.randomUUID().toString(),
+                new LogEvent(appId, APP_NAME, Instant.now(), errorPayload(
+                        "worker crashed while settling invoice 88422", null)), 500));
+
+        clock.set(15_000);
+        invokeFlushExpired(15_000);
+
+        List<AlertTrigger> alerts = capturedAlerts();
+        assertThat(alerts).hasSize(1);
+        assertThat(alerts.get(0).appId()).isEqualTo(appId);
+        assertThat(alerts.get(0).occurrenceCount()).isEqualTo(2);
+    }
+
+    private static ObjectNode errorPayload(String message, String exceptionType) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("level", "ERROR");
+        node.put("message", message);
+        if (exceptionType != null) {
+            node.put("exception", exceptionType + ": " + message);
+        }
+        return node;
+    }
+
     private List<AlertTrigger> capturedAlerts() {
         ArgumentCaptor<Record> captor = ArgumentCaptor.forClass(Record.class);
         verify(context, org.mockito.Mockito.atLeast(0)).forward(captor.capture());
@@ -218,14 +250,17 @@ class AlertContextProcessorTest {
     }
 
     private Record<String, LogEvent> recordFor(UUID appId, LogEvent event) {
-        return new Record<>(appId.toString(), event, clock.get());
+        LogEvent withApp = new LogEvent(appId, event.appName(), event.receivedAt(), event.payload());
+        return new Record<>(appId.toString(), withApp, clock.get());
     }
 
     private LogEvent errorEvent(String message, String exceptionType) {
         ObjectNode node = JsonNodeFactory.instance.objectNode();
         node.put("level", "ERROR");
         node.put("message", message);
-        node.put("exception", exceptionType + ": " + message);
+        if (exceptionType != null) {
+            node.put("exception", exceptionType + ": " + message);
+        }
         return new LogEvent(null, APP_NAME, Instant.now(), node);
     }
 

@@ -78,11 +78,15 @@ public class AlertContextProcessor implements Processor<String, LogEvent, String
 
     @Override
     public void process(Record<String, LogEvent> record) {
-        String appId = record.key();
         LogEvent event = record.value();
-        if (appId == null || event == null) {
+        if (event == null || event.appId() == null) {
             return;
         }
+        // Always key the buffer by the event's appId — never the Kafka record key.
+        // Older producers used a per-message UUID as the key; using that split one app's
+        // errors into many buffers (no coalescing) and wrote bogus AlertTrigger.appIds
+        // (webhook destination lookup then finds nothing).
+        String appId = event.appId().toString();
 
         AppBuffer buffer = store.get(appId);
         if (buffer == null) {

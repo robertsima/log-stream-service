@@ -33,7 +33,9 @@ public class KafkaProducerService {
         UUID messageId = UUID.randomUUID();
 
         LogEvent record = new LogEvent(appToken.getAppId(), appToken.getAppName(), Instant.now(), json);
-        kafkaTemplate.send(CENTRAL_LOG_TOPIC, messageId.toString(), record);
+        // Key by appId so Streams can group/alert without an internal repartition topic
+        // (Aiven free tier: max 5 topics — repartition would burn one).
+        kafkaTemplate.send(CENTRAL_LOG_TOPIC, appToken.getAppId().toString(), record);
         return messageId;
     }
 

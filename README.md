@@ -157,6 +157,13 @@ The service is configured through environment variables for deployment.
 | `APP_QUOTAS_MAX_ACTIVE_TOKENS_PER_APP` | No | `5` | Max non-revoked ingestion tokens per app |
 | `APP_RATE_LIMIT_MANAGEMENT_RPM` | No | `60` | In-memory management API requests per minute per IP/user |
 | `SWAGGER_UI_ENABLED` | No | `false` | Enable Swagger UI and `/v3/api-docs` (local dev only) |
+| `KAFKA_INTEGRATION_TOGGLE` | No | `false` | Enable Kafka Streams / consumers for alerting |
+| `KAFKA_SERVICE_URI` | When Kafka on | `localhost:9092` | Bootstrap `host:port` (preferred over composing host+port) |
+| `KAFKA_HOST` | Optional | `localhost` | Broker host; used with `KAFKA_PORT` if `KAFKA_SERVICE_URI` is empty |
+| `KAFKA_PORT` | Optional | `9092` | Broker port; used with `KAFKA_HOST` if `KAFKA_SERVICE_URI` is empty |
+| `KAFKA_USER` | Managed Kafka | empty | SASL username; empty = PLAINTEXT (local Podman) |
+| `KAFKA_PASS` | Managed Kafka | empty | SASL password; never commit real values |
+| `KAFKA_CACERT` | Managed Kafka | empty | Provider CA PEM text for SSL trust (`ssl.truststore.type=PEM`); leave empty locally |
 
 Copy `.env.example` to your host or container environment and replace placeholder values.
 
