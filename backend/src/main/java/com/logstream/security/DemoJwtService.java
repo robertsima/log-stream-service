@@ -13,8 +13,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class DemoJwtService {
@@ -25,7 +26,7 @@ public class DemoJwtService {
     private final byte[] secret;
 
     public DemoJwtService(@Value("${app.security.demo-jwt-secret:}") String configuredSecret) {
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = JsonMapper.builder().build();
         this.secret = configuredSecret == null || configuredSecret.isBlank()
                 ? generateEphemeralSecret()
                 : configuredSecret.getBytes(StandardCharsets.UTF_8);

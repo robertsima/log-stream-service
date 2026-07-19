@@ -554,9 +554,11 @@
     window.PrairieLogState.alertDestination = destination;
     window.PrairieLogState.destinations = [destination];
 
-    const status = await window.restService.testAlertDestination(
-      activeApp.id,
-      destination.id
+    // There is no standalone "test destination" endpoint anymore — alerting only
+    // flows through the Kafka ingestion pipeline. Send a real sample ERROR log so
+    // it aggregates and delivers a genuine alert to the destination just connected.
+    const status = await window.restService.sendSampleErrorLog(
+      window.PrairieLogState.ingestionToken
     );
 
     return status;
@@ -590,10 +592,12 @@
         const detail = document.getElementById("quick-demo-success-detail");
         if (detail && window.PrairieLogState.alertDestination) {
           detail.textContent =
-            "Check " + window.PrairieLogState.alertDestination.name + " in your channel.";
+            "Sample error log sent to " +
+            window.PrairieLogState.alertDestination.name +
+            ". Alerts aggregate over ~1 minute, then post to your channel.";
         }
         showActivityBanner(
-          "Test alert sent (HTTP " + status + ") — check your channel.",
+          "Sample error log queued (HTTP " + status + "). Check your channel in about a minute.",
           "success"
         );
         updateDemoView();

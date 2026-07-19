@@ -2,7 +2,7 @@ package com.logstream.webhooks;
 
 import java.util.Map;
 
-import com.logstream.domain.model.AlertTrigger;
+import com.logstream.domain.model.AlertGroupSummary;
 import com.logstream.generated.model.AlertAnalysisResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -39,7 +39,7 @@ public class SlackWebhookSender {
 //                .toBodilessEntity();
 //    }
 
-    public void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis) {
+    public void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis, AlertGroupSummary summary) {
         if (analysis.getAnalysis() == null || analysis.getAnalysis().isBlank()) {
             return;
         }
@@ -48,16 +48,10 @@ public class SlackWebhookSender {
             return;
         }
 
-//        AlertSummary summary = AlertNotificationFormatter.summarize(bucket, maxMessages, analysis);
-//
-//        Map<String, Object> payload = Map.of(
-//                "text", AlertNotificationFormatter.buildSlackText(summary)
-//        );
-
         // Slack incoming webhooks only accept their own payload shape ({"text": ...}),
         // not an arbitrary JSON bean
         Map<String, Object> payload = Map.of(
-                "text", ":rotating_light: *Log Stream Alert Analysis*\n" + analysis.getAnalysis()
+                "text", header(summary) + analysis.getAnalysis()
         );
 
         restClient.post()
@@ -65,5 +59,25 @@ public class SlackWebhookSender {
                 .body(payload)
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    /**
+     * Collapses a burst of similar errors into one message via a summarizing header
+     * instead of firing one Slack message per error (see AlertContextProcessor grouping).
+     */
+    private String header(AlertGroupSummary summary) {
+        if (summary == null || !summary.isGrouped()) {
+            return ":rotating_light: *Log Stream Alert Analysis*\n";
+        }
+        return String.format(
+                ":rotating_light: *%d similar %s errors in %s (last %ds)*\n",
+                summary.occurrenceCount(),
+                nonBlank(summary.signatureLabel(), "grouped"),
+                nonBlank(summary.appName(), "app"),
+                Math.max(summary.windowSeconds(), 1));
+    }
+
+    private String nonBlank(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 }

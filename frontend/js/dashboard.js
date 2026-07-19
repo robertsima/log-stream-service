@@ -206,7 +206,6 @@
       return;
     }
     window.PrairieLogState.app = app;
-    window.PrairieLogState.alertDestination = null;
     hideTokenBanner();
     renderApps();
     loadAppDetail();
@@ -269,12 +268,6 @@
     if (descEl) {
       descEl.textContent = app.description || "";
       descEl.hidden = !app.description;
-    }
-
-    const analysisPanel = document.getElementById("alert-analysis-panel");
-    if (analysisPanel) {
-      analysisPanel.hidden = false;
-      window.PrairieLogUI.refreshIcons(analysisPanel);
     }
 
     window.PrairieLogUI.refreshIcons(detail);
@@ -470,14 +463,6 @@
       const destinations = await window.restService.getAlertDestinations(app.id);
       window.PrairieLogState.destinations = destinations;
       window.PrairieLogState.destinationCount = destinations.length;
-      if (
-        window.PrairieLogState.alertDestination &&
-        !destinations.some(function (dest) {
-          return dest.id === window.PrairieLogState.alertDestination.id;
-        })
-      ) {
-        window.PrairieLogState.alertDestination = null;
-      }
       renderDestinations(destinations);
     } catch (error) {
       list.innerHTML =
@@ -489,29 +474,19 @@
 
   function renderDestinations(destinations) {
     const list = document.getElementById("destinations-list");
-    const hint = document.getElementById("destinations-hint");
     if (!list) {
       return;
     }
 
     if (!destinations || !destinations.length) {
       list.innerHTML = '<p class="muted">No destinations yet.</p>';
-      if (hint) {
-        hint.hidden = true;
-      }
       return;
     }
-
-    const selectedId = window.PrairieLogState.alertDestination
-      ? window.PrairieLogState.alertDestination.id
-      : null;
 
     list.innerHTML = destinations
       .map(function (dest) {
         return (
-          '<div class="destination-item' +
-          (dest.id === selectedId ? " is-selected" : "") +
-          '" data-destination-id="' +
+          '<div class="destination-item" data-destination-id="' +
           window.PrairieLogUI.escapeHtml(dest.id) +
           '">' +
           '<div class="destination-item-header">' +
@@ -524,12 +499,8 @@
           '<div class="destination-item-meta muted">' +
           "<span>" +
           (dest.enabled === false ? "Disabled" : "Enabled") +
-          (dest.id === selectedId ? " · Selected" : "") +
           "</span>" +
           '<span class="destination-item-actions">' +
-          '<button type="button" class="link-button dest-test" data-destination-id="' +
-          window.PrairieLogUI.escapeHtml(dest.id) +
-          '">Test</button>' +
           '<button type="button" class="link-button dest-delete" data-destination-id="' +
           window.PrairieLogUI.escapeHtml(dest.id) +
           '">Delete</button>' +
@@ -538,26 +509,6 @@
         );
       })
       .join("");
-
-    if (hint) {
-      hint.hidden = false;
-    }
-  }
-
-  function selectDestination(destinationId) {
-    const destinations = window.PrairieLogState.destinations || [];
-    const destination = destinations.find(function (dest) {
-      return dest.id === destinationId;
-    });
-    if (!destination) {
-      return;
-    }
-    window.PrairieLogState.alertDestination = destination;
-    renderDestinations(destinations);
-    showActivityBanner(
-      "Destination “" + destination.name + "” selected for analysis delivery.",
-      "success"
-    );
   }
 
   async function handleCreateDestination(event) {
@@ -585,7 +536,6 @@
         webhookUrl
       });
       form.reset();
-      window.PrairieLogState.alertDestination = destination;
       showActivityBanner("Destination “" + destination.name + "” added.", "success");
       showSuccess(
         destination,
@@ -600,35 +550,9 @@
   }
 
   async function handleDestinationsListClick(event) {
-    const item = event.target.closest(".destination-item");
-    const testButton = event.target.closest(".dest-test");
     const deleteButton = event.target.closest(".dest-delete");
     const app = activeApp();
     if (!app) {
-      return;
-    }
-
-    if (item && !testButton && !deleteButton) {
-      selectDestination(item.dataset.destinationId);
-      return;
-    }
-
-    if (testButton) {
-      try {
-        window.PrairieLogUI.setButtonLoading(testButton, true, "Testing...");
-        const status = await window.restService.testAlertDestination(
-          app.id,
-          testButton.dataset.destinationId
-        );
-        showActivityBanner(
-          "Test alert accepted (HTTP " + status + "). Check your channel.",
-          "success"
-        );
-      } catch (error) {
-        showError(error);
-      } finally {
-        window.PrairieLogUI.setButtonLoading(testButton, false);
-      }
       return;
     }
 
@@ -646,367 +570,6 @@
       } catch (error) {
         showError(error);
       }
-    }
-  }
-
-  // -------------------------
-  // Alert analysis test
-  // -------------------------
-
-  function normalizeAggregationMessage(message) {
-    if (!message) {
-      return "";
-    }
-    return message
-      .toLowerCase()
-      .replace(/\b\d+\b/g, "{number}")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function computeAggregationFingerprint(appId, event) {
-    const logger = (event.logger && event.logger.trim()) || "unknown";
-    const message = normalizeAggregationMessage(event.message);
-    return appId + "|ERROR|" + logger + "|" + message;
-  }
-
-  function firstPresent(source, keys) {
-    for (const key of keys) {
-      if (source[key] !== undefined && source[key] !== null && source[key] !== "") {
-        return source[key];
-      }
-    }
-    return null;
-  }
-
-  function normalizeAnalysisLevel(value) {
-    if (typeof value === "number") {
-      if (value <= 10) return "TRACE";
-      if (value <= 20) return "DEBUG";
-      if (value <= 30) return "INFO";
-      if (value <= 40) return "WARN";
-      return "ERROR";
-    }
-
-    const level = String(value || "INFO").trim().toUpperCase();
-    if (level === "WARNING") return "WARN";
-    if (level === "CRITICAL" || level === "FATAL" || level === "ASSERT" || level === "SEVERE") return "ERROR";
-    if (level === "VERBOSE") return "TRACE";
-    if (["TRACE", "DEBUG", "INFO", "WARN", "ERROR"].includes(level)) {
-      return level;
-    }
-    return "INFO";
-  }
-
-  function normalizeAnalysisTimestamp(value) {
-    if (value === null || value === undefined || value === "") {
-      return new Date().toISOString();
-    }
-    if (typeof value === "number") {
-      const millis = value < 10000000000 ? value * 1000 : value;
-      return new Date(millis).toISOString();
-    }
-    return String(value);
-  }
-
-  function analysisEventId(index) {
-    if (window.crypto && typeof window.crypto.randomUUID === "function") {
-      return "analysis-" + window.crypto.randomUUID();
-    }
-    return "analysis-" + Date.now() + "-" + index;
-  }
-
-  function normalizePlainLogTimestamp(value) {
-    const isoCandidate = value.trim().replace(",", ".").replace(" ", "T");
-    const date = new Date(isoCandidate);
-    return isNaN(date.getTime()) ? null : date.toISOString();
-  }
-
-  function parsePlainTextLogLines(raw) {
-    const timestampPattern =
-      /^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d{1,9})?(?:Z|[+-]\d{2}:?\d{2})?)\s*/;
-    const levelPattern = /\b(TRACE|DEBUG|INFO|WARN(?:ING)?|ERROR|SEVERE|FATAL|CRITICAL)\b/;
-    const events = [];
-
-    raw.split(/\r?\n/).forEach(function (line) {
-      if (!line.trim()) {
-        return;
-      }
-
-      // Stack-trace and wrapped lines belong to the previous event's message:
-      // indented lines, "at ..."/"Caused by:" frames, and leading exception-class lines.
-      const timestampMatch = line.match(timestampPattern);
-      const continuation =
-        !timestampMatch
-        && (/^\s/.test(line)
-          || /^(at |Caused by:|\.\.\. \d+ more)/.test(line.trim())
-          || /^(?:[\w$]+\.)+[\w$]+(?:Exception|Error|Throwable)\b/.test(line.trim()));
-      if (continuation && events.length) {
-        events[events.length - 1].message += "\n" + line.replace(/\s+$/, "");
-        return;
-      }
-
-      let rest = line.trim();
-      let occurredAt = null;
-      if (timestampMatch) {
-        occurredAt = normalizePlainLogTimestamp(timestampMatch[1]);
-        rest = line.slice(timestampMatch[0].length).trim();
-      }
-
-      let level = null;
-      const levelMatch = rest.slice(0, 40).match(levelPattern);
-      if (levelMatch) {
-        level = levelMatch[1];
-        rest = (rest.slice(0, levelMatch.index) + rest.slice(levelMatch.index + levelMatch[0].length)).trim();
-      }
-
-      let logger = null;
-      const loggerMatch = rest.match(/^\[([^\]]+)\]\s*/);
-      if (loggerMatch) {
-        logger = loggerMatch[1];
-        rest = rest.slice(loggerMatch[0].length);
-      }
-
-      events.push({
-        message: rest || line.trim(),
-        level: level,
-        occurredAt: occurredAt,
-        logger: logger
-      });
-    });
-
-    return events;
-  }
-
-  function parseAnalysisEvents() {
-    const raw = document.getElementById("analysis-events-input").value.trim();
-    if (!raw) {
-      throw new Error("Paste an events JSON array or raw log lines.");
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (error) {
-      if (raw.startsWith("[") || raw.startsWith("{")) {
-        throw new Error("Events JSON is invalid: " + error.message);
-      }
-      parsed = parsePlainTextLogLines(raw);
-      if (!parsed.length) {
-        throw new Error(
-          "Could not read those events. Paste a JSON array of events or plain log lines (one event per line)."
-        );
-      }
-    }
-
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      parsed = [parsed];
-    }
-
-    if (!Array.isArray(parsed) || !parsed.length) {
-      throw new Error("Events must be a non-empty JSON array or plain log lines.");
-    }
-
-    return parsed.map(function (event, index) {
-      if (!event || typeof event !== "object") {
-        throw new Error("Event at index " + index + " must be an object.");
-      }
-      const message = firstPresent(event, ["message", "msg", "text", "log", "body"]);
-      if (message === null || String(message).trim() === "") {
-        throw new Error("Event at index " + index + " must include a message.");
-      }
-      const occurredAt = firstPresent(event, [
-        "occurredAt",
-        "occurred_at",
-        "timestamp",
-        "@timestamp",
-        "time",
-        "ts",
-        "datetime",
-        "date"
-      ]);
-      const id = firstPresent(event, ["id", "eventId", "event_id", "uuid", "messageId"]);
-      const level = firstPresent(event, [
-        "level",
-        "severity",
-        "levelname",
-        "level_name",
-        "loglevel",
-        "log_level",
-        "priority"
-      ]);
-      return {
-        id: id ? String(id) : analysisEventId(index),
-        level: normalizeAnalysisLevel(level),
-        message: String(message),
-        occurredAt: normalizeAnalysisTimestamp(occurredAt),
-        logger: firstPresent(event, ["logger", "loggerName", "logger_name", "tag", "source", "name"]),
-        traceId: firstPresent(event, ["traceId", "trace_id"]),
-        spanId: firstPresent(event, ["spanId", "span_id"]),
-        metadata: event.metadata || null
-      };
-    });
-  }
-
-  function buildAnalysisRequest() {
-    const app = activeApp();
-    if (!app) {
-      throw new Error("Select an app first.");
-    }
-
-    const events = parseAnalysisEvents();
-    const primaryError = events.find(function (event) {
-      return event.level === "ERROR";
-    });
-    if (!primaryError) {
-      throw new Error("Include at least one ERROR event — production buckets only aggregate errors.");
-    }
-
-    return {
-      appId: app.id,
-      fingerprint: computeAggregationFingerprint(app.id, primaryError),
-      events: events
-    };
-  }
-
-  function formatTokenUsageLine(result) {
-    if (!isAnalysisPromptPreviewEnabled()) {
-      return "";
-    }
-    if (result.cached) {
-      return "Token usage: cached response (no OpenAI call).";
-    }
-    if (!result.tokenUsage) {
-      return "";
-    }
-    const usage = result.tokenUsage;
-    return (
-      "Token usage — prompt: " +
-      (usage.promptTokens ?? "?") +
-      ", completion: " +
-      (usage.completionTokens ?? "?") +
-      ", total: " +
-      (usage.totalTokens ?? "?")
-    );
-  }
-
-  function formatPreviewUsageLine(result) {
-    if (result.estimatedPromptTokens == null && result.promptCharCount == null) {
-      return "";
-    }
-    return (
-      "Estimated input — chars: " +
-      (result.promptCharCount ?? "?") +
-      ", tokens ≈ " +
-      (result.estimatedPromptTokens ?? "?") +
-      " (preview only; run analysis for exact usage)"
-    );
-  }
-
-  function formatAnalysisOutput(result, deliveryNote) {
-    const sections = [];
-    if (result.analysis) {
-      sections.push(result.analysis);
-    }
-    const meta = [];
-    const usageLine = formatTokenUsageLine(result);
-    if (usageLine) {
-      meta.push(usageLine);
-    }
-    if (isAnalysisPromptPreviewEnabled() && result.analysisJson) {
-      try {
-        meta.push(
-          "Raw JSON:\n" + window.PrairieLogUI.formatJson(JSON.parse(result.analysisJson))
-        );
-      } catch (error) {
-        meta.push("Raw JSON:\n" + result.analysisJson);
-      }
-    }
-    if (deliveryNote) {
-      meta.push(deliveryNote);
-    }
-    if (meta.length) {
-      sections.push("---\n" + meta.join("\n\n"));
-    }
-    return sections.join("\n\n") || "(empty analysis)";
-  }
-
-  async function handleAnalysisPreview() {
-    const button = document.getElementById("analysis-preview-button");
-    window.PrairieLogUI.setButtonLoading(button, true, "Previewing...");
-
-    try {
-      const request = buildAnalysisRequest();
-      const result = await window.restService.previewAlertAnalysis(request);
-      const usageLine = formatPreviewUsageLine(result);
-      const content =
-        (usageLine ? usageLine + "\n\n" : "") + (result.prompt || "(empty prompt)");
-      showConsoleText(content, "success");
-      showActivityBanner("Prompt preview ready.", "success");
-    } catch (error) {
-      showError(error);
-    } finally {
-      window.PrairieLogUI.setButtonLoading(button, false);
-    }
-  }
-
-  function isAnalysisPromptPreviewEnabled() {
-    return Boolean(window.CONFIG && window.CONFIG.ALERT_ANALYSIS_PROMPT_PREVIEW_ENABLED === true);
-  }
-
-  function configureAnalysisPreviewButton() {
-    const button = document.getElementById("analysis-preview-button");
-    if (!button || !isAnalysisPromptPreviewEnabled()) {
-      return;
-    }
-
-    button.hidden = false;
-    button.addEventListener("click", handleAnalysisPreview);
-  }
-
-  async function handleAnalysisRun() {
-    const button = document.getElementById("analysis-run-button");
-    window.PrairieLogUI.setButtonLoading(button, true, "Analyzing...");
-
-    try {
-      const app = activeApp();
-      const request = buildAnalysisRequest();
-      const result = await window.restService.analyzeAlertBucket(request);
-      const destination = window.PrairieLogState.alertDestination;
-      let deliveryNote = "";
-
-      if (destination) {
-        if (destination.enabled === false) {
-          deliveryNote = "Webhook: skipped disabled destination “" + destination.name + "”.";
-        } else {
-          window.PrairieLogUI.setButtonLoading(button, true, "Sending...");
-          const status = await window.restService.sendAnalyzedAlert(
-            app.id,
-            destination.id,
-            {
-              fingerprint: request.fingerprint,
-              events: request.events,
-              analysis: result.analysis
-            }
-          );
-          deliveryNote =
-            "Webhook: delivered to “" +
-            destination.name +
-            "” (HTTP " +
-            status +
-            ").";
-        }
-      }
-
-      showConsoleText(formatAnalysisOutput(result, deliveryNote), "success");
-      showActivityBanner(
-        deliveryNote || "Analysis complete.",
-        "success"
-      );
-    } catch (error) {
-      showError(error);
-    } finally {
-      window.PrairieLogUI.setButtonLoading(button, false);
     }
   }
 
@@ -1084,16 +647,11 @@
     window.PrairieLogState.app = null;
     window.PrairieLogState.ingestionToken = null;
     window.PrairieLogState.tokenPrefix = null;
-    window.PrairieLogState.alertDestination = null;
     window.PrairieLogState.destinations = [];
     window.PrairieLogState.destinationCount = 0;
     const detail = document.getElementById("app-detail");
     if (detail) {
       detail.hidden = true;
-    }
-    const analysisPanel = document.getElementById("alert-analysis-panel");
-    if (analysisPanel) {
-      analysisPanel.hidden = true;
     }
     hideTokenBanner();
     updateView();
@@ -1209,10 +767,6 @@
     document
       .getElementById("destinations-list")
       .addEventListener("click", handleDestinationsListClick);
-    configureAnalysisPreviewButton();
-    document
-      .getElementById("analysis-run-button")
-      .addEventListener("click", handleAnalysisRun);
   }
 
   document.addEventListener("DOMContentLoaded", initDashboard);

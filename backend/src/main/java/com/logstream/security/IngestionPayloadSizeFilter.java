@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,7 +33,7 @@ public class IngestionPayloadSizeFilter extends OncePerRequestFilter {
     public IngestionPayloadSizeFilter(
             @Value("${app.ingestion.max-payload-bytes:1048576}") long maxPayloadBytes) {
         this.maxPayloadBytes = maxPayloadBytes;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = JsonMapper.builder().build();
     }
 
     @Override

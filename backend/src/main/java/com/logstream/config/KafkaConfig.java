@@ -3,6 +3,7 @@ package com.logstream.config;
 import com.logstream.domain.model.AlertTrigger;
 import com.logstream.domain.model.LogEvent;
 import com.logstream.service.AlertContextProcessor;
+import com.logstream.service.KafkaLogEventNormalizer;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -15,7 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.kafka.core.*;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.support.serializer.JacksonJsonSerde;
 
 @Configuration
@@ -52,19 +53,22 @@ public class KafkaConfig {
                         .build());
     }
 
-    //log stream that streams from central-log-events -> groups logs by appid -> processes with custom processor
-    //to create context for a full alert message, sends to alert-messages topic with logs before/after
+    // log stream: central-log-events -> normalize aliases -> group by appId -> alert context -> alert-messages
     @Bean
-    public KStream<String, LogEvent> centralLogStream(StreamsBuilder builder) {
+    public KStream<String, LogEvent> centralLogStream(
+            StreamsBuilder builder,
+            KafkaLogEventNormalizer normalizer) {
         JacksonJsonSerde<LogEvent> logEventSerde = new JacksonJsonSerde<>(LogEvent.class);
         JacksonJsonSerde<AlertTrigger> alertSerde = new JacksonJsonSerde<>(AlertTrigger.class);
 
         KStream<String, LogEvent> logs = builder.stream("central-log-events",
                 Consumed.with(Serdes.String(), logEventSerde));
 
-        // re-key by app id so each app's events land on the same partition/state store,
-        // then let the processor buffer context and emit alerts (10 before + error + 10 after)
-        logs.selectKey((k, e) -> e.appId().toString())
+        // Producer publishes raw JSON; normalize here (async contract). Demo/canonical
+        // payloads pass through; aliased SDK payloads become level/message/occurredAt/….
+        // flatMapValues drops unusable events without killing the Streams thread.
+        logs.flatMapValues(normalizer::normalizeOrDrop)
+                .selectKey((k, e) -> e.appId().toString())
                 .repartition(Repartitioned.with(Serdes.String(), logEventSerde))
                 .process(new AlertContextProcessor.Supplier())
                 .to("alert-messages", Produced.with(Serdes.String(), alertSerde));

@@ -23,14 +23,17 @@ import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import com.logstream.security.ManagementAuthFilter;
 import com.logstream.security.ManagementRateLimitFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SpringSecurityConfig {
+
+    // Jackson 3 mappers are immutable and thread-safe; share one instead of per-call allocation
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     // JWT resource-server auth is optional for MVP deploy (app.security.jwt-enabled=false).
     // Set JWT_ENABLED=true and JWT_ISSUER_URIS when /secured/* routes need Keycloak JWTs.
 
@@ -123,12 +126,14 @@ public class SpringSecurityConfig {
                 throw new BadJwtException("Invalid JWT format");
             }
             byte[] decoded = Base64.getUrlDecoder().decode(parts[1]);
-            JsonNode json = new ObjectMapper().readTree(new String(decoded, StandardCharsets.UTF_8));
+            JsonNode json = JSON_MAPPER.readTree(new String(decoded, StandardCharsets.UTF_8));
             JsonNode issuer = json.get("iss");
-            if (issuer == null || issuer.textValue() == null || issuer.textValue().isEmpty()) {
+            // stringValue(null) mirrors Jackson 2's textValue(): null for non-string nodes
+            String issuerValue = issuer == null ? null : issuer.stringValue(null);
+            if (issuerValue == null || issuerValue.isEmpty()) {
                 throw new BadJwtException("Missing issuer claim");
             }
-            return issuer.textValue();
+            return issuerValue;
             } catch (BadJwtException ex) {
                 throw ex;
             } catch (Exception ex) {

@@ -102,7 +102,7 @@ public class AlertAnalysisServiceImpl implements AlertAnalysisService {
         log.debug("Built AlertAnalysis user prompt for app {}:\n{}", alert.appId(), userContent);
         OpenAIChatResult response = openAIModelConfig.chatForAnalysis(systemPrompt, userContent);
         log.debug("AlertAnalysis service received response:\n{}", response.text());
-        return AlertAnalysisOutcome.fromChat(response, alert.appId() == null ? null : alert.appId().toString());
+        return AlertAnalysisOutcome.fromChat(response, alert);
     }
 
     private String buildUserPrompt(AlertTrigger alert) {
@@ -131,6 +131,12 @@ public class AlertAnalysisServiceImpl implements AlertAnalysisService {
                 .append(" errors=").append(errors)
                 .append('\n');
 
+        if (alert.occurrenceCount() > 1) {
+            builder.append("Note: this alert groups ").append(alert.occurrenceCount())
+                    .append(" similar '").append(nonBlank(alert.signatureLabel(), "error")).append("' occurrences ")
+                    .append("observed within the alerting window; weigh repetition into urgency.\n");
+        }
+
         for (LogEvent event : events) {
             boolean error = isErrorEvent(event);
             JsonNode payload = event.payload();
@@ -149,9 +155,8 @@ public class AlertAnalysisServiceImpl implements AlertAnalysisService {
 
     private boolean isErrorEvent(LogEvent event) {
         JsonNode payload = event.payload();
-        return payload != null && (payload.path("level").asText("").equalsIgnoreCase("ERROR")
-                || payload.has("exception")
-                || payload.has("stackTrace"));
+        return payload != null
+                && payload.path("level").asText("").equalsIgnoreCase("ERROR");
     }
 
     private String formatMessage(JsonNode payload, boolean error) {

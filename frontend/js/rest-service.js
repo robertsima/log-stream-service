@@ -96,9 +96,6 @@ class RestService {
     }
 
     if (status === 404) {
-      if (data && data.path && String(data.path).includes("/alert-analysis/")) {
-        return "Alert analysis is not available on this API host yet. Run the latest backend locally (localhost:8080) or deploy it before using this panel.";
-      }
       return "Nothing matched that request. Check that the owner email matches your user and the app is registered.";
     }
 
@@ -313,67 +310,6 @@ class RestService {
     return response.status;
   }
 
-  async testAlertDestination(appId, destinationId) {
-    const response = await this.request(
-      `/api/v1/apps/${encodeURIComponent(
-        appId
-      )}/alert-destinations/${encodeURIComponent(destinationId)}/test`,
-      {
-        method: "POST"
-      }
-    );
-
-    return response.status;
-  }
-
-  async sendAnalyzedAlert(appId, destinationId, { fingerprint, events, analysis }) {
-    const response = await this.request(
-      `/api/v1/apps/${encodeURIComponent(
-        appId
-      )}/alert-destinations/${encodeURIComponent(destinationId)}/send-analyzed-alert`,
-      {
-        method: "POST",
-        body: {
-          fingerprint,
-          events,
-          analysis
-        }
-      }
-    );
-
-    return response.status;
-  }
-
-  // -------------------------
-  // Alert Analysis
-  // -------------------------
-
-  async previewAlertAnalysis({ appId, fingerprint, events }) {
-    const response = await this.request("/api/v1/alert-analysis/preview", {
-      method: "POST",
-      body: {
-        appId,
-        fingerprint,
-        events
-      }
-    });
-
-    return response.data;
-  }
-
-  async analyzeAlertBucket({ appId, fingerprint, events }) {
-    const response = await this.request("/api/v1/alert-analysis/analyze", {
-      method: "POST",
-      body: {
-        appId,
-        fingerprint,
-        events
-      }
-    });
-
-    return response.data;
-  }
-
   // -------------------------
   // Log Events
   // -------------------------
@@ -399,6 +335,43 @@ class RestService {
     return response.status;
   }
 
+  // -------------------------
+  // Log Events (Kafka-backed alerting path)
+  // -------------------------
+
+  async ingestLogEventViaKafka(ingestionToken, logEvent) {
+    if (!ingestionToken) {
+      throw new Error("Missing ingestion token.");
+    }
+
+    // Single-event endpoint expects one object, not an array. Posting an array
+    // still returns 202 (body is accepted as JsonNode), but AlertContextProcessor
+    // looks for payload.level on the root and never treats it as ERROR — silent drop.
+    const response = await this.request("/api/v1/kafka/log-events", {
+      method: "POST",
+      auth: false,
+      headers: {
+        "X-Ingestion-Token": ingestionToken
+      },
+      body: logEvent
+    });
+
+    return response.status;
+  }
+
+  async ingestLogEventsBatchViaKafka(ingestionToken, logEvents) {
+    if (!ingestionToken) {
+      throw new Error("Missing ingestion token.");
+    }
+
+    // Kafka batch controller is not wired yet; fan out to the single-event path.
+    let lastStatus = null;
+    for (const logEvent of logEvents) {
+      lastStatus = await this.ingestLogEventViaKafka(ingestionToken, logEvent);
+    }
+    return lastStatus;
+  }
+
   async sendSampleErrorLog(ingestionToken, overrides = {}) {
     const sampleLog = {
       id: `demo-error-${crypto.randomUUID()}`,
@@ -410,7 +383,7 @@ class RestService {
       ...overrides
     };
 
-    return this.ingestLogEvent(ingestionToken, sampleLog);
+    return this.ingestLogEventViaKafka(ingestionToken, sampleLog);
   }
 
   async sendSampleInfoLog(ingestionToken, overrides = {}) {
@@ -424,7 +397,7 @@ class RestService {
       ...overrides
     };
 
-    return this.ingestLogEvent(ingestionToken, sampleLog);
+    return this.ingestLogEventViaKafka(ingestionToken, sampleLog);
   }
 
   // -------------------------

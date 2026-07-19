@@ -1,6 +1,7 @@
 package com.logstream.service;
 
 import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.model.AlertGroupSummary;
 import com.logstream.domain.model.AlertTrigger;
 import com.logstream.domain.repository.AlertDestinationRepository;
 import com.logstream.generated.model.AlertAnalysisResponse;
@@ -86,13 +87,22 @@ public class KafkaConsumerService {
                     .totalTokens(outcome.totalTokens()));
         }
 
+        // grouping metadata rode along on the outcome (see AlertContextProcessor / AlertAnalysisOutcome)
+        // purely so senders can render a "N similar errors" header without touching the
+        // OpenAPI-generated AlertAnalysisResponse contract
+        AlertGroupSummary summary = new AlertGroupSummary(
+                outcome.appName(),
+                outcome.signatureLabel(),
+                Math.max(1, outcome.occurrenceCount()),
+                outcome.windowSeconds());
+
         // repository, not the service: the response DTO deliberately omits webhook URLs,
         // and findByApp's requireOwner() would fail on a listener thread with no auth context
         List<AlertDestination> destinations = alertDestinationRepository
                 .findByAppIdAndEnabledTrueAndDeletedAtIsNull(UUID.fromString(outcome.appId()));
         for (AlertDestination destination : destinations) {
             try {
-                alertSenderService.sendAnalyzedAlert(destination, analysis);
+                alertSenderService.sendAnalyzedAlert(destination, analysis, summary);
             } catch (Exception e) {
                 // one down webhook must not fail the whole record into the retry loop;
                 // RestClient exception messages embed the full webhook URL, so log only the class

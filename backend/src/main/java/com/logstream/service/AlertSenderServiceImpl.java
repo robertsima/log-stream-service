@@ -4,6 +4,7 @@ import com.logstream.generated.model.AlertAnalysisResponse;
 import org.springframework.stereotype.Service;
 
 import com.logstream.domain.entity.AlertDestination;
+import com.logstream.domain.model.AlertGroupSummary;
 import com.logstream.generated.model.AlertDestinationType;
 import com.logstream.webhooks.DiscordWebhookSender;
 import com.logstream.webhooks.SlackWebhookSender;
@@ -22,28 +23,16 @@ public class AlertSenderServiceImpl implements AlertSenderService {
         this.slackWebhookSender = slackWebhookSender;
     }
 
-//    @Override
-//    public void sendAggregatedAlert(AlertDestination destination, AlertTrigger alert) {
-//        if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
-//            discordWebhookSender.sendAggregatedAlert(destination, alert);
-//            return;
-//        }
-//
-//        if (destination.getDestinationType() == AlertDestinationType.SLACK) {
-//            slackWebhookSender.sendAggregatedAlert(destination, alert);
-//        }
-//    }
-
 
     @Override
-    public void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis) {
+    public void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis, AlertGroupSummary summary) {
         if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
-            discordWebhookSender.sendAnalyzedAlert(destination, analysis);
+            discordWebhookSender.sendAnalyzedAlert(destination, analysis, summary);
             return;
         }
 
         if (destination.getDestinationType() == AlertDestinationType.SLACK) {
-            slackWebhookSender.sendAnalyzedAlert(destination, analysis);
+            slackWebhookSender.sendAnalyzedAlert(destination, analysis, summary);
         }
     }
 }

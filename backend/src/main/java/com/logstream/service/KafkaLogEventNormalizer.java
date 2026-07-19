@@ -10,20 +10,38 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import com.logstream.domain.model.LogEvent;
 import com.logstream.exception.InvalidLogEventException;
-import com.logstream.generated.model.LogEventRequest;
-import com.logstream.generated.model.LogLevel;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
- * Converts free-form log event JSON from common logging stacks (Logback/Logstash,
- * python-json-logger, Winston, Pino, Android, Flutter) into the canonical
- * {@link LogEventRequest}. Accepted aliases are documented on the RawLogEvent
- * schema in openapi.yaml; unrecognized fields are preserved under metadata.
+ * Kafka-path log normalization: maps tolerant RawLogEvent aliases
+ * (msg/levelname/loggerName/@timestamp/…) onto the canonical fields
+ * {@link AlertContextProcessor} and alert analysis read (level, message, logger,
+ * occurredAt, …).
+ *
+ * <p>Producer publishes the caller's raw JSON untouched; this runs in the stream
+ * topology via {@code flatMapValues}. Failures are logged and dropped — never
+ * thrown — so a malformed record cannot kill the Streams thread. Demo sample
+ * payloads already use canonical names and pass through unchanged.
+ *
+ * <p>"exception" and "stackTrace" are not RawLogEvent fields but stay top-level
+ * for error detection / exception-type grouping.
  */
 @Component
-public class LogEventNormalizer {
+@ConditionalOnProperty(name = "spring.kafka.toggle.enabled", havingValue = "true")
+public class KafkaLogEventNormalizer {
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaLogEventNormalizer.class);
 
     private static final int MAX_MESSAGE_LENGTH = 5000;
     private static final int MAX_LOGGER_LENGTH = 255;
@@ -35,28 +53,71 @@ public class LogEventNormalizer {
     private static final List<String> TIMESTAMP_KEYS =
             List.of("occurredAt", "occurred_at", "timestamp", "@timestamp", "time", "ts", "datetime", "date");
     private static final List<String> ID_KEYS = List.of("id", "eventId", "event_id", "uuid", "messageId");
-    private static final List<String> LOGGER_KEYS = List.of("logger", "loggerName", "logger_name", "tag", "source", "name");
+    private static final List<String> LOGGER_KEYS =
+            List.of("logger", "loggerName", "logger_name", "tag", "source", "name");
     private static final List<String> TRACE_KEYS = List.of("traceId", "trace_id");
     private static final List<String> SPAN_KEYS = List.of("spanId", "span_id");
     private static final List<String> METADATA_KEYS = List.of("metadata", "meta", "context", "extra");
 
-    public LogEventRequest normalize(Map<String, Object> raw) {
+    private final JsonMapper mapper = JsonMapper.builder().build();
+
+    /**
+     * Returns the normalized event as a single-element list, or an empty list when
+     * the event is unusable (no message alias, non-object payload). Shaped for
+     * {@code KStream.flatMapValues}.
+     */
+    public List<LogEvent> normalizeOrDrop(LogEvent event) {
+        if (event == null || event.payload() == null || !event.payload().isObject()) {
+            log.warn("[kafka-normalize] dropping log event with missing or non-object payload appId={}",
+                    event == null ? null : event.appId());
+            return List.of();
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> raw = mapper.convertValue(event.payload(), Map.class);
+            // keep exception/stackTrace out of the metadata fold; re-attach top-level below
+            JsonNode originalException = event.payload().get("exception");
+            JsonNode originalStackTrace = event.payload().get("stackTrace");
+            raw.remove("exception");
+            raw.remove("stackTrace");
+
+            ObjectNode payload = canonicalize(raw);
+            if (originalException != null) {
+                payload.set("exception", originalException);
+            }
+            if (originalStackTrace != null) {
+                payload.set("stackTrace", originalStackTrace);
+            }
+            return List.of(new LogEvent(event.appId(), event.appName(), event.receivedAt(), payload));
+        } catch (InvalidLogEventException ex) {
+            log.warn("[kafka-normalize] dropping invalid log event appId={} reason={}",
+                    event.appId(), ex.getMessage());
+            return List.of();
+        } catch (RuntimeException ex) {
+            log.warn("[kafka-normalize] dropping unprocessable log event appId={}", event.appId(), ex);
+            return List.of();
+        }
+    }
+
+    /**
+     * Maps a raw field map to the canonical ObjectNode shape. Used by
+     * {@link #normalizeOrDrop} and exposed for unit tests of alias handling.
+     */
+    public ObjectNode canonicalize(Map<String, Object> raw) {
         if (raw == null || raw.isEmpty()) {
             throw new InvalidLogEventException("Log event payload must be a non-empty JSON object.");
         }
 
         Map<String, Object> remaining = new LinkedHashMap<>(raw);
-
-        LogEventRequest event = new LogEventRequest();
         Map<String, Object> metadata = new LinkedHashMap<>();
 
-        event.setMessage(extractMessage(remaining));
-        event.setLevel(extractLevel(remaining, metadata));
-        event.setOccurredAt(extractOccurredAt(remaining));
-        event.setId(extractId(remaining));
-        event.setLogger(truncate(extractString(remaining, LOGGER_KEYS), MAX_LOGGER_LENGTH));
-        event.setTraceId(truncate(extractString(remaining, TRACE_KEYS), MAX_ID_LENGTH));
-        event.setSpanId(truncate(extractString(remaining, SPAN_KEYS), MAX_ID_LENGTH));
+        String message = extractMessage(remaining);
+        String level = extractLevel(remaining, metadata);
+        OffsetDateTime occurredAt = extractOccurredAt(remaining);
+        String id = extractId(remaining);
+        String loggerName = truncate(extractString(remaining, LOGGER_KEYS), MAX_LOGGER_LENGTH);
+        String traceId = truncate(extractString(remaining, TRACE_KEYS), MAX_ID_LENGTH);
+        String spanId = truncate(extractString(remaining, SPAN_KEYS), MAX_ID_LENGTH);
 
         for (String key : METADATA_KEYS) {
             Object value = remaining.get(key);
@@ -70,9 +131,19 @@ public class LogEventNormalizer {
         for (Map.Entry<String, Object> entry : remaining.entrySet()) {
             metadata.putIfAbsent(entry.getKey(), entry.getValue());
         }
-        event.setMetadata(metadata.isEmpty() ? null : metadata);
 
-        return event;
+        ObjectNode out = JsonNodeFactory.instance.objectNode();
+        out.put("id", id);
+        out.put("level", level);
+        out.put("message", message);
+        out.put("occurredAt", occurredAt.toInstant().toString());
+        putIfPresent(out, "logger", loggerName);
+        putIfPresent(out, "traceId", traceId);
+        putIfPresent(out, "spanId", spanId);
+        if (!metadata.isEmpty()) {
+            out.set("metadata", mapper.valueToTree(metadata));
+        }
+        return out;
     }
 
     private String extractMessage(Map<String, Object> remaining) {
@@ -90,24 +161,24 @@ public class LogEventNormalizer {
                 "Log event must include a message field (accepted keys: message, msg, text, log, body).");
     }
 
-    private LogLevel extractLevel(Map<String, Object> remaining, Map<String, Object> metadata) {
+    private String extractLevel(Map<String, Object> remaining, Map<String, Object> metadata) {
         for (String key : LEVEL_KEYS) {
             Object value = remaining.get(key);
             if (value == null) {
                 continue;
             }
             remaining.remove(key);
-            LogLevel level = mapLevel(value);
+            String level = mapLevel(value);
             if (level != null) {
                 return level;
             }
             metadata.put("originalLevel", value);
-            return LogLevel.INFO;
+            return "INFO";
         }
-        return LogLevel.INFO;
+        return "INFO";
     }
 
-    private LogLevel mapLevel(Object value) {
+    private String mapLevel(Object value) {
         if (value instanceof Number number) {
             return mapNumericLevel(number.intValue());
         }
@@ -125,44 +196,41 @@ public class LogEventNormalizer {
         }
 
         return switch (text.toLowerCase(Locale.ROOT)) {
-            case "trace", "verbose", "finest", "finer" -> LogLevel.TRACE;
-            case "debug", "fine", "config" -> LogLevel.DEBUG;
-            case "info", "information", "notice", "log", "default" -> LogLevel.INFO;
-            case "warn", "warning" -> LogLevel.WARN;
+            case "trace", "verbose", "finest", "finer" -> "TRACE";
+            case "debug", "fine", "config" -> "DEBUG";
+            case "info", "information", "notice", "log", "default" -> "INFO";
+            case "warn", "warning" -> "WARN";
             case "error", "err", "severe", "fatal", "critical", "crit",
-                 "alert", "emergency", "panic", "assert", "wtf" -> LogLevel.ERROR;
+                 "alert", "emergency", "panic", "assert", "wtf" -> "ERROR";
             default -> null;
         };
     }
 
-    /**
-     * Android Log priorities use 2-7; Pino levels use 10-60. The ranges do not
-     * overlap, so both are supported.
-     */
-    private LogLevel mapNumericLevel(int value) {
+    /** Android Log priorities use 2–7; Pino levels use 10–60. Ranges do not overlap. */
+    private String mapNumericLevel(int value) {
         if (value >= 2 && value <= 7) {
             return switch (value) {
-                case 2 -> LogLevel.TRACE;
-                case 3 -> LogLevel.DEBUG;
-                case 4 -> LogLevel.INFO;
-                case 5 -> LogLevel.WARN;
-                default -> LogLevel.ERROR;
+                case 2 -> "TRACE";
+                case 3 -> "DEBUG";
+                case 4 -> "INFO";
+                case 5 -> "WARN";
+                default -> "ERROR";
             };
         }
         if (value >= 10 && value <= 100) {
             if (value < 20) {
-                return LogLevel.TRACE;
+                return "TRACE";
             }
             if (value < 30) {
-                return LogLevel.DEBUG;
+                return "DEBUG";
             }
             if (value < 40) {
-                return LogLevel.INFO;
+                return "INFO";
             }
             if (value < 50) {
-                return LogLevel.WARN;
+                return "WARN";
             }
-            return LogLevel.ERROR;
+            return "ERROR";
         }
         return null;
     }
@@ -178,7 +246,7 @@ public class LogEventNormalizer {
                 remaining.remove(key);
                 return parsed;
             }
-            // unparseable timestamps stay in the map and end up preserved in metadata
+            // unparseable timestamps stay in the map and end up in metadata
         }
         return OffsetDateTime.now(ZoneOffset.UTC);
     }
@@ -214,9 +282,6 @@ public class LogEventNormalizer {
         }
     }
 
-    /**
-     * Interprets the magnitude of an epoch value: seconds, millis, micros, or nanos.
-     */
     private OffsetDateTime fromEpoch(long epoch) {
         if (epoch <= 0) {
             return null;
@@ -261,5 +326,11 @@ public class LogEventNormalizer {
             return value;
         }
         return value.substring(0, maxLength);
+    }
+
+    private void putIfPresent(ObjectNode node, String field, String value) {
+        if (value != null && !value.isBlank()) {
+            node.put(field, value);
+        }
     }
 }

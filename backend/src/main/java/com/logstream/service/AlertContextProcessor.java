@@ -18,19 +18,23 @@ import tools.jackson.databind.JsonNode;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 /**
- * Emits an AlertTrigger for each error log with surrounding context:
- * the BEFORE_LOGS events preceding the error and the AFTER_LOGS events
- * following it. Because the "after" events haven't arrived yet when the
- * error does, each alert is held open in the state store until enough
- * later events show up, or MAX_WAIT elapses (quiet apps still alert,
- * just with fewer after-events).
+ * Emits one AlertTrigger per error signature for an app, with surrounding non-error
+ * context: BEFORE_LOGS preceding the first occurrence and AFTER_LOGS following the last.
  *
+ * <p>Similar ERRORs coalesce by signature (exception type, else digit-normalized message).
+ * Distinct signatures each get their own alert. Non-ERROR events never open a group and
+ * are the only events used as before/after context (no cross-signature bleed).
  *
+ * <p>Groups close when enough trailing non-error context arrives (AFTER_LOGS), after a
+ * quiet period since the last occurrence (MAX_WAIT), or when open too long (GROUP_WINDOW).
  */
 public class AlertContextProcessor implements Processor<String, LogEvent, String, AlertTrigger> {
 
@@ -39,14 +43,26 @@ public class AlertContextProcessor implements Processor<String, LogEvent, String
     private static final int BEFORE_LOGS = 10;
     private static final int AFTER_LOGS = 10;
     private static final Duration MAX_WAIT = Duration.ofSeconds(10);
+    private static final Duration GROUP_WINDOW = Duration.ofSeconds(30);
     private static final Duration PUNCTUATE_INTERVAL = Duration.ofSeconds(2);
+    private static final int MAX_SIGNATURE_KEY_LENGTH = 160;
+    private static final int MAX_SIGNATURE_LABEL_LENGTH = 60;
 
-    // held in the store per app id; lists deserialize as mutable ArrayLists
-    public record PendingAlert(LogEvent error, List<LogEvent> before, List<LogEvent> after, long firstSeenAtMs) { }
+    public record PendingGroup(
+            LogEvent representative,
+            String signatureLabel,
+            List<LogEvent> before,
+            List<LogEvent> after,
+            int count,
+            long firstSeenAtMs,
+            long lastSeenAtMs
+    ) { }
 
-    public record AppBuffer(List<LogEvent> recent, List<PendingAlert> pending) {
+    private record ErrorSignature(String key, String label) { }
+
+    public record AppBuffer(List<LogEvent> recent, Map<String, PendingGroup> groups) {
         static AppBuffer empty() {
-            return new AppBuffer(new ArrayList<>(), new ArrayList<>());
+            return new AppBuffer(new ArrayList<>(), new LinkedHashMap<>());
         }
     }
 
@@ -73,30 +89,54 @@ public class AlertContextProcessor implements Processor<String, LogEvent, String
             buffer = AppBuffer.empty();
         }
 
-        // every event (errors included) counts as "after" context for alerts still waiting
-        List<PendingAlert> completed = new ArrayList<>();
-        for (PendingAlert pending : buffer.pending()) {
-            pending.after().add(event);
-            if (pending.after().size() >= AFTER_LOGS) {
-                completed.add(pending);
+        ErrorSignature signature = isError(event) ? signatureFor(event) : null;
+        String matchedKey = signature != null && buffer.groups().containsKey(signature.key())
+                ? signature.key()
+                : null;
+
+        // Only non-error events pad trailing context / complete AFTER_LOGS.
+        if (!isError(event)) {
+            List<String> completed = new ArrayList<>();
+            for (Map.Entry<String, PendingGroup> entry : buffer.groups().entrySet()) {
+                entry.getValue().after().add(event);
+                if (entry.getValue().after().size() >= AFTER_LOGS) {
+                    completed.add(entry.getKey());
+                }
+            }
+            for (String key : completed) {
+                emit(appId, buffer.groups().remove(key));
             }
         }
-        for (PendingAlert done : completed) {
-            emit(appId, done, record.timestamp());
-        }
-        buffer.pending().removeAll(completed);
 
-        if (isError(event)) {
-            buffer.pending().add(new PendingAlert(
-                    event,
-                    List.copyOf(buffer.recent()),
-                    new ArrayList<>(),
-                    context.currentSystemTimeMs()));
+        if (signature != null) {
+            long nowMs = context.currentSystemTimeMs();
+            if (matchedKey != null) {
+                PendingGroup existing = buffer.groups().get(matchedKey);
+                buffer.groups().put(matchedKey, new PendingGroup(
+                        existing.representative(),
+                        existing.signatureLabel(),
+                        existing.before(),
+                        existing.after(),
+                        existing.count() + 1,
+                        existing.firstSeenAtMs(),
+                        nowMs));
+            } else {
+                buffer.groups().put(signature.key(), new PendingGroup(
+                        event,
+                        signature.label(),
+                        List.copyOf(buffer.recent()),
+                        new ArrayList<>(),
+                        1,
+                        nowMs,
+                        nowMs));
+            }
         }
 
-        buffer.recent().add(event);
-        while (buffer.recent().size() > BEFORE_LOGS) {
-            buffer.recent().remove(0);
+        if (!isError(event)) {
+            buffer.recent().add(event);
+            while (buffer.recent().size() > BEFORE_LOGS) {
+                buffer.recent().remove(0);
+            }
         }
 
         store.put(appId, buffer);
@@ -106,34 +146,79 @@ public class AlertContextProcessor implements Processor<String, LogEvent, String
         try (KeyValueIterator<String, AppBuffer> all = store.all()) {
             while (all.hasNext()) {
                 KeyValue<String, AppBuffer> entry = all.next();
-                List<PendingAlert> expired = entry.value.pending().stream()
-                        .filter(p -> nowMs - p.firstSeenAtMs() >= MAX_WAIT.toMillis())
+                List<String> expiredKeys = entry.value.groups().entrySet().stream()
+                        .filter(e -> nowMs - e.getValue().lastSeenAtMs() >= MAX_WAIT.toMillis()
+                                || nowMs - e.getValue().firstSeenAtMs() >= GROUP_WINDOW.toMillis())
+                        .map(Map.Entry::getKey)
                         .toList();
-                if (expired.isEmpty()) {
+                if (expiredKeys.isEmpty()) {
                     continue;
                 }
-                for (PendingAlert done : expired) {
-                    emit(entry.key, done, nowMs);
+                for (String key : expiredKeys) {
+                    emit(entry.key, entry.value.groups().remove(key));
                 }
-                entry.value.pending().removeAll(expired);
                 store.put(entry.key, entry.value);
             }
         }
     }
 
-    private void emit(String appId, PendingAlert pending, long timestampMs) {
-        List<LogEvent> surrounding = new ArrayList<>(pending.before());
-        surrounding.add(pending.error());
-        surrounding.addAll(pending.after());
-        AlertTrigger alert = new AlertTrigger(UUID.fromString(appId), pending.error(), surrounding);
-        context.forward(new Record<>(appId, alert, timestampMs));
+    private void emit(String appId, PendingGroup group) {
+        long windowEndMs = Math.max(group.lastSeenAtMs(), context.currentSystemTimeMs());
+        List<LogEvent> surrounding = new ArrayList<>(group.before());
+        surrounding.add(group.representative());
+        surrounding.addAll(group.after());
+        AlertTrigger alert = new AlertTrigger(
+                UUID.fromString(appId),
+                group.representative(),
+                surrounding,
+                group.count(),
+                group.signatureLabel(),
+                group.firstSeenAtMs(),
+                windowEndMs);
+        context.forward(new Record<>(appId, alert, windowEndMs));
     }
 
+    /**
+     * Only canonical ERROR level opens an alert group. INFO/WARN/DEBUG stay quiet even
+     * when they carry exception/stackTrace fields.
+     */
     private boolean isError(LogEvent event) {
         JsonNode payload = event.payload();
-        return payload.path("level").asText("").equalsIgnoreCase("ERROR")
-                || payload.has("exception")
-                || payload.has("stackTrace");
+        return payload != null
+                && payload.path("level").asText("").equalsIgnoreCase("ERROR");
+    }
+
+    private ErrorSignature signatureFor(LogEvent event) {
+        JsonNode payload = event.payload();
+        String exception = payload.path("exception").asText(null);
+        if (exception != null && !exception.isBlank()) {
+            String type = shortClassName(exception.split(":", 2)[0].trim());
+            return new ErrorSignature("type:" + type.toLowerCase(Locale.ROOT), type);
+        }
+
+        String message = payload.path("message").asText("");
+        String label = message.isBlank() ? "error" : truncate(message.strip(), MAX_SIGNATURE_LABEL_LENGTH);
+        return new ErrorSignature("msg:" + normalizeMessage(message), label);
+    }
+
+    private String shortClassName(String fqcn) {
+        int lastDot = fqcn.lastIndexOf('.');
+        return lastDot >= 0 && lastDot < fqcn.length() - 1 ? fqcn.substring(lastDot + 1) : fqcn;
+    }
+
+    private String normalizeMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "";
+        }
+        String normalized = message.strip()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[0-9]+", "#");
+        return truncate(normalized, MAX_SIGNATURE_KEY_LENGTH);
+    }
+
+    private String truncate(String value, int max) {
+        return value.length() <= max ? value : value.substring(0, max);
     }
 
     public static class Supplier implements ProcessorSupplier<String, LogEvent, String, AlertTrigger> {
@@ -145,8 +230,6 @@ public class AlertContextProcessor implements Processor<String, LogEvent, String
 
         @Override
         public Set<StoreBuilder<?>> stores() {
-            // in-memory + no changelog: context buffers are ephemeral working state,
-            // not log storage (MVP constraint) — lost on restart/rebalance, which is fine
             return Set.of(Stores.keyValueStoreBuilder(
                     Stores.inMemoryKeyValueStore(STORE_NAME),
                     Serdes.String(),

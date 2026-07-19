@@ -12,7 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,7 +29,7 @@ public class ManagementRateLimitFilter extends OncePerRequestFilter {
 
     public ManagementRateLimitFilter(@Value("${app.rate-limit.management-requests-per-minute:60}") int requestsPerMinute) {
         this.requestsPerMinute = requestsPerMinute;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = JsonMapper.builder().build();
     }
 
     @Override

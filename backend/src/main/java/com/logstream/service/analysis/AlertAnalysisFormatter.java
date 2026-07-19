@@ -1,11 +1,11 @@
 package com.logstream.service.analysis;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 public final class AlertAnalysisFormatter {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final JsonMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private AlertAnalysisFormatter() {
     }
@@ -93,8 +93,8 @@ public final class AlertAnalysisFormatter {
         if (node == null || node.isNull()) {
             return "";
         }
-        if (node.isTextual()) {
-            return node.asText();
+        if (node.isString()) {
+            return node.asString();
         }
         return node.toString();
     }

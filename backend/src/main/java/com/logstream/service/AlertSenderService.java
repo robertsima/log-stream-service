@@ -1,16 +1,9 @@
 package com.logstream.service;
 
 import com.logstream.domain.entity.AlertDestination;
-import com.logstream.domain.model.AlertTrigger;
+import com.logstream.domain.model.AlertGroupSummary;
 import com.logstream.generated.model.AlertAnalysisResponse;
 
 public interface AlertSenderService {
-    void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis);
-//    public void sendTest(AlertDestination destination);
-//
-//    public void sendAggregatedAlert(AlertDestination destination, AlertTrigger bucket);
-
-//    public void sendAnalyzedAlert(AlertDestination destination, AlertTrigger bucket, String analysis);
-//
-//    void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis);
+    void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis, AlertGroupSummary summary);
 }
