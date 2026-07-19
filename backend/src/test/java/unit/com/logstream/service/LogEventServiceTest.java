@@ -19,7 +19,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,7 +32,6 @@ import com.logstream.generated.model.LogEventBatchResponse;
 import com.logstream.generated.model.LogEventRequest;
 import com.logstream.generated.model.LogLevel;
 import com.logstream.security.IngestionRateLimiter;
-import com.logstream.service.AlertAggregationService;
 import com.logstream.service.AppTokenService;
 import com.logstream.service.LogEventNormalizer;
 import com.logstream.service.LogEventServiceImpl;
@@ -43,9 +41,6 @@ public class LogEventServiceTest {
 
     @Mock
     private AppTokenService appTokenService;
-
-    @Mock
-    private AlertAggregationService alertAggregationService;
 
     @Mock
     private IngestionRateLimiter ingestionRateLimiter;
@@ -88,12 +83,10 @@ public class LogEventServiceTest {
     void testIngestLogEvent_Success() {
         when(appTokenService.validateAndRefreshToken(rawToken)).thenReturn(appTokenDTO);
         when(logEventNormalizer.normalize(rawEvent)).thenReturn(normalizedEvent);
-        doNothing().when(alertAggregationService).accept(any(UUID.class), any(String.class), any(LogEventRequest.class));
 
         assertDoesNotThrow(() -> logEventService.ingestLogEvent(rawEvent, rawToken));
 
         verify(appTokenService, times(1)).validateAndRefreshToken(rawToken);
-        verify(alertAggregationService, times(1)).accept(appId, "Test App", normalizedEvent);
     }
 
     @Test
@@ -104,8 +97,6 @@ public class LogEventServiceTest {
 
         assertThrows(RateLimitExceededException.class,
                 () -> logEventService.ingestLogEvent(rawEvent, rawToken));
-
-        verify(alertAggregationService, never()).accept(any(UUID.class), any(String.class), any(LogEventRequest.class));
     }
 
     @Test
@@ -115,8 +106,6 @@ public class LogEventServiceTest {
 
         assertThrows(UnauthorizedException.class,
                 () -> logEventService.ingestLogEvent(rawEvent, rawToken));
-
-        verify(alertAggregationService, never()).accept(any(UUID.class), any(String.class), any(LogEventRequest.class));
     }
 
     @Test
@@ -127,8 +116,6 @@ public class LogEventServiceTest {
 
         assertThrows(InvalidLogEventException.class,
                 () -> logEventService.ingestLogEvent(rawEvent, rawToken));
-
-        verify(alertAggregationService, never()).accept(any(UUID.class), any(String.class), any(LogEventRequest.class));
     }
 
     @Test
@@ -150,8 +137,6 @@ public class LogEventServiceTest {
         assertTrue(response.getRejected().isEmpty());
         verify(appTokenService, times(1)).validateAndRefreshToken(rawToken);
         verify(ingestionRateLimiter, times(2)).check("hash-123");
-        verify(alertAggregationService).accept(appId, "Test App", normalizedEvent);
-        verify(alertAggregationService).accept(appId, "Test App", secondNormalized);
     }
 
     @Test
@@ -169,7 +154,6 @@ public class LogEventServiceTest {
         assertEquals(1, response.getRejected().size());
         assertEquals(0, response.getRejected().get(0).getIndex());
         assertTrue(response.getRejected().get(0).getReason().contains("message"));
-        verify(alertAggregationService, times(1)).accept(appId, "Test App", normalizedEvent);
     }
 
     @Test
@@ -180,8 +164,6 @@ public class LogEventServiceTest {
 
         assertThrows(RateLimitExceededException.class,
                 () -> logEventService.ingestLogEventBatch(List.of(rawEvent), rawToken));
-
-        verify(alertAggregationService, never()).accept(any(UUID.class), any(String.class), any(LogEventRequest.class));
     }
 
     @Test
@@ -199,7 +181,6 @@ public class LogEventServiceTest {
         assertEquals(1, response.getAccepted());
         assertEquals(1, response.getRejected().size());
         assertEquals(1, response.getRejected().get(0).getIndex());
-        verify(alertAggregationService, times(1)).accept(any(UUID.class), any(String.class), any(LogEventRequest.class));
     }
 
     @Test
@@ -209,7 +190,5 @@ public class LogEventServiceTest {
 
         assertThrows(RuntimeException.class,
                 () -> logEventService.ingestLogEvent(rawEvent, rawToken));
-
-        verify(alertAggregationService, never()).accept(any(UUID.class), any(String.class), any(LogEventRequest.class));
     }
 }

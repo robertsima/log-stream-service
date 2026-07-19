@@ -23,19 +23,6 @@ public class AlertSenderServiceImpl implements AlertSenderService {
     }
 
 //    @Override
-    public void sendTest(AlertDestination destination) {
-        if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
-            discordWebhookSender.sendTest(destination);
-            return;
-        }
-
-        if (destination.getDestinationType() == AlertDestinationType.SLACK) {
-            slackWebhookSender.sendTest(destination);
-        }
-    }
-
-
-//    @Override
 //    public void sendAggregatedAlert(AlertDestination destination, AlertTrigger alert) {
 //        if (destination.getDestinationType() == AlertDestinationType.DISCORD) {
 //            discordWebhookSender.sendAggregatedAlert(destination, alert);

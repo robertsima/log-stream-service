@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Service
 public class KafkaConsumerService {
@@ -37,8 +35,6 @@ public class KafkaConsumerService {
     private static final int MAX_CONTEXT_LOGS = 20;
 
     private final KafkaTemplate<String, AlertAnalysisOutcome> kafkaTemplate;
-
-    private final Map<UUID, Deque<AlertTrigger>> recentLogs = new ConcurrentHashMap<>();
 
     private final AlertAnalysisService alertAnalysisService;
 

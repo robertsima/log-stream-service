@@ -19,8 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 
-import com.logstream.service.alerting.AlertTimeWindow;
-import com.logstream.service.alerting.BucketFingerprint;
 import com.logstream.generated.model.LogEventRequest;
 
 @Service

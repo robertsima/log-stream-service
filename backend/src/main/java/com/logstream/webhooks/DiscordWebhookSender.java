@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.logstream.domain.model.AlertTrigger;
 import com.logstream.generated.model.AlertAnalysisResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -17,34 +16,9 @@ public class DiscordWebhookSender {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DiscordWebhookSender.class);
 
     private final RestClient restClient;
-    private final int maxMessages;
 
-    public DiscordWebhookSender(
-            RestClient.Builder builder,
-            @Value("${alerts.max-messages-per-alert:5}") int maxMessages
-    ) {
+    public DiscordWebhookSender(RestClient.Builder builder) {
         this.restClient = builder.build();
-        this.maxMessages = maxMessages;
-    }
-
-    public void sendTest(AlertDestination destination) {
-        Map<String, Object> payload = Map.of(
-                "content", "Log Stream Service test alert is working.",
-                "embeds", List.of(Map.of(
-                        "title", "Log Stream Service Test Alert",
-                        "description", "Your Discord alert destination is working.",
-                        "fields", List.of(
-                                Map.of("name", "Destination", "value", safe(destination.getName()), "inline", true),
-                                Map.of("name", "Type", "value", safe(destination.getDestinationType()), "inline", true)
-                        )
-                ))
-        );
-
-        restClient.post()
-                .uri(destination.getWebhookUrl())
-                .body(payload)
-                .retrieve()
-                .toBodilessEntity();
     }
 
 //    public void sendAggregatedAlert(AlertDestination destination, @org.checkerframework.checker.nullness.qual.MonotonicNonNull AlertTrigger bucket) {
@@ -68,14 +42,6 @@ public class DiscordWebhookSender {
 //                .retrieve()
 //                .toBodilessEntity();
 //    }
-
-    private String safe(Object value) {
-        if (value == null || String.valueOf(value).isBlank()) {
-            return "N/A";
-        }
-
-        return String.valueOf(value);
-    }
 
     private String truncate(String value, int max) {
         if (value == null) {

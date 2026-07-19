@@ -3,8 +3,6 @@ package com.logstream.service;
 import java.util.List;
 import java.util.UUID;
 
-import com.logstream.domain.model.AlertTrigger;
-import com.logstream.generated.model.LogEventRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -101,50 +99,6 @@ public class AlertDestinationServiceImpl implements AlertDestinationService {
         destination.softDelete();
         repository.save(destination);
     }
-
-    @Override
-    public void test(UUID appId, UUID destinationId) {
-
-    }
-
-    @Override
-    public void sendAnalyzedAlert(UUID appId, UUID destinationId, String fingerprint, List<LogEventRequest> events, String analysis) {
-
-    }
-
-    @Override
-    public void sendAnalyzedAlert(UUID appId, UUID destinationId, AlertTrigger alertTrigger, String analysis) {
-
-    }
-
-//    @Override
-//    public void test(UUID appId, UUID destinationId) {
-//        requireOwner(appId);
-//        AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
-//                .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
-//
-//        System.out.println("Testing alert destination: " + destination.getId());
-//
-//        alertSenderService.sendTest(destination);
-//    }
-//
-//    @Override
-//    public void sendAnalyzedAlert(UUID appId, UUID destinationId, String fingerprint, List<LogEventRequest> events, String analysis) {
-//
-//    }
-//
-//    @Override
-//    public void sendAnalyzedAlert(
-//            UUID appId,
-//            UUID destinationId,
-//            AlertTrigger alertTrigger,
-//            String analysis) {
-//        requireOwner(appId);
-//        AlertDestination destination = repository.findByIdAndAppIdAndDeletedAtIsNull(destinationId, appId)
-//                .orElseThrow(() -> new IllegalArgumentException("Alert destination not found"));
-//
-//        alertSenderService.sendAnalyzedAlert(destination, alertTrigger, analysis);
-//    }
 
     private AlertDestinationResponse toResponse(AlertDestination destination) {
         AlertDestinationResponse response = new AlertDestinationResponse();

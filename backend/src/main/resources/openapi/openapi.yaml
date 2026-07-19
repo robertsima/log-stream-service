@@ -27,8 +27,6 @@ tags:
     description: Log ingestion endpoints
   - name: Alert Destinations
     description: Slack and Discord webhook destinations for aggregated error alerts
-  - name: Alert Analysis
-    description: Preview and analyze alert event payloads using the OpenAI prompt model
   - name: Kafka
     description: >
       Kafka-backed ingestion pipeline intended to replace the synchronous Log Events
@@ -374,54 +372,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/v1/apps/{appId}/alert-destinations/{destinationId}/test:
-    post:
-      tags:
-        - Alert Destinations
-      operationId: testAlertDestination
-      summary: Send a test alert to a Slack or Discord destination
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/AppId'
-        - $ref: '#/components/parameters/DestinationId'
-      responses:
-        '202':
-          description: Test alert accepted
-        '404':
-          description: Alert destination not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/apps/{appId}/alert-destinations/{destinationId}/send-analyzed-alert:
-    post:
-      tags:
-        - Alert Destinations
-      operationId: sendAnalyzedAlert
-      summary: Deliver an analyzed alert bucket to a Slack or Discord destination
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/AppId'
-        - $ref: '#/components/parameters/DestinationId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendAnalyzedAlertRequest'
-      responses:
-        '202':
-          description: Analyzed alert accepted for delivery
-        '404':
-          description: Alert destination not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
   /api/v1/ingestion-tokens/session:
     get:
       tags:
@@ -456,7 +406,10 @@ paths:
       summary: Ingest a log event from an external app
       description: >
         Accepts short-lived log events from registered apps. Events are authenticated
-        using an app ingestion token and are not stored long-term.
+        using an app ingestion token, rate-limited, normalized, and logged synchronously.
+        This endpoint has no alerting side effect: it does not aggregate, analyze, or
+        deliver alerts. Alerting flows exclusively through the Kafka pipeline
+        (POST /api/v1/kafka/log-events and /batch).
 
         The payload is normalized tolerantly so JSON emitted by common logging stacks
         (Logback/Logstash, python-json-logger, Winston, Pino, Android, Flutter) is accepted
@@ -501,10 +454,13 @@ paths:
       operationId: ingestLogEventBatch
       summary: Ingest a batch of log events from an external app
       description: >
-        Accepts up to 100 log events in one request. Each event is normalized with the
-        same tolerant rules as the single-event endpoint. Events that cannot be normalized
-        are reported per index in the response instead of failing the whole batch.
-        Each event in the batch counts against the ingestion rate limit.
+        Accepts up to 100 log events in one request. Each event is authenticated,
+        rate-limited, normalized with the same tolerant rules as the single-event
+        endpoint, and logged synchronously. This endpoint has no alerting side effect:
+        it does not aggregate, analyze, or deliver alerts. Alerting flows exclusively
+        through the Kafka pipeline (POST /api/v1/kafka/log-events and /batch). Events
+        that cannot be normalized are reported per index in the response instead of
+        failing the whole batch.
 
         Request bodies larger than 1 MiB (1048576 bytes) are rejected with 413.
       parameters:
@@ -546,82 +502,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '429':
           description: Ingestion rate limit exceeded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/alert-analysis/preview:
-    post:
-      tags:
-        - Alert Analysis
-      operationId: previewAlertPrompt
-      summary: Preview the OpenAI prompt for an alert bucket
-      description: Trusted development diagnostic. Disabled by default because it returns generated system and user prompt text without calling the model.
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AlertBucketAnalysisRequest'
-      responses:
-        '200':
-          description: Prompt preview generated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AlertAnalysisPreviewResponse'
-        '400':
-          description: Invalid alert bucket payload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Missing or invalid bearer token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Prompt preview is disabled
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/alert-analysis/analyze:
-    post:
-      tags:
-        - Alert Analysis
-      operationId: analyzeAlertBucket
-      summary: Analyze an alert bucket using the OpenAI model
-      description: Returns a concise analysis for the provided alert bucket.
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AlertBucketAnalysisRequest'
-      responses:
-        '200':
-          description: Alert bucket analyzed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AlertAnalysisResponse'
-        '400':
-          description: Invalid alert bucket payload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Missing or invalid bearer token
           content:
             application/json:
               schema:
@@ -1095,58 +975,15 @@ components:
           format: date-time
           nullable: true
 
-    AlertBucketAnalysisRequest:
-      type: object
-      required:
-        - appId
-        - fingerprint
-        - events
-      properties:
-        appId:
-          type: string
-          format: uuid
-        fingerprint:
-          type: string
-          example: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        events:
-          type: array
-          items:
-            $ref: '#/components/schemas/LogEventRequest'
-
-    SendAnalyzedAlertRequest:
-      type: object
-      required:
-        - fingerprint
-        - events
-        - analysis
-      properties:
-        fingerprint:
-          type: string
-        events:
-          type: array
-          items:
-            $ref: '#/components/schemas/LogEventRequest'
-        analysis:
-          type: string
-          description: Formatted analysis text to include in the webhook payload.
-
-    AlertAnalysisPreviewResponse:
-      type: object
-      required:
-        - prompt
-      properties:
-        prompt:
-          type: string
-          example: "You are a concise incident-response assistant..."
-        promptCharCount:
-          type: integer
-          description: Character length of the full prompt text sent to the model.
-          example: 842
-        estimatedPromptTokens:
-          type: integer
-          description: Rough input token estimate (chars / 4). Preview only; analyze returns exact usage from OpenAI.
-          example: 211
-
+    # TokenUsage and AlertAnalysisResponse are no longer referenced by any documented
+    # operation (the alert-analysis endpoints were removed 2026-07-19 as unreachable/
+    # dead code). They are kept here deliberately: com.logstream.generated.model
+    # versions of both are live production types, built by KafkaConsumerService and
+    # consumed by DiscordWebhookSender/SlackWebhookSender/AlertSenderService(Impl) on
+    # the Kafka alerting path. openapi-generator (spring generator, interfaceOnly)
+    # generates a model class for every schema under components/schemas regardless of
+    # path references, so leaving them declared here keeps codegen producing them.
+    # Do not prune without re-checking for live com.logstream.generated.model usage.
     TokenUsage:
       type: object
       properties:

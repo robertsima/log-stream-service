@@ -4,7 +4,6 @@ import java.util.Map;
 
 import com.logstream.domain.model.AlertTrigger;
 import com.logstream.generated.model.AlertAnalysisResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -17,33 +16,9 @@ public class SlackWebhookSender {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SlackWebhookSender.class);
 
     private final RestClient restClient;
-    private final int maxMessages;
 
-    public SlackWebhookSender(
-            RestClient.Builder builder,
-            @Value("${alerts.max-messages-per-alert:5}") int maxMessages
-    ) {
+    public SlackWebhookSender(RestClient.Builder builder) {
         this.restClient = builder.build();
-        this.maxMessages = maxMessages;
-    }
-
-    public void sendTest(AlertDestination destination) {
-        Map<String, Object> payload = Map.of(
-                "text",
-                """
-                :white_check_mark: *Log Stream Service Test Alert*
-                Your Slack alert destination is working.
-
-                *Destination:* %s
-                *Type:* %s
-                """.formatted(destination.getName(), destination.getDestinationType())
-        );
-
-        restClient.post()
-                .uri(destination.getWebhookUrl())
-                .body(payload)
-                .retrieve()
-                .toBodilessEntity();
     }
 
 //    public void sendAggregatedAlert(AlertDestination destination, @org.checkerframework.checker.nullness.qual.MonotonicNonNull AlertTrigger bucket) {

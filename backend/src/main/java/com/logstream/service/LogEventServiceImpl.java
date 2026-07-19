@@ -26,17 +26,14 @@ public class LogEventServiceImpl implements LogEventService {
 
     private static final Logger log = LoggerFactory.getLogger(LogEventServiceImpl.class);
     private final AppTokenService appTokenService;
-    private final AlertAggregationService alertAggregationService;
     private final IngestionRateLimiter ingestionRateLimiter;
     private final LogEventNormalizer logEventNormalizer;
 
     public LogEventServiceImpl(
             AppTokenService appTokenService,
-            AlertAggregationService alertAggregationService,
             IngestionRateLimiter ingestionRateLimiter,
             LogEventNormalizer logEventNormalizer) {
         this.appTokenService = appTokenService;
-        this.alertAggregationService = alertAggregationService;
         this.ingestionRateLimiter = ingestionRateLimiter;
         this.logEventNormalizer = logEventNormalizer;
     }
@@ -53,8 +50,6 @@ public class LogEventServiceImpl implements LogEventService {
         LogEventRequest event = logEventNormalizer.normalize(rawEvent);
 
         logAccepted(appToken, event);
-
-        alertAggregationService.accept(appToken.getAppId(), appToken.getAppName(), event);
     }
 
 //    @Override
@@ -88,7 +83,6 @@ public class LogEventServiceImpl implements LogEventService {
             try {
                 LogEventRequest event = logEventNormalizer.normalize(rawEvents.get(i));
                 logAccepted(appToken, event);
-                alertAggregationService.accept(appToken.getAppId(), appToken.getAppName(), event);
                 accepted++;
             } catch (InvalidLogEventException ex) {
                 rejected.add(new LogEventBatchRejection(i, ex.getMessage()));
