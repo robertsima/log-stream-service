@@ -574,6 +574,32 @@
   }
 
   // -------------------------
+  // Kafka pipeline status
+  // -------------------------
+
+  async function loadKafkaStatus() {
+    const badge = document.getElementById("kafka-status-badge");
+    if (!badge) {
+      return;
+    }
+    try {
+      const status = await window.restService.getKafkaStatus();
+      badge.hidden = false;
+      badge.classList.remove("badge-success", "badge-muted");
+      if (status && status.enabled) {
+        badge.classList.add("badge-success");
+        badge.textContent = "Kafka pipeline: enabled";
+      } else {
+        badge.classList.add("badge-muted");
+        badge.textContent = "Kafka pipeline: disabled";
+      }
+    } catch {
+      // Non-critical status indicator; hide rather than surface an error banner.
+      badge.hidden = true;
+    }
+  }
+
+  // -------------------------
   // Auth
   // -------------------------
 
@@ -581,6 +607,7 @@
     window.PrairieLogState.user = user;
     updateView();
     await loadApps();
+    loadKafkaStatus();
     showActivityBanner(message || "Signed in as " + user.email + ".", "success");
   }
 

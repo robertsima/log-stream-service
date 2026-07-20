@@ -1,6 +1,8 @@
 # PrairieLog Python Handler
 
-Small `logging.Handler` for Python services. It batches records through `POST /api/v1/log-events/batch`, maps Python log levels to PrairieLog levels, and flushes on demand.
+Small `logging.Handler` for Python services. It batches records through `POST /api/v1/kafka/log-events/batch` — the Kafka-backed ingestion pipeline that also drives alert aggregation, analysis, and Slack/Discord delivery — maps Python log levels to PrairieLog levels, and flushes on demand.
+
+If the server answers HTTP 503 (Kafka integration disabled or broker unavailable), the handler automatically falls back to the synchronous `POST /api/v1/log-events/batch` endpoint so logs are never lost — but that endpoint has no alerting side effect, so alerts are degraded until Kafka is back. The fallback is reported once per outage on `stderr`.
 
 ```bash
 pip install prairielog-handler

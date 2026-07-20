@@ -21,7 +21,9 @@ prairieLog.installGlobalHandlers();
 prairieLog.info("Checkout loaded", { route: "/checkout" });
 ```
 
-The client sends events to `POST /api/v1/log-events/batch`, generates `id` and `occurredAt` when omitted, normalizes common level aliases, retries transient failures with backoff, and keeps an in-memory queue while offline. In browsers, pass `storageKey` to persist the queue in `localStorage`.
+The client sends events to `POST /api/v1/kafka/log-events/batch`, the Kafka-backed ingestion pipeline that also drives alert aggregation, analysis, and Slack/Discord delivery. If the server answers HTTP 503 (Kafka integration disabled or broker unavailable), the client automatically falls back to the synchronous `POST /api/v1/log-events/batch` endpoint so logs are never lost — but that endpoint has no alerting side effect, so alerts are degraded until Kafka is back. The fallback is reported once per outage through `onError` (or `console.error` when no `onError` is configured).
+
+The client generates `id` and `occurredAt` when omitted, normalizes common level aliases, retries transient failures with backoff, and keeps an in-memory queue while offline. In browsers, pass `storageKey` to persist the queue in `localStorage`.
 
 ```ts
 const prairieLog = new PrairieLogClient({

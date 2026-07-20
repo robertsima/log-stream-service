@@ -93,6 +93,7 @@ export class PrairieLogClient {
   private readonly queue: PrairieLogEvent[] = [];
   private flushTimer?: TimerHandle;
   private flushInFlight = false;
+  private kafkaUnavailableReported = false;
 
   constructor(config: PrairieLogClientConfig) {
     if (!config.apiUrl || !config.ingestionToken) {
@@ -331,7 +332,40 @@ export class PrairieLogClient {
   }
 
   private async postBatch(batch: PrairieLogEvent[]): Promise<void> {
-    const response = await this.fetchImpl(`${this.apiUrl}/api/v1/log-events/batch`, {
+    const kafkaResponse = await this.post("/api/v1/kafka/log-events/batch", batch);
+
+    if (kafkaResponse.ok) {
+      this.kafkaUnavailableReported = false;
+      return;
+    }
+
+    if (kafkaResponse.status !== 503) {
+      throw new PrairieLogHttpError(kafkaResponse.status, kafkaResponse.statusText);
+    }
+
+    // 503 means the server's Kafka integration is disabled or the broker is down.
+    // Alerting flows exclusively through Kafka, so alerts are degraded — but fall
+    // back to the synchronous ingestion endpoint so logs are not lost.
+    if (!this.kafkaUnavailableReported) {
+      this.kafkaUnavailableReported = true;
+      this.reportError(new Error(
+        "PrairieLog Kafka ingestion unavailable (HTTP 503); falling back to POST /api/v1/log-events/batch. Logs are still ingested but alerting is degraded until Kafka is back."
+      ));
+    }
+
+    const fallbackResponse = await this.post("/api/v1/log-events/batch", batch);
+    if (!fallbackResponse.ok) {
+      throw new PrairieLogHttpError(fallbackResponse.status, fallbackResponse.statusText);
+    }
+
+    const result = await safeJson<PrairieLogBatchResponse>(fallbackResponse);
+    if (result?.rejected?.length) {
+      this.reportError(new Error(`PrairieLog rejected ${result.rejected.length} event(s).`));
+    }
+  }
+
+  private post(path: string, batch: PrairieLogEvent[]): Promise<Response> {
+    return this.fetchImpl(`${this.apiUrl}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -339,15 +373,6 @@ export class PrairieLogClient {
       },
       body: JSON.stringify(batch)
     });
-
-    if (!response.ok) {
-      throw new PrairieLogHttpError(response.status, response.statusText);
-    }
-
-    const result = await safeJson<PrairieLogBatchResponse>(response);
-    if (result?.rejected?.length) {
-      this.reportError(new Error(`PrairieLog rejected ${result.rejected.length} event(s).`));
-    }
   }
 
   private restoreQueue(): void {

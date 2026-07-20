@@ -65,15 +65,19 @@ public class PrairieLogAppender extends AppenderBase<ILoggingEvent> {
         String payload = "[" + String.join(",", buffer) + "]";
         buffer.clear();
 
-        HttpRequest request = HttpRequest.newBuilder(URI.create(apiUrl + "/api/v1/log-events/batch"))
-                .header("Content-Type", "application/json")
-                .header("X-Ingestion-Token", ingestionToken)
-                .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-                .build();
         try {
-            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
-            if (response.statusCode() >= 400) {
-                addWarn("PrairieLog request failed with HTTP " + response.statusCode());
+            int status = post("/api/v1/kafka/log-events/batch", payload);
+            if (status == 503) {
+                // 503 means the server's Kafka integration is disabled or the broker is
+                // down. Alerting flows exclusively through Kafka, so alerts are degraded
+                // -- but fall back to the synchronous ingestion endpoint so logs are not lost.
+                addWarn("PrairieLog Kafka ingestion unavailable (HTTP 503); falling back to "
+                        + "POST /api/v1/log-events/batch. Logs are still ingested but alerting "
+                        + "is degraded until Kafka is back.");
+                status = post("/api/v1/log-events/batch", payload);
+            }
+            if (status >= 400) {
+                addWarn("PrairieLog request failed with HTTP " + status);
             }
         } catch (IOException ex) {
             addError("PrairieLog request failed.", ex);
@@ -81,6 +85,16 @@ public class PrairieLogAppender extends AppenderBase<ILoggingEvent> {
             Thread.currentThread().interrupt();
             addError("PrairieLog request interrupted.", ex);
         }
+    }
+
+    private int post(String path, String payload) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(apiUrl + path))
+                .header("Content-Type", "application/json")
+                .header("X-Ingestion-Token", ingestionToken)
+                .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
+                .build();
+        HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+        return response.statusCode();
     }
 
     private String toJson(ILoggingEvent event) {

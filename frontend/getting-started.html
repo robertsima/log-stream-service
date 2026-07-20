@@ -81,6 +81,7 @@
           <a class="guide-toc-sub" href="#generate-token">Generate token</a>
           <a class="guide-toc-sub" href="#alert-destination">Alert destination</a>
           <a class="guide-toc-sub" href="#send-log-event">Send log event</a>
+          <a class="guide-toc-sub" href="#kafka-alerting">Trigger an alert (Kafka)</a>
         </div>
       </aside>
 
@@ -92,7 +93,7 @@
             <li><strong>Ingestion token</strong> - the token your app uses to send logs.</li>
             <li><strong>Alert webhook</strong> - the Slack or Discord URL that receives alerts.</li>
           </ul>
-          <p class="muted">Only <strong>ERROR</strong> logs trigger aggregated alerts. INFO, WARN, DEBUG, and TRACE are accepted but do not notify.</p>
+          <p class="muted">Only <strong>ERROR</strong> logs trigger aggregated alerts, and only when sent through the Kafka-backed ingestion endpoints (what the SDKs use). INFO, WARN, DEBUG, and TRACE are accepted but never notify, and the plain <code>/api/v1/log-events</code> endpoints accept logs for live relay without alerting at all.</p>
         </section>
 
         <section id="sdk-install" class="page-section card-section">
@@ -119,7 +120,7 @@ pip install prairielog-handler
 &lt;dependency&gt;
   &lt;groupId&gt;io.github.robertsima&lt;/groupId&gt;
   &lt;artifactId&gt;prairielog-logback&lt;/artifactId&gt;
-  &lt;version&gt;0.1.0&lt;/version&gt;
+  &lt;version&gt;0.2.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
       </div>
       <p class="muted">Use npm for TypeScript and JavaScript apps, PyPI for Python services, and Maven Central for Logback-based JVM services.</p>
@@ -347,25 +348,9 @@ logging.exception("Payment failed")</code></pre>
       <p>Destination types: <code>SLACK</code> or <code>DISCORD</code>. Webhook URLs are stored by the API but never returned in full from list endpoints.</p>
         </section>
 
-        <section id="test-destination" class="page-section card-section">
-      <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Test your alert destination</span></h2>
-      <p>Send a test message to confirm PrairieLog can reach your Slack or Discord channel.</p>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-label">curl</span>
-          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step6" aria-label="Copy code">
-            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
-            <span class="btn-label">Copy</span>
-          </button>
-        </div>
-        <pre id="gs-step6"><code>curl -X POST \
-  __API_BASE_URL__/api/v1/apps/{appId}/alert-destinations/{destinationId}/test</code></pre>
-      </div>
-        </section>
-
         <section id="send-log-event" class="page-section card-section">
       <h2 class="heading-with-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i><span>Send a log event</span></h2>
-      <p>POST a JSON log event from your app using your <strong>ingestion token</strong> (not the alert webhook).</p>
+      <p>POST a JSON log event from your app using your <strong>ingestion token</strong> (not the alert webhook). This plain endpoint accepts the log for live relay only — it never aggregates or alerts, no matter the level.</p>
       <div class="code-block">
         <div class="code-block-header">
           <span class="code-block-label">JSON payload</span>
@@ -405,7 +390,42 @@ logging.exception("Payment failed")</code></pre>
     "traceId": "trace-abc-123"
   }]'</code></pre>
       </div>
-      <p class="muted">Use <code>level: "ERROR"</code> to trigger aggregated alerts. Other levels are accepted but do not notify.</p>
+      <p class="muted">This endpoint has no alerting side effect, even for <code>level: "ERROR"</code>. If you want an alert, use the Kafka-backed endpoint below instead.</p>
+        </section>
+
+        <section id="kafka-alerting" class="page-section card-section">
+      <h2 class="heading-with-icon"><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i><span>Trigger an alert (Kafka pipeline)</span></h2>
+      <p>
+        Alerting is asynchronous and flows exclusively through the Kafka-backed ingestion endpoints. The SDKs use this
+        path automatically. A request queues the event on the <code>central-log-events</code> topic; normalization,
+        aggregation, optional analysis, and delivery to your configured destinations all happen in background
+        consumers, so this endpoint responds as soon as the event is queued, not once an alert is sent.
+      </p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-label">curl</span>
+          <button type="button" class="secondary copy-code-button copy-code-button-compact" data-copy-target="gs-step-kafka" aria-label="Copy code">
+            <i data-lucide="copy" class="icon" aria-hidden="true"></i>
+            <span class="btn-label">Copy</span>
+          </button>
+        </div>
+        <pre id="gs-step-kafka"><code>curl -X POST __API_BASE_URL__/api/v1/kafka/log-events \
+  -H "Content-Type: application/json" \
+  -H "X-Ingestion-Token: YOUR_INGESTION_TOKEN" \
+  -d '{
+    "level": "ERROR",
+    "message": "Failed to process payment for user 123.",
+    "logger": "com.example.PaymentService",
+    "traceId": "trace-abc-123"
+  }'</code></pre>
+      </div>
+      <p class="muted">
+        A batch variant exists at <code>POST /api/v1/kafka/log-events/batch</code> (array body, same shape as the
+        plain batch endpoint). Both return <code>503</code> if the Kafka integration toggle is disabled or the broker
+        is unavailable — check <code>GET /api/v1/kafka/status</code> from a signed-in session if alerts stop arriving.
+        Similar ERROR events that land close together are grouped into one summarized chat message instead of one
+        message per event.
+      </p>
         </section>
       </div>
     </div>

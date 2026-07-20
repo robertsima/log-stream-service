@@ -401,6 +401,18 @@ class RestService {
   }
 
   // -------------------------
+  // Kafka pipeline status
+  // -------------------------
+
+  async getKafkaStatus() {
+    const response = await this.request("/api/v1/kafka/status", {
+      method: "GET"
+    });
+
+    return response.data;
+  }
+
+  // -------------------------
   // Embedded OpenAPI Resource
   // -------------------------
 

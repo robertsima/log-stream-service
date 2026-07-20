@@ -1,12 +1,14 @@
 # PrairieLog Logback Appender
 
-Minimal Logback appender for Java services. It batches events through `POST /api/v1/log-events/batch`.
+Minimal Logback appender for Java services. It batches events through `POST /api/v1/kafka/log-events/batch`, the Kafka-backed ingestion pipeline that also drives alert aggregation, analysis, and Slack/Discord delivery.
+
+If the server answers HTTP 503 (Kafka integration disabled or broker unavailable), the appender automatically falls back to the synchronous `POST /api/v1/log-events/batch` endpoint so logs are never lost — but that endpoint has no alerting side effect, so alerts are degraded until Kafka is back. The fallback is reported through Logback's status system (`addWarn`).
 
 ```xml
 <dependency>
   <groupId>io.github.robertsima</groupId>
   <artifactId>prairielog-logback</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 

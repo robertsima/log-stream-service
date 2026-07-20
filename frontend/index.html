@@ -133,24 +133,28 @@
       <details class="faq-item">
         <summary><span class="faq-kicker">Alerting</span> How do I get PrairieLog to trigger a Slack or Discord message?</summary>
         <p>
-          After registering with an account, you can create an application object and personal token. You can then use 
-          your token and slack/discord webhook URLs to communicate with PrairieLog via endpoints. For PrairieLog API to send alerts, 
-          it must be sent <strong>ERROR</strong> logs. Once it recieves a log it gathers nearby related INFO, DEBUG, and TRACE logs to 
-          analyze and create alerts. Only ERROR events trigger this process and other log levels stay quiet in the meantime. 
-          PrairieLog uses a number of data techniques to group, condense, and summarize related logs, then uses a model for final smart alert creation 
-          to send to your configured application webhooks. 
+          After registering with an account, you can create an application object and personal token. You can then use
+          your token and slack/discord webhook URLs to communicate with PrairieLog via endpoints. For PrairieLog API to send alerts,
+          it must be sent <strong>ERROR</strong> logs through the Kafka-backed ingestion endpoints (what the SDKs use by default) —
+          plain log-relay endpoints never alert, no matter the level. Once a queued ERROR log is picked up, PrairieLog gathers nearby
+          related INFO, DEBUG, and TRACE logs asynchronously to analyze and create alerts. Only ERROR events trigger this process and
+          other log levels stay quiet in the meantime. PrairieLog uses a number of data techniques to group, condense, and summarize
+          related logs, then uses a model for final smart alert creation to send to your configured application webhooks.
         </p>
       </details>
 
       <details class="faq-item">
         <summary><span class="faq-kicker">Setup</span> What does the SDK do? Do I need it or can I use API docs instead? </summary>
         <p>
-          SDKs are configured to provide the shortest path for devs to integrate PrairieLog into their application. 
-          Currently, they serve as a wrapper around the raw API calls, they do not substitute the API so you still 
-          need a valid web connection. SDKs use the batch endpoint to send grouped logs to an AI model for analysis, 
-          falling back to regular alerting if it fails. Optionally you can use the raw API docs to send logs directly
-           using /api/v1/log-events for single events OR /api/v1/log-events/batch for up to 100 logging events in a single 
-           request. You are free to use whatever makes sense for your use case as long you provide a webhook and access token. 
+          SDKs are configured to provide the shortest path for devs to integrate PrairieLog into their application.
+          Currently, they serve as a wrapper around the raw API calls, they do not substitute the API so you still
+          need a valid web connection. SDKs send batched logs through the Kafka-backed ingestion endpoints, where matching
+          ERROR logs are grouped and sent to an AI model for analysis, falling back to regular summarized alerting if
+          analysis fails. Optionally you can use the raw API docs to send logs directly using /api/v1/kafka/log-events for
+          single events OR /api/v1/kafka/log-events/batch for up to 100 logging events in a single request, if you want that
+          same alerting behavior yourself. The plain /api/v1/log-events and /api/v1/log-events/batch endpoints are also available
+          for simple relay-only logging, but they never trigger alerts. You are free to use whatever makes sense for your use case
+          as long you provide a webhook and access token.
         </p>
       </details>
 
@@ -211,12 +215,12 @@
           {
             "@type": "Question",
             "name": "What actually triggers a Slack or Discord message?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Only ERROR events create alert notifications. INFO, DEBUG, TRACE, and WARN events can still be accepted by the ingestion API, but they stay quiet. Matching ERROR logs are grouped over a short window so one noisy failure becomes one summarized chat alert instead of a wall of messages." }
+            "acceptedAnswer": { "@type": "Answer", "text": "Only ERROR events sent through the Kafka-backed ingestion endpoints create alert notifications; the plain log-relay endpoints never alert, at any level. INFO, DEBUG, TRACE, and WARN events can still be accepted by the ingestion API, but they stay quiet. Matching ERROR logs are grouped asynchronously over a short window so one noisy failure becomes one summarized chat alert instead of a wall of messages." }
           },
           {
             "@type": "Question",
             "name": "Do I need the raw API, or should I use an SDK?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Use an SDK for application logging. The TypeScript client, Python handler, and Java Logback appender handle batching, level mapping, and the batch endpoint shape. Use the raw API docs for automation, debugging, or integrating a logger that already emits structured JSON." }
+            "acceptedAnswer": { "@type": "Answer", "text": "Use an SDK for application logging. The TypeScript client, Python handler, and Java Logback appender handle batching, level mapping, and the Kafka-backed ingestion shape that enables alerting. Use the raw API docs for automation, debugging, or integrating a logger that already emits structured JSON." }
           },
           {
             "@type": "Question",
@@ -266,14 +270,14 @@
         <span class="flow-list-icon"><i data-lucide="send" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
           <h3>Send ERROR logs</h3>
-          <p>Install the TypeScript, Python, or Logback SDK, or POST JSON logs to the batch ingestion endpoint with the <code>X-Ingestion-Token</code> header.</p>
+          <p>Install the TypeScript, Python, or Logback SDK, or POST JSON logs to the Kafka-backed batch ingestion endpoint with the <code>X-Ingestion-Token</code> header.</p>
         </div>
       </li>
       <li class="flow-list-item">
         <span class="flow-list-icon"><i data-lucide="layers" class="icon" aria-hidden="true"></i></span>
         <div class="flow-list-body">
           <h3>Get alerts</h3>
-          <p>Matching ERROR logs are aggregated, then delivered to your alert webhook. Other levels are accepted but stay quiet.</p>
+          <p>Matching ERROR logs are aggregated asynchronously, then delivered to your alert webhook. Other levels are accepted but stay quiet, and the plain (non-Kafka) log endpoints never alert.</p>
         </div>
       </li>
     </ol>
@@ -304,7 +308,7 @@ pip install prairielog-handler
 &lt;dependency&gt;
   &lt;groupId&gt;io.github.robertsima&lt;/groupId&gt;
   &lt;artifactId&gt;prairielog-logback&lt;/artifactId&gt;
-  &lt;version&gt;0.1.0&lt;/version&gt;
+  &lt;version&gt;0.2.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
     </div>
     <div class="code-block">
