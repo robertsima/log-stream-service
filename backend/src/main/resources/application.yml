@@ -44,12 +44,13 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       acks: all
 
-    # Streams configs — RF 1 for single-broker / free-tier clusters
+    # Streams configs — RF 2: Aiven's managed cluster requires/defaults to a
+    # minimum replication factor of 2 (rejects RF 1 topic/changelog creation)
     streams:
       application-id: log-stream-service-streams   # required, becomes the consumer group id
-      replication-factor: 1
+      replication-factor: 2
       properties:
-        default.replication.factor: 1
+        default.replication.factor: 2
         num.standby.replicas: 0
 
 logging:

@@ -33,26 +33,27 @@ public class KafkaConfig {
         // short-lived logs by design: no persistent log storage (MVP constraint).
         // retention only deletes *closed* segments, so segment.ms must be short too
         // or a low-volume topic never rolls and retention.ms never fires.
-        // Free-tier friendly: 2 partitions, RF 1 (no internal Streams topics needed —
-        // producer keys by appId; alert buffer store uses withLoggingDisabled).
+        // 2 partitions (free-tier friendly); RF 2 because Aiven's managed cluster
+        // rejects/requires a minimum replication factor of 2 (no internal Streams
+        // topics needed — producer keys by appId; alert buffer store uses withLoggingDisabled).
         return new KafkaAdmin.NewTopics(
                 TopicBuilder.name("central-log-events") //regular log injection
                         .partitions(2)
-                        .replicas(1)
+                        .replicas(2)
                         .config(TopicConfig.RETENTION_MS_CONFIG, "1800000") // 30 min
                         .config(TopicConfig.SEGMENT_MS_CONFIG, "600000") // roll every 10 min
                         .config(TopicConfig.MAX_MESSAGE_BYTES_CONFIG, "1048588") // 1mb max
                         .build(),
                 TopicBuilder.name("alert-messages") //alert message bundles for AI response
                         .partitions(2)
-                        .replicas(1)
+                        .replicas(2)
                         .config(TopicConfig.RETENTION_MS_CONFIG, "1800000")
                         .config(TopicConfig.SEGMENT_MS_CONFIG, "600000")
                         .config(TopicConfig.MAX_MESSAGE_BYTES_CONFIG, "1048588")
                         .build(),
                 TopicBuilder.name("analyzed-events") //AI alerts
                         .partitions(2)
-                        .replicas(1)
+                        .replicas(2)
                         .config(TopicConfig.RETENTION_MS_CONFIG, "1800000")
                         .config(TopicConfig.SEGMENT_MS_CONFIG, "600000")
                         .config(TopicConfig.MAX_MESSAGE_BYTES_CONFIG, "1048588")
