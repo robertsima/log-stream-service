@@ -34,6 +34,7 @@ public class DiscordWebhookSender {
 
     public void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis, AlertGroupSummary summary) {
         if (analysis.getAnalysis() == null || analysis.getAnalysis().isBlank()) {
+            log.warn("Discord destination {} skipped: analysis text is blank", destination.getId());
             return;
         }
         if (destination.getWebhookUrl() == null || destination.getWebhookUrl().isBlank()) {

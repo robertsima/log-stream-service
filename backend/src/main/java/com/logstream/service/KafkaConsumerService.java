@@ -104,14 +104,25 @@ public class KafkaConsumerService {
         // and findByApp's requireOwner() would fail on a listener thread with no auth context
         List<AlertDestination> destinations = alertDestinationRepository
                 .findByAppIdAndEnabledTrueAndDeletedAtIsNull(UUID.fromString(outcome.appId()));
+        if (destinations.isEmpty()) {
+            log.warn("No enabled alert destinations found for app={}; analyzed event dropped", outcome.appId());
+            return;
+        }
+        log.info("Delivering analyzed alert for app={} to {} destination(s)", outcome.appId(), destinations.size());
         for (AlertDestination destination : destinations) {
             try {
                 alertSenderService.sendAnalyzedAlert(destination, analysis, summary);
+                log.info("Delivered analyzed alert to destination {} ({})",
+                        destination.getId(), destination.getDestinationType());
             } catch (Exception e) {
                 // one down webhook must not fail the whole record into the retry loop;
-                // RestClient exception messages embed the full webhook URL, so log only the class
-                log.warn("Failed to deliver analyzed alert to destination {} ({}): {}",
-                        destination.getId(), destination.getDestinationType(), e.getClass().getSimpleName());
+                // RestClient exception messages embed the full webhook URL, so log only the
+                // class + HTTP status (when available) rather than the raw exception message
+                String status = e instanceof org.springframework.web.client.RestClientResponseException rce
+                        ? String.valueOf(rce.getStatusCode().value())
+                        : "n/a";
+                log.warn("Failed to deliver analyzed alert to destination {} ({}): {} [http={}]",
+                        destination.getId(), destination.getDestinationType(), e.getClass().getSimpleName(), status);
             }
         }
     }
