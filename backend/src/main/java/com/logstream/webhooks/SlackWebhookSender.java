@@ -1,13 +1,17 @@
 package com.logstream.webhooks;
 
+import java.time.Duration;
 import java.util.Map;
 
 import com.logstream.domain.model.AlertGroupSummary;
 import com.logstream.generated.model.AlertAnalysisResponse;
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.logstream.domain.entity.AlertDestination;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 
 
 @Service
@@ -18,26 +22,22 @@ public class SlackWebhookSender {
     private final RestClient restClient;
 
     public SlackWebhookSender(RestClient.Builder builder) {
-        this.restClient = builder.build();
-    }
+        ConnectionProvider provider = ConnectionProvider.builder("slack")
+                .maxIdleTime(Duration.ofSeconds(30))
+                .evictInBackground(Duration.ofSeconds(30))
+                .build();
 
-//    public void sendAggregatedAlert(AlertDestination destination, @org.checkerframework.checker.nullness.qual.MonotonicNonNull AlertTrigger bucket) {
-//        if (bucket.getEvents().isEmpty()) {
-//            return;
-//        }
-//
-//        AlertSummary summary = AlertNotificationFormatter.summarize(bucket, maxMessages);
-//
-//        Map<String, Object> payload = Map.of(
-//                "text", AlertNotificationFormatter.buildSlackText(summary)
-//        );
-//
-//        restClient.post()
-//                .uri(destination.getWebhookUrl())
-//                .body(payload)
-//                .retrieve()
-//                .toBodilessEntity();
-//    }
+        HttpClient httpClient = HttpClient.create(provider);
+
+        ReactorClientHttpRequestFactory requestFactory =
+                new ReactorClientHttpRequestFactory(httpClient);
+
+        this.restClient = builder
+                .clone()
+                .requestFactory(requestFactory)
+                .build();
+    }
+    
 
     public void sendAnalyzedAlert(AlertDestination destination, AlertAnalysisResponse analysis, AlertGroupSummary summary) {
         if (analysis.getAnalysis() == null || analysis.getAnalysis().isBlank()) {

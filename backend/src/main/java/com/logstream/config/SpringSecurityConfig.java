@@ -59,8 +59,8 @@ public class SpringSecurityConfig {
                     "/swagger-ui.html",
                     "/v3/api-docs/**",
                     "/v3/api-docs.yaml",
-                    "/api/v1/auth/demo-session",
-                    "/api/v1/**"
+                    "/api/v1/auth/demo-session"
+                        //unsure about authentication here
                 ).permitAll()
                 .requestMatchers("/secured/admin").hasRole("ADMIN")
                 .requestMatchers("/secured/user").hasAnyRole("USER", "ADMIN")
